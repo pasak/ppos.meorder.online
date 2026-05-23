@@ -25,7 +25,7 @@ class _SimplePrintScreenState extends State<SimplePrintScreen> {
     try {
       // Basic text printing
       await SunmiPrinter.printText('Simple raw text');
-      
+
       // Bold and centered text
       await SunmiPrinter.printText(
         'Bold text centered',
@@ -33,7 +33,7 @@ class _SimplePrintScreenState extends State<SimplePrintScreen> {
       );
 
       await SunmiPrinter.lineWrap(2); // Jump 2 lines
-      
+
       // Large font size text
       await SunmiPrinter.printText(
         'Very Large font!',
@@ -53,11 +53,11 @@ class _SimplePrintScreenState extends State<SimplePrintScreen> {
           qrcodeSize: 3,
           errorLevel: SunmiQrcodeLevel.LEVEL_H,
         ),
-      ); 
-      
+      );
+
       // Final feed and cut
       await SunmiPrinter.lineWrap(4); // Extra lines to push receipt out
-      await SunmiPrinter.cut(); // Cut the receipt
+      await SunmiPrinter.cutPaper(); // Cut the receipt
 
       setState(() {
         _status = 'Print successful!';

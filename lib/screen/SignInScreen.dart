@@ -1,13 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:meorder_kitchen/lib/EnvConfig.dart';
-import 'package:meorder_kitchen/screen/HomeScreen.dart';
+import 'package:meorder_ppos/lib/EnvConfig.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:isar/isar.dart';
+import 'package:meorder_ppos/database/IsarModels.dart';
+import 'package:meorder_ppos/screen/PPosScreen.dart';
+import 'package:bcrypt/bcrypt.dart';
 
 class SignInScreen extends StatefulWidget {
-  // **สำคัญ: ต้องรับ EnvConfig ผ่าน Constructor**
   final EnvConfig config; 
   const SignInScreen({super.key, required this.config});
 
@@ -16,58 +17,44 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
-// 1. สถานะเริ่มต้น: ภาษาไทย ('th')
   String _currentLang = 'th';
   String _error = '';
   String _debug = '';
 
-  // 2. สถานะ Map ข้อความเริ่มต้น
   late Map<String, String> _labels;
 
-  // Controller สำหรับ Text Field
   final TextEditingController _controller = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   
-  // สถานะสำหรับควบคุมปุ่ม Submit (เริ่มต้น disable)
   bool _isButtonEnabled = false;
-
-  // 💡 ตัวแปรสำหรับเก็บ config ที่อัปเดตแล้วใน State
-  // เริ่มต้นด้วย config ที่รับมาจาก widget
   late EnvConfig _currentConfig;
 
   @override
   void initState() {
     super.initState();
-    // โหลด Map ข้อความเริ่มต้น
     _labels = getLabels(_currentLang);
-    // เพิ่ม Listener เพื่อตรวจสอบความถูกต้องของ Input ทุกครั้งที่มีการเปลี่ยนแปลง
     _controller.addListener(_validateInput);
+    _passwordController.addListener(_validateInput);
     _currentConfig = widget.config;
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
-  // 3. ฟังก์ชันสำหรับเปลี่ยนภาษาและอัปเดต State
   void _toggleLanguage() {
     final newLang = _currentLang == 'th' ? 'en' : 'th';
-    
-    // ใช้งาน setState เพื่ออัปเดต UI
     setState(() {
       _currentLang = newLang;
-      _labels = getLabels(_currentLang); // โหลด Map ข้อความใหม่
+      _labels = getLabels(_currentLang);
     });
   }
 
-  // ตรรกะในการตรวจสอบ Input (ต้องเป็นตัวเลข 6 หลัก)
   void _validateInput() {
-    final text = _controller.text;
-    // ตรวจสอบว่ามี 6 ตัวอักษรพอดี และสามารถแปลงเป็นตัวเลขได้
-    final isValid = text.length == 6 && int.tryParse(text) != null;
-    
-    // อัปเดตสถานะปุ่มหากมีการเปลี่ยนแปลง
+    final isValid = _controller.text.isNotEmpty && _passwordController.text.isNotEmpty;
     if (_isButtonEnabled != isValid) {
       setState(() {
         _isButtonEnabled = isValid;
@@ -75,144 +62,146 @@ class _SignInScreenState extends State<SignInScreen> {
     }
   }
   
-  // ตรรกะเมื่อกดปุ่ม Submit
-  void _submitCode() async {
-    final kitchenCode = _controller.text;
-
-    final uri = Uri.parse(widget.config.apiUrl + 'sign-in'); 
-
-    setState(() { _debug = 'Url: ${widget.config.apiUrl} Token: ${widget.config.apiToken}'; });
-
-    // สร้าง Header
-    final headers = {
-      'Content-Type': 'application/json', // บอกเซิร์ฟเวอร์ว่า Body เป็น JSON
-      'Authorization': 'Bearer ${widget.config.apiToken}', // สร้าง Bearer Token
-    };
-
-    // สร้าง Body
-    final body = jsonEncode({'Code': kitchenCode});
-
+  void _submitUserNamePassword() async {
+    final userName = _controller.text;
+    final password = _passwordController.text;
+    
     try {
-      final response = await http.post(uri, headers: headers, body: body);
-      
-      if (response.statusCode == 200) {
-        setState(() { _debug = 'Success! API Response: ${response.body}'; });
-        
-        final kitchen = jsonDecode(response.body);
+      final isar = Isar.getInstance()!;
+      final user = await isar.userList.filter().userNameEqualTo(userName).findFirst();
 
-        final DateTime expireDate = DateTime.parse(kitchen['ExpireDate']);
+      if (user != null) {
+         final isMatch = BCrypt.checkpw(password, user.passwordHash ?? '');
+         if (isMatch) {
+            final updatedConfig = _currentConfig.copyWith(
+              UserID: user.id.toString(),
+              UserRole: user.role,
+              language: user.language,
+            );
 
-        final DateTime today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+            final directory = await getApplicationDocumentsDirectory();
+            final filePath = '${directory.path}/branch.json';
+            final file = File(filePath);
 
-        if (today.isAfter(expireDate)) {
-          setState(() { _error = _labels['ServiceExpired']!; });
-          return;
-        } 
+            if (await file.exists()) {
+              final content = await file.readAsString();
+              final branchData = jsonDecode(content);
+              branchData['UserID'] = user.id.toString();
+              branchData['UserRole'] = user.role;
+              branchData['language'] = user.language;
+              
+              await file.writeAsString(jsonEncode(branchData));
+            }
 
-        final directory = await getApplicationDocumentsDirectory();
-        const String fileName = 'kitchen.txt';
-        final filePath = '${directory.path}/$fileName';
-        await File(filePath).writeAsString(response.body);
-
-        // 1. อัปเดต config ด้วยค่าใหม่ (TerminalID และ ExpireDate)
-        final updatedConfig = _currentConfig.copyWith(
-          terminalId: kitchen['TerminalID'],
-          expireDate: expireDate,
-        );
-
-        // 2. อัปเดต config ใน State
-        setState(() { _currentConfig = updatedConfig; });
-
-        // 4. นำทางไปยัง HomeScreen พร้อมส่ง config ที่อัปเดตแล้ว
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => HomeScreen(config: _currentConfig), // ส่ง config ที่มี TerminalID & ExpireDate
-          ),
-        );
+            if (mounted) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => PPosScreen(config: updatedConfig),
+                ),
+              );
+            }
+         } else {
+            setState(() { _error = _labels['PasswordIncorrect']!; });
+         }
       } else {
-        setState(() { _error = 'API Error ${response.statusCode}: ${response.body}'; });
+         setState(() { _error = _labels['NotFoundThisUserName']!; });
       }
     } catch (e) {
-      setState(() { _error = 'Network/Connection Error: $e'; });
-    }    
-  } // _submitCode
+      setState(() { _error = e.toString(); });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar( title: Text(widget.config.appTitle) ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Image.asset('assets/images/meorder-online-logo.png', height: 40, width: 40, ),
-            SizedBox(height: 10), 
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Image.asset('assets/images/meorder-online-logo.png', height: 40, width: 40, ),
+              const SizedBox(height: 10), 
 
-            Text(_labels['PleaseEntryKitchenCode']!, style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 10),
+              Text(_labels['PleaseEntryUserName']!, style: const TextStyle(fontSize: 16)),
+              const SizedBox(height: 10),
 
-            // 1. ➡️ Wrap TextField ด้วย Padding
-            Padding(
-              // กำหนด Padding เฉพาะแนวนอน (ซ้ายและขวา) 
-              padding: const EdgeInsets.symmetric(horizontal: 40), 
-              child: TextField(
-                controller: _controller,
-                keyboardType: TextInputType.number,
-                style: const TextStyle(fontSize: 50, letterSpacing: 5,),
-                decoration: const InputDecoration(
-                  labelText: 'Kitchen Code',
-                  border: OutlineInputBorder(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40), 
+                child: TextField(
+                  controller: _controller,
+                  keyboardType: TextInputType.text,
+                  style: const TextStyle(fontSize: 30),
+                  decoration: const InputDecoration(
+                    labelText: 'ชื่อผู้ใช้ (User Name)',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 10),
+              const SizedBox(height: 10),
 
-            ElevatedButton(
-              onPressed: _isButtonEnabled ? _submitCode : null,
-              child: Text(_labels['SignIn']!),
-              // ➡️ กำหนดสไตล์ปุ่ม
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue, 
-                foregroundColor: Colors.white, 
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40), 
+                child: TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  keyboardType: TextInputType.text,
+                  style: const TextStyle(fontSize: 30),
+                  decoration: const InputDecoration(
+                    labelText: 'รหัสผ่าน (Password)',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
+              const SizedBox(height: 20),
 
-            // 5. ปุ่มสำหรับเปลี่ยนภาษา
-            ElevatedButton(
-              onPressed: _toggleLanguage,
-              child: Text(_labels['ChangeLangButton']!),
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ElevatedButton(
+                onPressed: _isButtonEnabled ? _submitUserNamePassword : null,
+                child: Text(_labels['SignIn']!),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue, 
+                  foregroundColor: Colors.white, 
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
+              const SizedBox(height: 10),
 
-            Text('Error: $_error', style: const TextStyle(fontSize: 12, color: Colors.red)),
-            Text('Debug: $_debug', style: const TextStyle(fontSize: 12, color: Colors.black)),
-          ],
+              ElevatedButton(
+                onPressed: _toggleLanguage,
+                child: Text(_labels['ChangeLangButton']!),
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              Text(_error, style: const TextStyle(fontSize: 14, color: Colors.red)),
+              Text(_debug, style: const TextStyle(fontSize: 12, color: Colors.black)),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-// 💡 ฟังก์ชันที่ส่งคืน Map ของข้อความตามรหัสภาษา
 Map<String, String> getLabels(String langCode) {
   if (langCode == 'th') {
     return {
-      'PleaseEntryKitchenCode': 'กรุณาป้อน Kitchen Code เป็นตัวเลข 6 หลัก',
+      'PleaseEntryUserName': 'กรุณาป้อนชื่อผู้ใช้',
       'SignIn': 'เข้าสู่ระบบ',
-      'ServiceExpired': 'บริการหมดอายุ',
       'ChangeLangButton': 'Change to English',
+      'PasswordIncorrect': 'รหัสผ่านไม่ถูกต้อง',
+      'NotFoundThisUserName': 'ไม่พบชื่อผู้ใช้นี้ในระบบ',
     };
   } else { // langCode == 'en'
     return {
-      'PleaseEntryKitchenCode': 'Please entry Kitchen Code as 6-digit number',
+      'PleaseEntryUserName': 'Please enter User Name',
       'SignIn': 'Sign In',
-      'ServiceExpired': 'Service Expired',
       'ChangeLangButton': 'เปลี่ยนเป็นภาษาไทย',
+      'PasswordIncorrect': 'Password incorrect',
+      'NotFoundThisUserName': 'User Name not found',
     };
   }
 }

@@ -16,6 +16,13 @@ subprojects {
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
 subprojects {
+    plugins.withId("com.android.library") {
+        configure<com.android.build.gradle.LibraryExtension> {
+            if (namespace == null) {
+                namespace = project.group.toString()
+            }
+        }
+    }
     project.evaluationDependsOn(":app")
 }
 

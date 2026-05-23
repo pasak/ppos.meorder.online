@@ -1,5 +1,6 @@
-package online.meorder.kitchen
+package online.meorder.ppos
 
 import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : FlutterActivity()
+
