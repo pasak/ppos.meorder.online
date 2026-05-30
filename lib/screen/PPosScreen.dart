@@ -6,7 +6,7 @@ import 'package:meorder_ppos/screen/FoodMenuScreen.dart';
 import 'package:meorder_ppos/screen/ReceiptScreen.dart';
 import 'package:isar/isar.dart';
 import 'package:meorder_ppos/database/IsarModels.dart';
-import 'package:meorder_ppos/screen/PaymentScreen.dart' show DisplayOrderItem;
+import 'package:meorder_ppos/model/DisplayOrderItem.dart';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:image/image.dart' as img;
@@ -23,7 +23,6 @@ class PPosScreen extends StatefulWidget {
 }
 
 class _PPosScreenState extends State<PPosScreen> {
-
   bool _isExpired = false;
   Isar isar = Isar.getInstance()!;
   List<FoodOrder> activeOrders = [];
@@ -39,7 +38,8 @@ class _PPosScreenState extends State<PPosScreen> {
   }
 
   void _checkExpiration() {
-    if (widget.config.ExpireDate != null && widget.config.ExpireDate!.isNotEmpty) {
+    if (widget.config.ExpireDate != null &&
+        widget.config.ExpireDate!.isNotEmpty) {
       try {
         DateTime expireDate = DateTime.parse(widget.config.ExpireDate!);
         if (DateTime.now().isAfter(expireDate)) {
@@ -58,7 +58,6 @@ class _PPosScreenState extends State<PPosScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     Map<String, String> labels = getLabels(widget.config.language ?? 'th');
 
     return Scaffold(
@@ -98,15 +97,20 @@ class _PPosScreenState extends State<PPosScreen> {
           ],
         ],
       ),
-      body: _isExpired 
-        ? Center(
-            child: Text(
-              labels['ServiceExpirePlsPayFee'] ?? 'Service Expired Please Pay Fee',
-              style: const TextStyle(fontSize: 20, color: Colors.red, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-          )
-        : isLoading 
+      body: _isExpired
+          ? Center(
+              child: Text(
+                labels['ServiceExpirePlsPayFee'] ??
+                    'Service Expired Please Pay Fee',
+                style: const TextStyle(
+                  fontSize: 20,
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            )
+          : isLoading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: refreshFoodOrder,
@@ -116,13 +120,16 @@ class _PPosScreenState extends State<PPosScreen> {
                 itemBuilder: (context, index) {
                   final fo = activeOrders[index];
                   final items = orderItemsMap[fo.id] ?? [];
-                  
+
                   String prefix = fo.serveType == 'ServeTable' ? 'T' : 'H';
                   String titleText = '$prefix${fo.number ?? ''}';
 
                   return Card(
                     elevation: 3,
-                    margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                    margin: const EdgeInsets.symmetric(
+                      vertical: 6,
+                      horizontal: 4,
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(12),
                       child: Column(
@@ -131,34 +138,56 @@ class _PPosScreenState extends State<PPosScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(titleText, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+                              Text(
+                                titleText,
+                                style: const TextStyle(
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               Row(
                                 children: [
                                   IconButton(
-                                    icon: const Icon(Icons.print, color: Colors.blue),
-                                    onPressed: () => rePrintCookingOrder(fo.id!),
+                                    icon: const Icon(
+                                      Icons.print,
+                                      color: Colors.blue,
+                                    ),
+                                    onPressed: () =>
+                                        rePrintCookingOrder(fo.id!),
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.check, color: Colors.green),
+                                    icon: const Icon(
+                                      Icons.check,
+                                      color: Colors.green,
+                                    ),
                                     onPressed: () => servedOrder(fo.id!),
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    icon: const Icon(
+                                      Icons.delete,
+                                      color: Colors.red,
+                                    ),
                                     onPressed: () => cancelOrder(fo.id!),
                                   ),
                                 ],
-                              )
+                              ),
                             ],
                           ),
                           const Divider(),
                           ...items.map((di) {
-                             String desc = '${di.item.quantity ?? 0}x ${di.itemName}';
-                             if (di.sizeName.isNotEmpty) desc += ' ${di.sizeName}';
-                             if (di.choiceName.isNotEmpty) desc += ' ${di.choiceName}';
-                             return Padding(
-                               padding: const EdgeInsets.symmetric(vertical: 4),
-                               child: Text(desc, style: const TextStyle(fontSize: 16)),
-                             );
+                            String desc =
+                                '${di.item.quantity ?? 0}x ${di.itemName}';
+                            if (di.sizeName.isNotEmpty)
+                              desc += ' ${di.sizeName}';
+                            if (di.choiceName.isNotEmpty)
+                              desc += ' ${di.choiceName}';
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Text(
+                                desc,
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            );
                           }),
                         ],
                       ),
@@ -177,11 +206,19 @@ class _PPosScreenState extends State<PPosScreen> {
 
     try {
       DateTime now = DateTime.now();
-      String todayStr = DateTime(now.year, now.month, now.day).toIso8601String();
-      
-      final orders = await isar.foodOrderList.where()
+      String todayStr = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).toIso8601String();
+
+      final orders = await isar.foodOrderList
+          .where()
           .filter()
-          .anyOf(['OrderFood', 'KitchenPrinted'], (q, String s) => q.statusEqualTo(s))
+          .anyOf([
+            'OrderFood',
+            'KitchenPrinted',
+          ], (q, String s) => q.statusEqualTo(s))
           .and()
           .createdAtGreaterThan(todayStr)
           .findAll();
@@ -189,7 +226,8 @@ class _PPosScreenState extends State<PPosScreen> {
       Map<String, List<DisplayOrderItem>> newItemsMap = {};
 
       for (var order in orders) {
-        final items = await isar.foodOrderItemList.where()
+        final items = await isar.foodOrderItemList
+            .where()
             .filter()
             .food_order_IDEqualTo(order.id)
             .findAll();
@@ -199,12 +237,15 @@ class _PPosScreenState extends State<PPosScreen> {
           String itemName = '';
           String kitchenItemName = '';
           if (item.food_item_ID != null) {
-            final foodItem = await isar.foodItemList.where()
+            final foodItem = await isar.foodItemList
+                .where()
                 .filter()
                 .idEqualTo(item.food_item_ID!)
                 .findFirst();
             if (foodItem != null) {
-              itemName = (widget.config.language == 'th') ? (foodItem.thaiName ?? '') : (foodItem.englishName ?? '');
+              itemName = (widget.config.language == 'th')
+                  ? (foodItem.thaiName ?? '')
+                  : (foodItem.englishName ?? '');
               kitchenItemName = foodItem.kitchenName ?? itemName;
             }
           }
@@ -212,12 +253,15 @@ class _PPosScreenState extends State<PPosScreen> {
           String sizeName = '';
           String kitchenSizeName = '';
           if (item.food_size_ID != null && item.food_size_ID!.isNotEmpty) {
-            final foodSize = await isar.foodSizeList.where()
+            final foodSize = await isar.foodSizeList
+                .where()
                 .filter()
                 .idEqualTo(item.food_size_ID!)
                 .findFirst();
             if (foodSize != null) {
-              sizeName = (widget.config.language == 'th') ? (foodSize.thaiName ?? '') : (foodSize.englishName ?? '');
+              sizeName = (widget.config.language == 'th')
+                  ? (foodSize.thaiName ?? '')
+                  : (foodSize.englishName ?? '');
               kitchenSizeName = foodSize.kitchenName ?? sizeName;
             }
           }
@@ -230,12 +274,15 @@ class _PPosScreenState extends State<PPosScreen> {
             List<String> kitchenChoiceNames = [];
             for (var cID in choiceIDs) {
               if (cID.trim().isNotEmpty) {
-                final choice = await isar.foodChoiceList.where()
+                final choice = await isar.foodChoiceList
+                    .where()
                     .filter()
                     .idEqualTo(cID.trim())
                     .findFirst();
                 if (choice != null) {
-                  String cName = (widget.config.language == 'th') ? (choice.thaiName ?? '') : (choice.englishName ?? '');
+                  String cName = (widget.config.language == 'th')
+                      ? (choice.thaiName ?? '')
+                      : (choice.englishName ?? '');
                   choiceNames.add(cName);
                   kitchenChoiceNames.add(choice.kitchenName ?? cName);
                 }
@@ -245,15 +292,17 @@ class _PPosScreenState extends State<PPosScreen> {
             kitchenChoiceName = kitchenChoiceNames.join(', ');
           }
 
-          displayList.add(DisplayOrderItem(
-            item: item,
-            itemName: itemName,
-            sizeName: sizeName,
-            choiceName: choiceName,
-            kitchenItemName: kitchenItemName,
-            kitchenSizeName: kitchenSizeName,
-            kitchenChoiceName: kitchenChoiceName,
-          ));
+          displayList.add(
+            DisplayOrderItem(
+              item: item,
+              itemName: itemName,
+              sizeName: sizeName,
+              choiceName: choiceName,
+              kitchenItemName: kitchenItemName,
+              kitchenSizeName: kitchenSizeName,
+              kitchenChoiceName: kitchenChoiceName,
+            ),
+          );
         }
         newItemsMap[order.id!] = displayList;
       }
@@ -272,7 +321,11 @@ class _PPosScreenState extends State<PPosScreen> {
   }
 
   void servedOrder(String id) async {
-    final order = await isar.foodOrderList.where().filter().idEqualTo(id).findFirst();
+    final order = await isar.foodOrderList
+        .where()
+        .filter()
+        .idEqualTo(id)
+        .findFirst();
     if (order != null) {
       await isar.writeTxn(() async {
         order.status = 'Served';
@@ -291,17 +344,31 @@ class _PPosScreenState extends State<PPosScreen> {
         bool isThai = widget.config.language == 'th';
         return AlertDialog(
           title: Text(isThai ? 'ยืนยันการยกเลิก' : 'Confirm Cancel'),
-          content: Text(isThai ? 'คุณต้องการยกเลิกรายการนี้ใช่หรือไม่?' : 'Do you want to cancel this order?'),
+          content: Text(
+            isThai
+                ? 'คุณต้องการยกเลิกรายการนี้ใช่หรือไม่?'
+                : 'Do you want to cancel this order?',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(isThai ? 'ไม่' : 'No', style: const TextStyle(color: Colors.grey)),
+              child: Text(
+                isThai ? 'ไม่' : 'No',
+                style: const TextStyle(color: Colors.grey),
+              ),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
               onPressed: () async {
                 Navigator.pop(context);
-                final order = await isar.foodOrderList.where().filter().idEqualTo(id).findFirst();
+                final order = await isar.foodOrderList
+                    .where()
+                    .filter()
+                    .idEqualTo(id)
+                    .findFirst();
                 if (order != null) {
                   await isar.writeTxn(() async {
                     order.status = 'Cancel';
@@ -309,8 +376,13 @@ class _PPosScreenState extends State<PPosScreen> {
                     order.isDirty = true;
                     await isar.foodOrderList.put(order);
 
-                    if (order.parentType == 'receipt' && order.parentID != null) {
-                      final receipt = await isar.receiptList.where().filter().idEqualTo(order.parentID!).findFirst();
+                    if (order.parentType == 'receipt' &&
+                        order.parentID != null) {
+                      final receipt = await isar.receiptList
+                          .where()
+                          .filter()
+                          .idEqualTo(order.parentID!)
+                          .findFirst();
                       if (receipt != null) {
                         receipt.status = 'Cancel';
                         receipt.lastUpdated = DateTime.now().toIso8601String();
@@ -326,12 +398,16 @@ class _PPosScreenState extends State<PPosScreen> {
             ),
           ],
         );
-      }
+      },
     );
   }
 
   void rePrintCookingOrder(String id) async {
-    final order = await isar.foodOrderList.where().filter().idEqualTo(id).findFirst();
+    final order = await isar.foodOrderList
+        .where()
+        .filter()
+        .idEqualTo(id)
+        .findFirst();
     if (order != null) {
       await _printCookingOrder([order]);
     }
@@ -350,21 +426,36 @@ class _PPosScreenState extends State<PPosScreen> {
         if (orderItems.isEmpty) continue;
 
         for (var dt in templates) {
-           await SunmiPrinter.printText(
-             order.number?.toString() ?? '',
-             style: SunmiTextStyle(align: _getAlign(dt.alignment), fontSize: dt.fontSize ?? 24, bold: true),
-           );
+          await SunmiPrinter.printText(
+            order.number?.toString() ?? '',
+            style: SunmiTextStyle(
+              align: _getAlign(dt.alignment),
+              fontSize: dt.fontSize ?? 24,
+              bold: true,
+            ),
+          );
         }
         for (var di in orderItems) {
-           String desc = '${di.item.quantity ?? 0}x ${di.kitchenItemName}';
-           if (di.kitchenSizeName.isNotEmpty) desc += ' ${di.kitchenSizeName}';
-           if (di.kitchenChoiceName.isNotEmpty) desc += ' ${di.kitchenChoiceName}';
-           
-           double amount = (di.item.quantity ?? 0) * (di.item.itemPrice ?? 0.0);
-           await SunmiPrinter.printRow(cols: [
-             SunmiColumn(text: desc, width: 20, style: SunmiTextStyle(align: SunmiPrintAlign.LEFT)),
-             SunmiColumn(text: amount.toStringAsFixed(2), width: 10, style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT)),
-           ]);
+          String desc = '${di.item.quantity ?? 0}x ${di.kitchenItemName}';
+          if (di.kitchenSizeName.isNotEmpty) desc += ' ${di.kitchenSizeName}';
+          if (di.kitchenChoiceName.isNotEmpty)
+            desc += ' ${di.kitchenChoiceName}';
+
+          double amount = (di.item.quantity ?? 0) * (di.item.itemPrice ?? 0.0);
+          await SunmiPrinter.printRow(
+            cols: [
+              SunmiColumn(
+                text: desc,
+                width: 20,
+                style: SunmiTextStyle(align: SunmiPrintAlign.LEFT),
+              ),
+              SunmiColumn(
+                text: amount.toStringAsFixed(2),
+                width: 10,
+                style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT),
+              ),
+            ],
+          );
         }
         await SunmiPrinter.lineWrap(2);
       }
@@ -379,17 +470,23 @@ class _PPosScreenState extends State<PPosScreen> {
         if (orderItems.isEmpty) continue;
 
         for (var dt in templates) {
-          final imageToPrint = await _textToImage(order.number?.toString() ?? '', dt.fontSize ?? 24, dt.alignment, isBold: true);
+          final imageToPrint = await _textToImage(
+            order.number?.toString() ?? '',
+            dt.fontSize ?? 24,
+            dt.alignment,
+            isBold: true,
+          );
           bytes += generator.imageRaster(imageToPrint);
         }
         for (var di in orderItems) {
-           String desc = '${di.item.quantity ?? 0}x ${di.kitchenItemName}';
-           if (di.kitchenSizeName.isNotEmpty) desc += ' ${di.kitchenSizeName}';
-           if (di.kitchenChoiceName.isNotEmpty) desc += ' ${di.kitchenChoiceName}';
-           
-           double amount = (di.item.quantity ?? 0) * (di.item.itemPrice ?? 0.0);
-           final image = await _rowToImage(desc, amount.toStringAsFixed(2), 24);
-           bytes += generator.imageRaster(image);
+          String desc = '${di.item.quantity ?? 0}x ${di.kitchenItemName}';
+          if (di.kitchenSizeName.isNotEmpty) desc += ' ${di.kitchenSizeName}';
+          if (di.kitchenChoiceName.isNotEmpty)
+            desc += ' ${di.kitchenChoiceName}';
+
+          double amount = (di.item.quantity ?? 0) * (di.item.itemPrice ?? 0.0);
+          final image = await _rowToImage(desc, amount.toStringAsFixed(2), 24);
+          bytes += generator.imageRaster(image);
         }
         bytes += generator.imageRaster(await _dividerImage());
       }
@@ -404,7 +501,11 @@ class _PPosScreenState extends State<PPosScreen> {
 
     if (widget.config.ConnectType == 'LAN') {
       try {
-        final socket = await Socket.connect(address, 9100, timeout: const Duration(seconds: 5));
+        final socket = await Socket.connect(
+          address,
+          9100,
+          timeout: const Duration(seconds: 5),
+        );
         socket.add(bytes);
         await socket.flush();
         socket.destroy();
@@ -413,16 +514,21 @@ class _PPosScreenState extends State<PPosScreen> {
       }
     } else if (widget.config.ConnectType == 'USB') {
       try {
-        List<Map<String, dynamic>> results = await FlutterUsbPrinter.getUSBDeviceList();
+        List<Map<String, dynamic>> results =
+            await FlutterUsbPrinter.getUSBDeviceList();
         if (results.isNotEmpty) {
-           for (var device in results) {
-             if (device['vendorId'] == address || device['vendorId'].toString() == address) {
-                await flutterUsbPrinter.connect(int.parse(device['vendorId'].toString()), int.parse(device['productId'].toString()));
-                await flutterUsbPrinter.write(Uint8List.fromList(bytes));
-                await flutterUsbPrinter.close();
-                break;
-             }
-           }
+          for (var device in results) {
+            if (device['vendorId'] == address ||
+                device['vendorId'].toString() == address) {
+              await flutterUsbPrinter.connect(
+                int.parse(device['vendorId'].toString()),
+                int.parse(device['productId'].toString()),
+              );
+              await flutterUsbPrinter.write(Uint8List.fromList(bytes));
+              await flutterUsbPrinter.close();
+              break;
+            }
+          }
         }
       } catch (e) {
         debugPrint("Error printing via USB: $e");
@@ -433,14 +539,22 @@ class _PPosScreenState extends State<PPosScreen> {
   SunmiPrintAlign _getAlign(String? alignment) {
     if (alignment == null) return SunmiPrintAlign.LEFT;
     switch (alignment.toLowerCase()) {
-      case 'center': return SunmiPrintAlign.CENTER;
-      case 'right': return SunmiPrintAlign.RIGHT;
+      case 'center':
+        return SunmiPrintAlign.CENTER;
+      case 'right':
+        return SunmiPrintAlign.RIGHT;
       case 'left':
-      default: return SunmiPrintAlign.LEFT;
+      default:
+        return SunmiPrintAlign.LEFT;
     }
   }
 
-  Future<img.Image> _textToImage(String text, int fontSize, String? alignment, {bool isBold = false}) async {
+  Future<img.Image> _textToImage(
+    String text,
+    int fontSize,
+    String? alignment, {
+    bool isBold = false,
+  }) async {
     TextAlign textAlign = TextAlign.left;
     if (alignment?.toLowerCase() == 'center') {
       textAlign = TextAlign.center;
@@ -452,42 +566,69 @@ class _PPosScreenState extends State<PPosScreen> {
     final canvas = Canvas(recorder);
     final textSpan = TextSpan(
       text: text,
-      style: TextStyle(color: Colors.black, fontSize: fontSize.toDouble(), fontWeight: isBold ? FontWeight.bold : FontWeight.normal),
+      style: TextStyle(
+        color: Colors.black,
+        fontSize: fontSize.toDouble(),
+        fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+      ),
     );
-    final textPainter = TextPainter(text: textSpan, textDirection: TextDirection.ltr, textAlign: textAlign);
-    textPainter.layout(minWidth: 576, maxWidth: 576); 
-    
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.ltr,
+      textAlign: textAlign,
+    );
+    textPainter.layout(minWidth: 576, maxWidth: 576);
+
     final paint = Paint()..color = Colors.white;
     canvas.drawRect(Rect.fromLTWH(0, 0, 576, textPainter.height), paint);
     textPainter.paint(canvas, const Offset(0, 0));
-    
+
     final picture = recorder.endRecording();
     final uiImage = await picture.toImage(576, textPainter.height.toInt());
     final byteData = await uiImage.toByteData(format: ui.ImageByteFormat.png);
     return img.decodeImage(byteData!.buffer.asUint8List())!;
   }
 
-  Future<img.Image> _rowToImage(String leftText, String rightText, int fontSize, {bool isBold = false}) async {
+  Future<img.Image> _rowToImage(
+    String leftText,
+    String rightText,
+    int fontSize, {
+    bool isBold = false,
+  }) async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
-    final style = TextStyle(color: Colors.black, fontSize: fontSize.toDouble(), fontWeight: isBold ? FontWeight.bold : FontWeight.normal);
-    
+    final style = TextStyle(
+      color: Colors.black,
+      fontSize: fontSize.toDouble(),
+      fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+    );
+
     final leftSpan = TextSpan(text: leftText, style: style);
-    final leftPainter = TextPainter(text: leftSpan, textDirection: TextDirection.ltr, textAlign: TextAlign.left);
-    leftPainter.layout(minWidth: 400, maxWidth: 400); 
+    final leftPainter = TextPainter(
+      text: leftSpan,
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.left,
+    );
+    leftPainter.layout(minWidth: 400, maxWidth: 400);
 
     final rightSpan = TextSpan(text: rightText, style: style);
-    final rightPainter = TextPainter(text: rightSpan, textDirection: TextDirection.ltr, textAlign: TextAlign.right);
-    rightPainter.layout(minWidth: 176, maxWidth: 176); 
-    
-    double maxHeight = leftPainter.height > rightPainter.height ? leftPainter.height : rightPainter.height;
+    final rightPainter = TextPainter(
+      text: rightSpan,
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.right,
+    );
+    rightPainter.layout(minWidth: 176, maxWidth: 176);
+
+    double maxHeight = leftPainter.height > rightPainter.height
+        ? leftPainter.height
+        : rightPainter.height;
 
     final paint = Paint()..color = Colors.white;
     canvas.drawRect(Rect.fromLTWH(0, 0, 576, maxHeight), paint);
-    
+
     leftPainter.paint(canvas, const Offset(0, 0));
     rightPainter.paint(canvas, Offset(400, 0));
-    
+
     final picture = recorder.endRecording();
     final uiImage = await picture.toImage(576, maxHeight.toInt());
     final byteData = await uiImage.toByteData(format: ui.ImageByteFormat.png);
@@ -499,12 +640,19 @@ class _PPosScreenState extends State<PPosScreen> {
     final canvas = Canvas(recorder);
     final paint = Paint()..color = Colors.white;
     canvas.drawRect(const Rect.fromLTWH(0, 0, 576, 30), paint);
-    
-    final textSpan = const TextSpan(text: '------------------------------------------------', style: TextStyle(color: Colors.black, fontSize: 24));
-    final textPainter = TextPainter(text: textSpan, textDirection: TextDirection.ltr, textAlign: TextAlign.center);
+
+    final textSpan = const TextSpan(
+      text: '------------------------------------------------',
+      style: TextStyle(color: Colors.black, fontSize: 24),
+    );
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.center,
+    );
     textPainter.layout(minWidth: 576, maxWidth: 576);
     textPainter.paint(canvas, const Offset(0, 0));
-    
+
     final picture = recorder.endRecording();
     final uiImage = await picture.toImage(576, 30);
     final byteData = await uiImage.toByteData(format: ui.ImageByteFormat.png);
@@ -514,12 +662,9 @@ class _PPosScreenState extends State<PPosScreen> {
 
 Map<String, String> getLabels(String langCode) {
   if (langCode == 'th') {
-    return {
-      'ServiceExpirePlsPayFee': 'บริการหมดอายุ กรุณาชำระค่าบริการ',
-    };
-  } else { // langCode == 'en'
-    return {
-      'ServiceExpirePlsPayFee': 'Service Expired Please Pay Fee',
-    };
+    return {'ServiceExpirePlsPayFee': 'บริการหมดอายุ กรุณาชำระค่าบริการ'};
+  } else {
+    // langCode == 'en'
+    return {'ServiceExpirePlsPayFee': 'Service Expired Please Pay Fee'};
   }
 }

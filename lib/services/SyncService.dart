@@ -1,0 +1,290 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'package:isar/isar.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:meorder_ppos/lib/EnvConfig.dart';
+import 'package:meorder_ppos/database/IsarModels.dart';
+
+class SyncService {
+  static int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    return int.tryParse(value.toString());
+  }
+
+  static double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    return double.tryParse(value.toString());
+  }
+
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is String) return DateTime.tryParse(value);
+    return null;
+  }
+
+  static String? _parseString(dynamic value) {
+    if (value == null) return null;
+    return value.toString();
+  }
+
+  static Future<void> syncReceipt(EnvConfig config) async {
+    debugPrint('syncReceipt started');
+    final isar = Isar.getInstance()!;
+    final lastSync = await isar.lastSyncList.where().findFirst();
+    if (lastSync == null || lastSync.receipt == null) return;
+
+    final syncTime = lastSync.receipt!;
+
+    final receipts = await isar.receiptList
+        .where()
+        .filter()
+        .isDirtyEqualTo(true)
+        .findAll();
+    final foodOrders = await isar.foodOrderList
+        .where()
+        .filter()
+        .isDirtyEqualTo(true)
+        .findAll();
+    final foodOrderItems = await isar.foodOrderItemList
+        .where()
+        .filter()
+        .isDirtyEqualTo(true)
+        .findAll();
+
+    // Still proceed to call API even if dirty items are empty to get pullData
+    // Wait, the original code had: if (receipts.isEmpty && foodOrders.isEmpty && foodOrderItems.isEmpty) return;
+    // But if we want to pull data, maybe we should still call it?
+    // Let's keep the return if empty for push, but the user says "when got response as pullData". 
+    // Usually sync APIs are called periodically or triggered, and if there's nothing to push, it might still pull?
+    // Let's remove the early return so it always pulls, or we can leave it. The original code had:
+    // if (receipts.isEmpty && foodOrders.isEmpty && foodOrderItems.isEmpty) return;
+    // Actually, I'll remove the early return so we can pull new data even if we don't have changes.
+    // Let's send empty arrays if no dirty items.
+
+    Map<String, dynamic> capitalizeKeys(Map<String, dynamic> json) {
+      final Map<String, dynamic> result = {};
+      json.forEach((key, value) {
+        if (key == 'isarId' || key == 'isDirty') return;
+
+        String newKey = key;
+        if (!key.endsWith('_ID')) {
+          if (key.isNotEmpty) {
+            newKey = key[0].toUpperCase() + key.substring(1);
+          }
+        }
+
+        if (key == 'id') newKey = 'ID';
+
+        result[newKey] = value;
+      });
+      return result;
+    }
+
+    final pushData = {
+      'ReceiptList': receipts.map((e) {
+        final json = {
+          'id': e.id,
+          'shop_branch_ID': e.shop_branch_ID,
+          'shop_user_ID': e.shop_user_ID,
+          'shop_customer_ID': e.shop_customer_ID,
+          'code': e.code,
+          'createdAt': e.createdAt?.toIso8601String(),
+          'sumAmount': e.sumAmount,
+          'serviceChargeAmount': e.serviceChargeAmount,
+          'discountAmount': e.discountAmount,
+          'vatAmount': e.vatAmount,
+          'totalAmount': e.totalAmount,
+          'paidAmount': e.paidAmount,
+          'status': e.status,
+          'paymentType': e.paymentType,
+          'slipFileName': e.slipFileName,
+          'lastUpdated': e.lastUpdated,
+        };
+        return capitalizeKeys(json);
+      }).toList(),
+      'FoodOrderList': foodOrders.map((e) {
+        final json = {
+          'id': e.id,
+          'parentType': e.parentType,
+          'parentID': e.parentID,
+          'number': e.number,
+          'kitchen_ID': e.kitchen_ID,
+          'createdAt': e.createdAt,
+          'serveType': e.serveType,
+          'orderAmount': e.orderAmount,
+          'status': e.status,
+          'lastUpdated': e.lastUpdated,
+        };
+        return capitalizeKeys(json);
+      }).toList(),
+      'FoodOrderItemList': foodOrderItems.map((e) {
+        final json = {
+          'id': e.id,
+          'food_order_ID': e.food_order_ID,
+          'food_item_ID': e.food_item_ID,
+          'food_size_ID': e.food_size_ID,
+          'itemPrice': e.itemPrice,
+          'quantity': e.quantity,
+          'choiceIDList': e.choiceIDList,
+          'description': e.description,
+          'lastUpdated': e.lastUpdated,
+        };
+        return capitalizeKeys(json);
+      }).toList(),
+    };
+
+    final uri = Uri.parse('${config.apiUrl}api/pos/sync-receipt');
+    var request = http.MultipartRequest('POST', uri);
+    request.headers.addAll({
+      'Authorization': 'Bearer ${config.apiToken}',
+    });
+
+    request.fields['shop_branch_ID'] = config.shop_branch_ID.toString();
+    request.fields['LastSync'] = syncTime;
+    request.fields['ReceiptList'] = jsonEncode(pushData['ReceiptList']);
+    request.fields['FoodOrderList'] = jsonEncode(pushData['FoodOrderList']);
+    request.fields['FoodOrderItemList'] = jsonEncode(pushData['FoodOrderItemList']);
+
+    final docDir = await getApplicationDocumentsDirectory();
+    for (var r in receipts) {
+      if (r.slipFileName != null && r.slipFileName!.isNotEmpty) {
+        final filePath = '${docDir.path}/${r.slipFileName}';
+        if (await File(filePath).exists()) {
+          request.files.add(
+            await http.MultipartFile.fromPath('SlipFile[]', filePath),
+          );
+        }
+      }
+    }
+
+    debugPrint('request.fields: ${request.fields}');
+
+    try {
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      debugPrint('Sync response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final newSyncTime = DateTime.now().toIso8601String();
+        
+        // Parse response body for pullData
+        Map<String, dynamic>? responseData;
+        try {
+          responseData = jsonDecode(response.body);
+        } catch (e) {
+          debugPrint('Error decoding JSON: $e');
+        }
+
+        await isar.writeTxn(() async {
+          // Clear dirty flags for pushed items
+          for (var r in receipts) {
+            r.isDirty = false;
+            await isar.receiptList.put(r);
+          }
+          for (var o in foodOrders) {
+            o.isDirty = false;
+            await isar.foodOrderList.put(o);
+          }
+          for (var i in foodOrderItems) {
+            i.isDirty = false;
+            await isar.foodOrderItemList.put(i);
+          }
+          
+          lastSync.receipt = newSyncTime;
+          await isar.lastSyncList.put(lastSync);
+          
+          final now = DateTime.now();
+          final formattedTime = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
+          debugPrint('Last sync time $formattedTime');
+
+          // Process pullData if available
+          if (responseData != null) {
+            // 1. Process ReceiptList
+            if (responseData['ReceiptList'] is List) {
+              for (var item in responseData['ReceiptList']) {
+                final String? id = _parseString(item['ID'] ?? item['id']);
+                if (id != null) {
+                  var receipt = await isar.receiptList.where().filter().idEqualTo(id).findFirst() ?? Receipt();
+                  receipt.id = id;
+                  receipt.shop_branch_ID = _parseInt(item['Shop_branch_ID'] ?? item['shop_branch_ID']);
+                  receipt.shop_user_ID = _parseInt(item['Shop_user_ID'] ?? item['shop_user_ID']);
+                  receipt.shop_customer_ID = _parseString(item['Shop_customer_ID'] ?? item['shop_customer_ID']);
+                  receipt.code = _parseString(item['Code'] ?? item['code']);
+                  receipt.createdAt = _parseDateTime(item['CreatedAt'] ?? item['createdAt']);
+                  receipt.sumAmount = _parseDouble(item['SumAmount'] ?? item['sumAmount']);
+                  receipt.serviceChargeAmount = _parseDouble(item['ServiceChargeAmount'] ?? item['serviceChargeAmount']);
+                  receipt.discountAmount = _parseDouble(item['DiscountAmount'] ?? item['discountAmount']);
+                  receipt.vatAmount = _parseDouble(item['VatAmount'] ?? item['vatAmount']);
+                  receipt.totalAmount = _parseDouble(item['TotalAmount'] ?? item['totalAmount']);
+                  receipt.paidAmount = _parseDouble(item['PaidAmount'] ?? item['paidAmount']);
+                  receipt.status = _parseString(item['Status'] ?? item['status']);
+                  receipt.paymentType = _parseString(item['PaymentType'] ?? item['paymentType']);
+                  receipt.slipFileName = _parseString(item['SlipFileName'] ?? item['slipFileName']);
+                  receipt.lastUpdated = _parseString(item['LastUpdated'] ?? item['lastUpdated']);
+                  receipt.isDirty = false;
+                  
+                  await isar.receiptList.put(receipt);
+                }
+              }
+            }
+
+            // 2. Process FoodOrderList
+            if (responseData['FoodOrderList'] is List) {
+              for (var item in responseData['FoodOrderList']) {
+                final String? id = _parseString(item['ID'] ?? item['id']);
+                if (id != null) {
+                  var order = await isar.foodOrderList.where().filter().idEqualTo(id).findFirst() ?? FoodOrder();
+                  order.id = id;
+                  order.parentType = _parseString(item['ParentType'] ?? item['parentType']);
+                  order.parentID = _parseString(item['ParentID'] ?? item['parentID']);
+                  order.number = _parseInt(item['Number'] ?? item['number']);
+                  order.kitchen_ID = _parseInt(item['Kitchen_ID'] ?? item['kitchen_ID']);
+                  order.createdAt = _parseString(item['CreatedAt'] ?? item['createdAt']);
+                  order.serveType = _parseString(item['ServeType'] ?? item['serveType']);
+                  order.orderAmount = _parseDouble(item['OrderAmount'] ?? item['orderAmount']);
+                  order.status = _parseString(item['Status'] ?? item['status']);
+                  order.lastUpdated = _parseString(item['LastUpdated'] ?? item['lastUpdated']);
+                  order.isDirty = false;
+
+                  await isar.foodOrderList.put(order);
+                }
+              }
+            }
+
+            // 3. Process FoodOrderItemList
+            if (responseData['FoodOrderItemList'] is List) {
+              for (var item in responseData['FoodOrderItemList']) {
+                final String? id = _parseString(item['ID'] ?? item['id']);
+                if (id != null) {
+                  var orderItem = await isar.foodOrderItemList.where().filter().idEqualTo(id).findFirst() ?? FoodOrderItem();
+                  orderItem.id = id;
+                  orderItem.food_order_ID = _parseString(item['Food_order_ID'] ?? item['food_order_ID']);
+                  orderItem.food_item_ID = _parseString(item['Food_item_ID'] ?? item['food_item_ID']);
+                  orderItem.food_size_ID = _parseString(item['Food_size_ID'] ?? item['food_size_ID']);
+                  orderItem.itemPrice = _parseDouble(item['ItemPrice'] ?? item['itemPrice']);
+                  orderItem.quantity = _parseInt(item['Quantity'] ?? item['quantity']);
+                  orderItem.choiceIDList = _parseString(item['ChoiceIDList'] ?? item['choiceIDList']);
+                  orderItem.description = _parseString(item['Description'] ?? item['description']);
+                  orderItem.lastUpdated = _parseString(item['LastUpdated'] ?? item['lastUpdated']);
+                  orderItem.isDirty = false;
+
+                  await isar.foodOrderItemList.put(orderItem);
+                }
+              }
+            }
+          }
+        });
+      } else {
+        debugPrint('Sync failed: ${response.statusCode} ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Sync error: $e');
+    }
+  }
+}

@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class EnvConfig {
   final String appTitle;
   final String apiUrl;
+  final String foodUrl;
   final String apiToken;
   final bool isFileExists; // สถานะการมีอยู่ของไฟล์ store.json
   final String? shop_ID;
@@ -13,7 +14,7 @@ class EnvConfig {
   final String? BranchName;
   final String? Address;
   final String? Telephone;
-  final bool? isActive;  
+  final bool? isActive;
   final String? language;
   final String? printerMacAddress;
   final bool? isKitchen;
@@ -28,6 +29,7 @@ class EnvConfig {
   EnvConfig({
     required this.appTitle,
     required this.apiUrl,
+    required this.foodUrl,
     required this.apiToken,
     required this.isFileExists,
     this.shop_ID,
@@ -74,10 +76,11 @@ class EnvConfig {
     return EnvConfig(
       appTitle: appTitle,
       apiUrl: apiUrl,
+      foodUrl: foodUrl,
       apiToken: apiToken,
       isFileExists: isFileExists,
       shop_ID: shop_ID ?? this.shop_ID,
-      ShopName: ShopName ?? this.ShopName, 
+      ShopName: ShopName ?? this.ShopName,
       shop_branch_ID: shop_branch_ID ?? this.shop_branch_ID,
       service_module_ID: service_module_ID ?? this.service_module_ID,
       BranchName: BranchName ?? this.BranchName,
@@ -96,7 +99,7 @@ class EnvConfig {
       LastUpdated: LastUpdated ?? this.LastUpdated,
     );
   }
-  
+
   // สร้าง factory method สำหรับโหลดและรวมข้อมูลทั้งหมด
   static Future<EnvConfig> load(bool fileExists) async {
     // โหลด Env (ถ้ายังไม่ได้โหลด)
@@ -105,6 +108,7 @@ class EnvConfig {
     return EnvConfig(
       appTitle: dotenv.env['APP_TITLE'] ?? 'MeOrder PPos',
       apiUrl: dotenv.env['API_URL'] ?? '',
+      foodUrl: dotenv.env['FOOD_URL'] ?? '',
       apiToken: dotenv.env['API_TOKEN'] ?? '',
       isFileExists: fileExists,
     );

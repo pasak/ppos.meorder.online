@@ -225,6 +225,7 @@ class Receipt {
   double? paidAmount;
   String? status;
   String? paymentType;
+  String? slipFileName;
   String? lastUpdated;
   bool isDirty = false;
 }

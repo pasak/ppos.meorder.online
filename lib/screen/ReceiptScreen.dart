@@ -5,6 +5,9 @@ import 'package:meorder_ppos/database/IsarModels.dart';
 import 'package:meorder_ppos/screen/PPosScreen.dart';
 import 'package:meorder_ppos/screen/FoodMenuScreen.dart';
 import 'package:meorder_ppos/screen/PaymentScreen.dart';
+import 'package:meorder_ppos/model/DisplayOrderItem.dart';
+import 'package:meorder_ppos/services/PrintService.dart';
+import 'package:meorder_ppos/services/SyncService.dart';
 
 class ReceiptScreen extends StatefulWidget {
   final EnvConfig config;
@@ -19,7 +22,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
   bool isLoading = true;
   String currentStatus = 'Wait4Payment';
   List<Receipt> receipts = [];
-  Map<String, String> receiptPrefixMap = {}; 
+  Map<String, String> receiptPrefixMap = {};
   Map<String, List<DisplayOrderItem>> orderItemsMap = {};
   Set<String> expandedReceiptIds = {};
 
@@ -39,10 +42,16 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
   Future<void> _loadData() async {
     setState(() => isLoading = true);
     try {
+      await SyncService.syncReceipt(widget.config);
       DateTime now = DateTime.now();
-      String todayStr = DateTime(now.year, now.month, now.day).toIso8601String();
-      
-      var query = isar.receiptList.where()
+      String todayStr = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).toIso8601String();
+
+      var query = isar.receiptList
+          .where()
           .filter()
           .statusEqualTo(currentStatus)
           .and()
@@ -51,8 +60,9 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
       if (currentStatus == 'Paid' || currentStatus == 'Cancel') {
         final totalCount = await query.count();
         hasNextPage = (currentPage + 1) * itemsPerPage < totalCount;
-        
-        receipts = await query.sortByCreatedAtDesc()
+
+        receipts = await query
+            .sortByCreatedAtDesc()
             .offset(currentPage * itemsPerPage)
             .limit(itemsPerPage)
             .findAll();
@@ -64,7 +74,8 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
       for (var receipt in receipts) {
         if (receipt.id == null) continue;
 
-        final order = await isar.foodOrderList.where()
+        final order = await isar.foodOrderList
+            .where()
             .filter()
             .parentIDEqualTo(receipt.id!)
             .and()
@@ -75,51 +86,78 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
           String prefix = order.serveType == 'ServeTable' ? 'T' : 'H';
           receiptPrefixMap[receipt.id!] = '$prefix${order.number ?? ''}';
 
-          final items = await isar.foodOrderItemList.where()
+          final items = await isar.foodOrderItemList
+              .where()
               .filter()
               .food_order_IDEqualTo(order.id)
               .findAll();
 
           List<DisplayOrderItem> tempDisplayItems = [];
           for (var item in items) {
-             String itemName = '';
-             String kitchenItemName = '';
-             if (item.food_item_ID != null) {
-                final foodItem = await isar.foodItemList.where().filter().idEqualTo(item.food_item_ID!).findFirst();
-                if (foodItem != null) {
-                   itemName = isThai ? (foodItem.thaiName ?? '') : (foodItem.englishName ?? '');
-                   kitchenItemName = foodItem.kitchenName ?? itemName;
+            String itemName = '';
+            String kitchenItemName = '';
+            if (item.food_item_ID != null) {
+              final foodItem = await isar.foodItemList
+                  .where()
+                  .filter()
+                  .idEqualTo(item.food_item_ID!)
+                  .findFirst();
+              if (foodItem != null) {
+                itemName = isThai
+                    ? (foodItem.thaiName ?? '')
+                    : (foodItem.englishName ?? '');
+                kitchenItemName = foodItem.kitchenName ?? itemName;
+              }
+            }
+            String sizeName = '';
+            String kitchenSizeName = '';
+            if (item.food_size_ID != null && item.food_size_ID!.isNotEmpty) {
+              final foodSize = await isar.foodSizeList
+                  .where()
+                  .filter()
+                  .idEqualTo(item.food_size_ID!)
+                  .findFirst();
+              if (foodSize != null) {
+                sizeName = isThai
+                    ? (foodSize.thaiName ?? '')
+                    : (foodSize.englishName ?? '');
+                kitchenSizeName = foodSize.kitchenName ?? sizeName;
+              }
+            }
+            String choiceName = '';
+            String kitchenChoiceName = '';
+            if (item.choiceIDList != null && item.choiceIDList!.isNotEmpty) {
+              List<String> choiceIDs = item.choiceIDList!.split(',');
+              List<String> choiceNames = [];
+              List<String> kitchenChoiceNames = [];
+              for (var cID in choiceIDs) {
+                if (cID.trim().isNotEmpty) {
+                  final choice = await isar.foodChoiceList
+                      .where()
+                      .filter()
+                      .idEqualTo(cID.trim())
+                      .findFirst();
+                  if (choice != null) {
+                    choiceNames.add(
+                      isThai
+                          ? (choice.thaiName ?? '')
+                          : (choice.englishName ?? ''),
+                    );
+                    kitchenChoiceNames.add(
+                      choice.kitchenName ??
+                          (isThai
+                              ? (choice.thaiName ?? '')
+                              : (choice.englishName ?? '')),
+                    );
+                  }
                 }
-             }
-             String sizeName = '';
-             String kitchenSizeName = '';
-             if (item.food_size_ID != null && item.food_size_ID!.isNotEmpty) {
-                final foodSize = await isar.foodSizeList.where().filter().idEqualTo(item.food_size_ID!).findFirst();
-                if (foodSize != null) {
-                   sizeName = isThai ? (foodSize.thaiName ?? '') : (foodSize.englishName ?? '');
-                   kitchenSizeName = foodSize.kitchenName ?? sizeName;
-                }
-             }
-             String choiceName = '';
-             String kitchenChoiceName = '';
-             if (item.choiceIDList != null && item.choiceIDList!.isNotEmpty) {
-                List<String> choiceIDs = item.choiceIDList!.split(',');
-                List<String> choiceNames = [];
-                List<String> kitchenChoiceNames = [];
-                for (var cID in choiceIDs) {
-                   if (cID.trim().isNotEmpty) {
-                      final choice = await isar.foodChoiceList.where().filter().idEqualTo(cID.trim()).findFirst();
-                      if (choice != null) {
-                         choiceNames.add(isThai ? (choice.thaiName ?? '') : (choice.englishName ?? ''));
-                         kitchenChoiceNames.add(choice.kitchenName ?? (isThai ? (choice.thaiName ?? '') : (choice.englishName ?? '')));
-                      }
-                   }
-                }
-                choiceName = choiceNames.join(', ');
-                kitchenChoiceName = kitchenChoiceNames.join(', ');
-             }
+              }
+              choiceName = choiceNames.join(', ');
+              kitchenChoiceName = kitchenChoiceNames.join(', ');
+            }
 
-             tempDisplayItems.add(DisplayOrderItem(
+            tempDisplayItems.add(
+              DisplayOrderItem(
                 item: item,
                 itemName: itemName,
                 sizeName: sizeName,
@@ -127,7 +165,9 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                 kitchenItemName: kitchenItemName,
                 kitchenSizeName: kitchenSizeName,
                 kitchenChoiceName: kitchenChoiceName,
-             ));
+                printColor: (receipt.status == 'Paid' && order?.status == 'OrderFood') ? 'red' : 'blue',
+              ),
+            );
           }
           orderItemsMap[receipt.id!] = tempDisplayItems;
         } else {
@@ -172,11 +212,19 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
         title: Text(isThai ? 'ใบเสร็จรับเงิน' : 'Receipts'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () async {
+              _loadData();
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.home),
             onPressed: () {
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => PPosScreen(config: widget.config)),
+                MaterialPageRoute(
+                  builder: (context) => PPosScreen(config: widget.config),
+                ),
                 (route) => false,
               );
             },
@@ -187,10 +235,8 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => FoodMenuScreen(
-                    config: widget.config,
-                    receiptID: null,
-                  ),
+                  builder: (context) =>
+                      FoodMenuScreen(config: widget.config, receiptID: null),
                 ),
               );
             },
@@ -215,86 +261,180 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : receipts.isEmpty
-                    ? Center(child: Text(isThai ? 'ไม่มีข้อมูล' : 'No Data'))
-                    : ListView.builder(
-                        itemCount: receipts.length,
-                        itemBuilder: (context, index) {
-                          final receipt = receipts[index];
-                          String prefixName = receiptPrefixMap[receipt.id] ?? '';
-                          bool isExpanded = expandedReceiptIds.contains(receipt.id);
-                          
-                          return Card(
-                            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            child: Column(
-                              children: [
-                                ListTile(
-                                  title: Text(
-                                    '$prefixName ฿${receipt.totalAmount?.toStringAsFixed(2)}',
-                                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                  ),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      if (currentStatus == 'Wait4Payment')
-                                        IconButton(
-                                          icon: const Icon(Icons.attach_money, color: Colors.green),
-                                          onPressed: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) => PaymentScreen(
-                                                  config: widget.config,
-                                                  receiptID: receipt.id!,
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      IconButton(
-                                        icon: Icon(isExpanded ? Icons.expand_less : Icons.search),
-                                        onPressed: () {
-                                          setState(() {
-                                            if (isExpanded) {
-                                              expandedReceiptIds.remove(receipt.id);
-                                            } else {
-                                              expandedReceiptIds.add(receipt.id!);
-                                            }
-                                          });
-                                        },
-                                      ),
-                                    ],
-                                  ),
+                ? Center(child: Text(isThai ? 'ไม่มีข้อมูล' : 'No Data'))
+                : ListView.builder(
+                    itemCount: receipts.length,
+                    itemBuilder: (context, index) {
+                      final receipt = receipts[index];
+                      String prefixName = receiptPrefixMap[receipt.id] ?? '';
+                      bool isExpanded = expandedReceiptIds.contains(receipt.id);
+
+                      return Card(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        child: Column(
+                          children: [
+                            ListTile(
+                              title: Text(
+                                '$prefixName ฿${receipt.totalAmount?.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                if (isExpanded)
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                                      children: (orderItemsMap[receipt.id] ?? []).map((di) {
-                                        String desc = '${di.item.quantity ?? 0}x ${di.itemName}';
-                                        if (di.sizeName.isNotEmpty) desc += ' ${di.sizeName}';
-                                        if (di.choiceName.isNotEmpty) desc += ' ${di.choiceName}';
-                                        double amount = (di.item.quantity ?? 0) * (di.item.itemPrice ?? 0.0);
-                                        return Padding(
-                                          padding: const EdgeInsets.only(bottom: 4.0),
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Expanded(child: Text(desc, style: const TextStyle(fontSize: 14))),
-                                              Text(amount.toStringAsFixed(2), style: const TextStyle(fontSize: 14)),
-                                            ],
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (currentStatus == 'Wait4Payment')
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.attach_money,
+                                        color: Colors.green,
+                                      ),
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => PaymentScreen(
+                                              config: widget.config,
+                                              receiptID: receipt.id!,
+                                            ),
                                           ),
                                         );
-                                      }).toList(),
+                                      },
                                     ),
+                                  if (currentStatus == 'Paid')
+                                    Builder(
+                                      builder: (context) {
+                                        final items = orderItemsMap[receipt.id!] ?? [];
+                                        final printColor = items.isNotEmpty ? items.first.printColor : 'blue';
+                                        return IconButton(
+                                          icon: Icon(
+                                            Icons.print,
+                                            color: printColor == 'red' ? Colors.red : Colors.blue,
+                                          ),
+                                          onPressed: () async {
+                                            final foodOrders = await isar.foodOrderList
+                                                .where()
+                                                .filter()
+                                                .parentIDEqualTo(receipt.id!)
+                                                .and()
+                                                .parentTypeEqualTo('receipt')
+                                                .findAll();
+                                            await PrintService.printReceipt(
+                                              isar: isar,
+                                              config: widget.config,
+                                              receipt: receipt,
+                                              foodOrders: foodOrders,
+                                              displayItems: items,
+                                              isThai: isThai,
+                                            );
+                                            await PrintService.printCookingOrder(
+                                              isar: isar,
+                                              config: widget.config,
+                                              foodOrders: foodOrders,
+                                              displayItems: items,
+                                            );
+                                            if (printColor == 'red') {
+                                              await isar.writeTxn(() async {
+                                                for (var o in foodOrders) {
+                                                  o.status = 'KitchenPrinted';
+                                                  o.lastUpdated = DateTime.now().toIso8601String();
+                                                  o.isDirty = true;
+                                                  await isar.foodOrderList.put(o);
+                                                }
+                                              });
+
+                                              for (var o in foodOrders) {
+                                                debugPrint('Order ID: ${o.id}, status: ${o.status}, isDirty: ${o.isDirty}');
+                                              }
+
+                                              await SyncService.syncReceipt(widget.config);
+                                              _loadData();
+                                            }
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  IconButton(
+                                    icon: Icon(
+                                      isExpanded
+                                          ? Icons.expand_less
+                                          : Icons.search,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        if (isExpanded) {
+                                          expandedReceiptIds.remove(receipt.id);
+                                        } else {
+                                          expandedReceiptIds.add(receipt.id!);
+                                        }
+                                      });
+                                    },
                                   ),
-                              ],
+                                ],
+                              ),
                             ),
-                          );
-                        },
-                      ),
+                            if (isExpanded)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0,
+                                  vertical: 8.0,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: (orderItemsMap[receipt.id] ?? []).map((
+                                    di,
+                                  ) {
+                                    String desc =
+                                        '${di.item.quantity ?? 0}x ${di.itemName}';
+                                    if (di.sizeName.isNotEmpty)
+                                      desc += ' ${di.sizeName}';
+                                    if (di.choiceName.isNotEmpty)
+                                      desc += ' ${di.choiceName}';
+                                    double amount =
+                                        (di.item.quantity ?? 0) *
+                                        (di.item.itemPrice ?? 0.0);
+                                    return Padding(
+                                      padding: const EdgeInsets.only(
+                                        bottom: 4.0,
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              desc,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ),
+                                          Text(
+                                            amount.toStringAsFixed(2),
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
           ),
-          if (!isLoading && (currentStatus == 'Paid' || currentStatus == 'Cancel') && (currentPage > 0 || hasNextPage))
+          if (!isLoading &&
+              (currentStatus == 'Paid' || currentStatus == 'Cancel') &&
+              (currentPage > 0 || hasNextPage))
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Row(

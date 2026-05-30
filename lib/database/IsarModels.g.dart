@@ -27680,23 +27680,28 @@ const ReceiptSchema = CollectionSchema(
       name: r'shop_user_ID',
       type: IsarType.long,
     ),
-    r'status': PropertySchema(
+    r'slipFileName': PropertySchema(
       id: 12,
+      name: r'slipFileName',
+      type: IsarType.string,
+    ),
+    r'status': PropertySchema(
+      id: 13,
       name: r'status',
       type: IsarType.string,
     ),
     r'sumAmount': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'sumAmount',
       type: IsarType.double,
     ),
     r'totalAmount': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'totalAmount',
       type: IsarType.double,
     ),
     r'vatAmount': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'vatAmount',
       type: IsarType.double,
     )
@@ -27766,6 +27771,12 @@ int _receiptEstimateSize(
     }
   }
   {
+    final value = object.slipFileName;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.status;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -27792,10 +27803,11 @@ void _receiptSerialize(
   writer.writeLong(offsets[9], object.shop_branch_ID);
   writer.writeString(offsets[10], object.shop_customer_ID);
   writer.writeLong(offsets[11], object.shop_user_ID);
-  writer.writeString(offsets[12], object.status);
-  writer.writeDouble(offsets[13], object.sumAmount);
-  writer.writeDouble(offsets[14], object.totalAmount);
-  writer.writeDouble(offsets[15], object.vatAmount);
+  writer.writeString(offsets[12], object.slipFileName);
+  writer.writeString(offsets[13], object.status);
+  writer.writeDouble(offsets[14], object.sumAmount);
+  writer.writeDouble(offsets[15], object.totalAmount);
+  writer.writeDouble(offsets[16], object.vatAmount);
 }
 
 Receipt _receiptDeserialize(
@@ -27818,10 +27830,11 @@ Receipt _receiptDeserialize(
   object.shop_branch_ID = reader.readLongOrNull(offsets[9]);
   object.shop_customer_ID = reader.readStringOrNull(offsets[10]);
   object.shop_user_ID = reader.readLongOrNull(offsets[11]);
-  object.status = reader.readStringOrNull(offsets[12]);
-  object.sumAmount = reader.readDoubleOrNull(offsets[13]);
-  object.totalAmount = reader.readDoubleOrNull(offsets[14]);
-  object.vatAmount = reader.readDoubleOrNull(offsets[15]);
+  object.slipFileName = reader.readStringOrNull(offsets[12]);
+  object.status = reader.readStringOrNull(offsets[13]);
+  object.sumAmount = reader.readDoubleOrNull(offsets[14]);
+  object.totalAmount = reader.readDoubleOrNull(offsets[15]);
+  object.vatAmount = reader.readDoubleOrNull(offsets[16]);
   return object;
 }
 
@@ -27859,10 +27872,12 @@ P _receiptDeserializeProp<P>(
     case 12:
       return (reader.readStringOrNull(offset)) as P;
     case 13:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 14:
       return (reader.readDoubleOrNull(offset)) as P;
     case 15:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 16:
       return (reader.readDoubleOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -29329,6 +29344,154 @@ extension ReceiptQueryFilter
     });
   }
 
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> slipFileNameIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'slipFileName',
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition>
+      slipFileNameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'slipFileName',
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> slipFileNameEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'slipFileName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> slipFileNameGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'slipFileName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> slipFileNameLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'slipFileName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> slipFileNameBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'slipFileName',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> slipFileNameStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'slipFileName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> slipFileNameEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'slipFileName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> slipFileNameContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'slipFileName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> slipFileNameMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'slipFileName',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> slipFileNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'slipFileName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition>
+      slipFileNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'slipFileName',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> statusIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -29861,6 +30024,18 @@ extension ReceiptQuerySortBy on QueryBuilder<Receipt, Receipt, QSortBy> {
     });
   }
 
+  QueryBuilder<Receipt, Receipt, QAfterSortBy> sortBySlipFileName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'slipFileName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterSortBy> sortBySlipFileNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'slipFileName', Sort.desc);
+    });
+  }
+
   QueryBuilder<Receipt, Receipt, QAfterSortBy> sortByStatus() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'status', Sort.asc);
@@ -30068,6 +30243,18 @@ extension ReceiptQuerySortThenBy
     });
   }
 
+  QueryBuilder<Receipt, Receipt, QAfterSortBy> thenBySlipFileName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'slipFileName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterSortBy> thenBySlipFileNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'slipFileName', Sort.desc);
+    });
+  }
+
   QueryBuilder<Receipt, Receipt, QAfterSortBy> thenByStatus() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'status', Sort.asc);
@@ -30197,6 +30384,13 @@ extension ReceiptQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Receipt, Receipt, QDistinct> distinctBySlipFileName(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'slipFileName', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Receipt, Receipt, QDistinct> distinctByStatus(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -30301,6 +30495,12 @@ extension ReceiptQueryProperty
   QueryBuilder<Receipt, int?, QQueryOperations> shop_user_IDProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'shop_user_ID');
+    });
+  }
+
+  QueryBuilder<Receipt, String?, QQueryOperations> slipFileNameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'slipFileName');
     });
   }
 
