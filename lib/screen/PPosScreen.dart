@@ -13,6 +13,7 @@ import 'package:image/image.dart' as img;
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
 import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
+import 'package:meorder_ppos/services/RolePermissionServices.dart';
 
 class PPosScreen extends StatefulWidget {
   final EnvConfig config;
@@ -24,6 +25,7 @@ class PPosScreen extends StatefulWidget {
 
 class _PPosScreenState extends State<PPosScreen> {
   bool _isExpired = false;
+  bool _canOrderFood = false;
   Isar isar = Isar.getInstance()!;
   List<FoodOrder> activeOrders = [];
   Map<String, List<DisplayOrderItem>> orderItemsMap = {};
@@ -34,7 +36,46 @@ class _PPosScreenState extends State<PPosScreen> {
   void initState() {
     super.initState();
     _checkExpiration();
+    _checkPermissions();
     refreshFoodOrder();
+  }
+
+  void _checkPermissions() async {
+    if (widget.config.UserRole == null) return;
+    
+    final roleID = widget.config.UserRole!;
+    final foOrderFood = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_ORDER_FOOD');
+    final foSellMerchandise = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_SELL_MERCHANDISE');
+
+    if (mounted) {
+      setState(() {
+        _canOrderFood = foOrderFood?['PermissionLevel'] == 'Full';
+      });
+    }
+
+    if ((foOrderFood == null && foSellMerchandise == null) || 
+        ((foOrderFood?['PermissionLevel'] != 'Full') && (foSellMerchandise?['PermissionLevel'] != 'Full'))) {
+      
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: Text(widget.config.language == 'th' ? 'คุณไม่มีสิทธิใช้งาน' : 'You do not have permission to access'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                   Navigator.of(context).pop();
+                   Navigator.of(context).pop(); // Exit screen
+                },
+                child: const Text('OK')
+              )
+            ]
+          )
+        );
+      }
+    }
   }
 
   void _checkExpiration() {
@@ -76,24 +117,26 @@ class _PPosScreenState extends State<PPosScreen> {
                 );
               },
             ),
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: refreshFoodOrder,
-            ),
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => FoodMenuScreen(
-                      config: widget.config,
-                      shop_open_table_ID: '0',
+            if (_canOrderFood) ...[
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: refreshFoodOrder,
+              ),
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FoodMenuScreen(
+                        config: widget.config,
+                        shop_open_table_ID: '0',
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
+                  );
+                },
+              ),
+            ],
           ],
         ],
       ),
@@ -326,6 +369,9 @@ class _PPosScreenState extends State<PPosScreen> {
         .filter()
         .idEqualTo(id)
         .findFirst();
+
+    debugPrint("servedOrder found order: ${order?.id} ${order?.status}");
+
     if (order != null) {
       await isar.writeTxn(() async {
         order.status = 'Served';
@@ -333,6 +379,7 @@ class _PPosScreenState extends State<PPosScreen> {
         order.isDirty = true;
         await isar.foodOrderList.put(order);
       });
+      debugPrint("servedOrder update order: ${order?.id} ${order?.status}");
       refreshFoodOrder();
     }
   }

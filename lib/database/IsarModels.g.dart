@@ -52,9 +52,9 @@ const UserSchema = CollectionSchema(
       name: r'passwordHash',
       type: IsarType.string,
     ),
-    r'role': PropertySchema(
+    r'role_ID': PropertySchema(
       id: 7,
-      name: r'role',
+      name: r'role_ID',
       type: IsarType.string,
     ),
     r'userName': PropertySchema(
@@ -128,7 +128,7 @@ int _userEstimateSize(
     }
   }
   {
-    final value = object.role;
+    final value = object.role_ID;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
@@ -155,7 +155,7 @@ void _userSerialize(
   writer.writeString(offsets[4], object.lastUpdated);
   writer.writeString(offsets[5], object.name);
   writer.writeString(offsets[6], object.passwordHash);
-  writer.writeString(offsets[7], object.role);
+  writer.writeString(offsets[7], object.role_ID);
   writer.writeString(offsets[8], object.userName);
 }
 
@@ -174,7 +174,7 @@ User _userDeserialize(
   object.lastUpdated = reader.readStringOrNull(offsets[4]);
   object.name = reader.readStringOrNull(offsets[5]);
   object.passwordHash = reader.readStringOrNull(offsets[6]);
-  object.role = reader.readStringOrNull(offsets[7]);
+  object.role_ID = reader.readStringOrNull(offsets[7]);
   object.userName = reader.readStringOrNull(offsets[8]);
   return object;
 }
@@ -1322,36 +1322,36 @@ extension UserQueryFilter on QueryBuilder<User, User, QFilterCondition> {
     });
   }
 
-  QueryBuilder<User, User, QAfterFilterCondition> roleIsNull() {
+  QueryBuilder<User, User, QAfterFilterCondition> role_IDIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'role',
+        property: r'role_ID',
       ));
     });
   }
 
-  QueryBuilder<User, User, QAfterFilterCondition> roleIsNotNull() {
+  QueryBuilder<User, User, QAfterFilterCondition> role_IDIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'role',
+        property: r'role_ID',
       ));
     });
   }
 
-  QueryBuilder<User, User, QAfterFilterCondition> roleEqualTo(
+  QueryBuilder<User, User, QAfterFilterCondition> role_IDEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'role',
+        property: r'role_ID',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<User, User, QAfterFilterCondition> roleGreaterThan(
+  QueryBuilder<User, User, QAfterFilterCondition> role_IDGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1359,14 +1359,14 @@ extension UserQueryFilter on QueryBuilder<User, User, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'role',
+        property: r'role_ID',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<User, User, QAfterFilterCondition> roleLessThan(
+  QueryBuilder<User, User, QAfterFilterCondition> role_IDLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1374,14 +1374,14 @@ extension UserQueryFilter on QueryBuilder<User, User, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'role',
+        property: r'role_ID',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<User, User, QAfterFilterCondition> roleBetween(
+  QueryBuilder<User, User, QAfterFilterCondition> role_IDBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -1390,7 +1390,7 @@ extension UserQueryFilter on QueryBuilder<User, User, QFilterCondition> {
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'role',
+        property: r'role_ID',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -1400,67 +1400,67 @@ extension UserQueryFilter on QueryBuilder<User, User, QFilterCondition> {
     });
   }
 
-  QueryBuilder<User, User, QAfterFilterCondition> roleStartsWith(
+  QueryBuilder<User, User, QAfterFilterCondition> role_IDStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'role',
+        property: r'role_ID',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<User, User, QAfterFilterCondition> roleEndsWith(
+  QueryBuilder<User, User, QAfterFilterCondition> role_IDEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'role',
+        property: r'role_ID',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<User, User, QAfterFilterCondition> roleContains(String value,
+  QueryBuilder<User, User, QAfterFilterCondition> role_IDContains(String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
-        property: r'role',
+        property: r'role_ID',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<User, User, QAfterFilterCondition> roleMatches(String pattern,
+  QueryBuilder<User, User, QAfterFilterCondition> role_IDMatches(String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
-        property: r'role',
+        property: r'role_ID',
         wildcard: pattern,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<User, User, QAfterFilterCondition> roleIsEmpty() {
+  QueryBuilder<User, User, QAfterFilterCondition> role_IDIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'role',
+        property: r'role_ID',
         value: '',
       ));
     });
   }
 
-  QueryBuilder<User, User, QAfterFilterCondition> roleIsNotEmpty() {
+  QueryBuilder<User, User, QAfterFilterCondition> role_IDIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'role',
+        property: r'role_ID',
         value: '',
       ));
     });
@@ -1701,15 +1701,15 @@ extension UserQuerySortBy on QueryBuilder<User, User, QSortBy> {
     });
   }
 
-  QueryBuilder<User, User, QAfterSortBy> sortByRole() {
+  QueryBuilder<User, User, QAfterSortBy> sortByRole_ID() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'role', Sort.asc);
+      return query.addSortBy(r'role_ID', Sort.asc);
     });
   }
 
-  QueryBuilder<User, User, QAfterSortBy> sortByRoleDesc() {
+  QueryBuilder<User, User, QAfterSortBy> sortByRole_IDDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'role', Sort.desc);
+      return query.addSortBy(r'role_ID', Sort.desc);
     });
   }
 
@@ -1823,15 +1823,15 @@ extension UserQuerySortThenBy on QueryBuilder<User, User, QSortThenBy> {
     });
   }
 
-  QueryBuilder<User, User, QAfterSortBy> thenByRole() {
+  QueryBuilder<User, User, QAfterSortBy> thenByRole_ID() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'role', Sort.asc);
+      return query.addSortBy(r'role_ID', Sort.asc);
     });
   }
 
-  QueryBuilder<User, User, QAfterSortBy> thenByRoleDesc() {
+  QueryBuilder<User, User, QAfterSortBy> thenByRole_IDDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'role', Sort.desc);
+      return query.addSortBy(r'role_ID', Sort.desc);
     });
   }
 
@@ -1896,10 +1896,10 @@ extension UserQueryWhereDistinct on QueryBuilder<User, User, QDistinct> {
     });
   }
 
-  QueryBuilder<User, User, QDistinct> distinctByRole(
+  QueryBuilder<User, User, QDistinct> distinctByRole_ID(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'role', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'role_ID', caseSensitive: caseSensitive);
     });
   }
 
@@ -1960,15 +1960,3378 @@ extension UserQueryProperty on QueryBuilder<User, User, QQueryProperty> {
     });
   }
 
-  QueryBuilder<User, String?, QQueryOperations> roleProperty() {
+  QueryBuilder<User, String?, QQueryOperations> role_IDProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'role');
+      return query.addPropertyName(r'role_ID');
     });
   }
 
   QueryBuilder<User, String?, QQueryOperations> userNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'userName');
+    });
+  }
+}
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+extension GetRoleCollection on Isar {
+  IsarCollection<Role> get roleList => this.collection();
+}
+
+const RoleSchema = CollectionSchema(
+  name: r'Role',
+  id: 5641257444705586666,
+  properties: {
+    r'englishName': PropertySchema(
+      id: 0,
+      name: r'englishName',
+      type: IsarType.string,
+    ),
+    r'id': PropertySchema(
+      id: 1,
+      name: r'id',
+      type: IsarType.string,
+    ),
+    r'isActive': PropertySchema(
+      id: 2,
+      name: r'isActive',
+      type: IsarType.string,
+    ),
+    r'isDirty': PropertySchema(
+      id: 3,
+      name: r'isDirty',
+      type: IsarType.bool,
+    ),
+    r'lastUpdated': PropertySchema(
+      id: 4,
+      name: r'lastUpdated',
+      type: IsarType.string,
+    ),
+    r'thaiName': PropertySchema(
+      id: 5,
+      name: r'thaiName',
+      type: IsarType.string,
+    )
+  },
+  estimateSize: _roleEstimateSize,
+  serialize: _roleSerialize,
+  deserialize: _roleDeserialize,
+  deserializeProp: _roleDeserializeProp,
+  idName: r'isarId',
+  indexes: {
+    r'id': IndexSchema(
+      id: -3268401673993471357,
+      name: r'id',
+      unique: true,
+      replace: true,
+      properties: [
+        IndexPropertySchema(
+          name: r'id',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    )
+  },
+  links: {},
+  embeddedSchemas: {},
+  getId: _roleGetId,
+  getLinks: _roleGetLinks,
+  attach: _roleAttach,
+  version: '3.1.0+1',
+);
+
+int _roleEstimateSize(
+  Role object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  {
+    final value = object.englishName;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.id;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.isActive;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.lastUpdated;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.thaiName;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  return bytesCount;
+}
+
+void _roleSerialize(
+  Role object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeString(offsets[0], object.englishName);
+  writer.writeString(offsets[1], object.id);
+  writer.writeString(offsets[2], object.isActive);
+  writer.writeBool(offsets[3], object.isDirty);
+  writer.writeString(offsets[4], object.lastUpdated);
+  writer.writeString(offsets[5], object.thaiName);
+}
+
+Role _roleDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = Role();
+  object.englishName = reader.readStringOrNull(offsets[0]);
+  object.id = reader.readStringOrNull(offsets[1]);
+  object.isActive = reader.readStringOrNull(offsets[2]);
+  object.isDirty = reader.readBool(offsets[3]);
+  object.isarId = id;
+  object.lastUpdated = reader.readStringOrNull(offsets[4]);
+  object.thaiName = reader.readStringOrNull(offsets[5]);
+  return object;
+}
+
+P _roleDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readStringOrNull(offset)) as P;
+    case 1:
+      return (reader.readStringOrNull(offset)) as P;
+    case 2:
+      return (reader.readStringOrNull(offset)) as P;
+    case 3:
+      return (reader.readBool(offset)) as P;
+    case 4:
+      return (reader.readStringOrNull(offset)) as P;
+    case 5:
+      return (reader.readStringOrNull(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+Id _roleGetId(Role object) {
+  return object.isarId;
+}
+
+List<IsarLinkBase<dynamic>> _roleGetLinks(Role object) {
+  return [];
+}
+
+void _roleAttach(IsarCollection<dynamic> col, Id id, Role object) {
+  object.isarId = id;
+}
+
+extension RoleByIndex on IsarCollection<Role> {
+  Future<Role?> getById(String? id) {
+    return getByIndex(r'id', [id]);
+  }
+
+  Role? getByIdSync(String? id) {
+    return getByIndexSync(r'id', [id]);
+  }
+
+  Future<bool> deleteById(String? id) {
+    return deleteByIndex(r'id', [id]);
+  }
+
+  bool deleteByIdSync(String? id) {
+    return deleteByIndexSync(r'id', [id]);
+  }
+
+  Future<List<Role?>> getAllById(List<String?> idValues) {
+    final values = idValues.map((e) => [e]).toList();
+    return getAllByIndex(r'id', values);
+  }
+
+  List<Role?> getAllByIdSync(List<String?> idValues) {
+    final values = idValues.map((e) => [e]).toList();
+    return getAllByIndexSync(r'id', values);
+  }
+
+  Future<int> deleteAllById(List<String?> idValues) {
+    final values = idValues.map((e) => [e]).toList();
+    return deleteAllByIndex(r'id', values);
+  }
+
+  int deleteAllByIdSync(List<String?> idValues) {
+    final values = idValues.map((e) => [e]).toList();
+    return deleteAllByIndexSync(r'id', values);
+  }
+
+  Future<Id> putById(Role object) {
+    return putByIndex(r'id', object);
+  }
+
+  Id putByIdSync(Role object, {bool saveLinks = true}) {
+    return putByIndexSync(r'id', object, saveLinks: saveLinks);
+  }
+
+  Future<List<Id>> putAllById(List<Role> objects) {
+    return putAllByIndex(r'id', objects);
+  }
+
+  List<Id> putAllByIdSync(List<Role> objects, {bool saveLinks = true}) {
+    return putAllByIndexSync(r'id', objects, saveLinks: saveLinks);
+  }
+}
+
+extension RoleQueryWhereSort on QueryBuilder<Role, Role, QWhere> {
+  QueryBuilder<Role, Role, QAfterWhere> anyIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+}
+
+extension RoleQueryWhere on QueryBuilder<Role, Role, QWhereClause> {
+  QueryBuilder<Role, Role, QAfterWhereClause> isarIdEqualTo(Id isarId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: isarId,
+        upper: isarId,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterWhereClause> isarIdNotEqualTo(Id isarId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: isarId, includeUpper: false),
+            )
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: isarId, includeLower: false),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: isarId, includeLower: false),
+            )
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: isarId, includeUpper: false),
+            );
+      }
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterWhereClause> isarIdGreaterThan(Id isarId,
+      {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.greaterThan(lower: isarId, includeLower: include),
+      );
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterWhereClause> isarIdLessThan(Id isarId,
+      {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.lessThan(upper: isarId, includeUpper: include),
+      );
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterWhereClause> isarIdBetween(
+    Id lowerIsarId,
+    Id upperIsarId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerIsarId,
+        includeLower: includeLower,
+        upper: upperIsarId,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterWhereClause> idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'id',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterWhereClause> idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'id',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterWhereClause> idEqualTo(String? id) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'id',
+        value: [id],
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterWhereClause> idNotEqualTo(String? id) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'id',
+              lower: [],
+              upper: [id],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'id',
+              lower: [id],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'id',
+              lower: [id],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'id',
+              lower: [],
+              upper: [id],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+}
+
+extension RoleQueryFilter on QueryBuilder<Role, Role, QFilterCondition> {
+  QueryBuilder<Role, Role, QAfterFilterCondition> englishNameIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'englishName',
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> englishNameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'englishName',
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> englishNameEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'englishName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> englishNameGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'englishName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> englishNameLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'englishName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> englishNameBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'englishName',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> englishNameStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'englishName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> englishNameEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'englishName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> englishNameContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'englishName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> englishNameMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'englishName',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> englishNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'englishName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> englishNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'englishName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> idEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> idGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> idLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> idBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> idStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'id',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> idEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'id',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> idContains(String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'id',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> idMatches(String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'id',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> idIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> idIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'id',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> isActiveIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'isActive',
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> isActiveIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'isActive',
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> isActiveEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isActive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> isActiveGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'isActive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> isActiveLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'isActive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> isActiveBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'isActive',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> isActiveStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'isActive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> isActiveEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'isActive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> isActiveContains(String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'isActive',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> isActiveMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'isActive',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> isActiveIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isActive',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> isActiveIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'isActive',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> isDirtyEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isDirty',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> isarIdEqualTo(Id value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> isarIdGreaterThan(
+    Id value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'isarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> isarIdLessThan(
+    Id value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'isarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> isarIdBetween(
+    Id lower,
+    Id upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'isarId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> lastUpdatedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastUpdated',
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> lastUpdatedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastUpdated',
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> lastUpdatedEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastUpdated',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> lastUpdatedGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastUpdated',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> lastUpdatedLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastUpdated',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> lastUpdatedBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastUpdated',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> lastUpdatedStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'lastUpdated',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> lastUpdatedEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'lastUpdated',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> lastUpdatedContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'lastUpdated',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> lastUpdatedMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'lastUpdated',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> lastUpdatedIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastUpdated',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> lastUpdatedIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'lastUpdated',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> thaiNameIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'thaiName',
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> thaiNameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'thaiName',
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> thaiNameEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'thaiName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> thaiNameGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'thaiName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> thaiNameLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'thaiName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> thaiNameBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'thaiName',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> thaiNameStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'thaiName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> thaiNameEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'thaiName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> thaiNameContains(String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'thaiName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> thaiNameMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'thaiName',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> thaiNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'thaiName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterFilterCondition> thaiNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'thaiName',
+        value: '',
+      ));
+    });
+  }
+}
+
+extension RoleQueryObject on QueryBuilder<Role, Role, QFilterCondition> {}
+
+extension RoleQueryLinks on QueryBuilder<Role, Role, QFilterCondition> {}
+
+extension RoleQuerySortBy on QueryBuilder<Role, Role, QSortBy> {
+  QueryBuilder<Role, Role, QAfterSortBy> sortByEnglishName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'englishName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> sortByEnglishNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'englishName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> sortById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> sortByIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> sortByIsActive() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isActive', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> sortByIsActiveDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isActive', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> sortByIsDirty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDirty', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> sortByIsDirtyDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDirty', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> sortByLastUpdated() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> sortByLastUpdatedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> sortByThaiName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'thaiName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> sortByThaiNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'thaiName', Sort.desc);
+    });
+  }
+}
+
+extension RoleQuerySortThenBy on QueryBuilder<Role, Role, QSortThenBy> {
+  QueryBuilder<Role, Role, QAfterSortBy> thenByEnglishName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'englishName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> thenByEnglishNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'englishName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> thenById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> thenByIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> thenByIsActive() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isActive', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> thenByIsActiveDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isActive', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> thenByIsDirty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDirty', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> thenByIsDirtyDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDirty', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> thenByIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isarId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> thenByIsarIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isarId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> thenByLastUpdated() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> thenByLastUpdatedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> thenByThaiName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'thaiName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Role, Role, QAfterSortBy> thenByThaiNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'thaiName', Sort.desc);
+    });
+  }
+}
+
+extension RoleQueryWhereDistinct on QueryBuilder<Role, Role, QDistinct> {
+  QueryBuilder<Role, Role, QDistinct> distinctByEnglishName(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'englishName', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Role, Role, QDistinct> distinctById(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'id', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Role, Role, QDistinct> distinctByIsActive(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isActive', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Role, Role, QDistinct> distinctByIsDirty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isDirty');
+    });
+  }
+
+  QueryBuilder<Role, Role, QDistinct> distinctByLastUpdated(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastUpdated', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Role, Role, QDistinct> distinctByThaiName(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'thaiName', caseSensitive: caseSensitive);
+    });
+  }
+}
+
+extension RoleQueryProperty on QueryBuilder<Role, Role, QQueryProperty> {
+  QueryBuilder<Role, int, QQueryOperations> isarIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isarId');
+    });
+  }
+
+  QueryBuilder<Role, String?, QQueryOperations> englishNameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'englishName');
+    });
+  }
+
+  QueryBuilder<Role, String?, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<Role, String?, QQueryOperations> isActiveProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isActive');
+    });
+  }
+
+  QueryBuilder<Role, bool, QQueryOperations> isDirtyProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isDirty');
+    });
+  }
+
+  QueryBuilder<Role, String?, QQueryOperations> lastUpdatedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastUpdated');
+    });
+  }
+
+  QueryBuilder<Role, String?, QQueryOperations> thaiNameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'thaiName');
+    });
+  }
+}
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+extension GetRoleTransactionPermissionCollection on Isar {
+  IsarCollection<RoleTransactionPermission> get roleTransactionPermissionList =>
+      this.collection();
+}
+
+const RoleTransactionPermissionSchema = CollectionSchema(
+  name: r'RoleTransactionPermission',
+  id: 6972399161379170319,
+  properties: {
+    r'id': PropertySchema(
+      id: 0,
+      name: r'id',
+      type: IsarType.string,
+    ),
+    r'isDirty': PropertySchema(
+      id: 1,
+      name: r'isDirty',
+      type: IsarType.bool,
+    ),
+    r'lastUpdated': PropertySchema(
+      id: 2,
+      name: r'lastUpdated',
+      type: IsarType.string,
+    ),
+    r'partialAmount': PropertySchema(
+      id: 3,
+      name: r'partialAmount',
+      type: IsarType.string,
+    ),
+    r'partialPercent': PropertySchema(
+      id: 4,
+      name: r'partialPercent',
+      type: IsarType.string,
+    ),
+    r'permissionLevel': PropertySchema(
+      id: 5,
+      name: r'permissionLevel',
+      type: IsarType.string,
+    ),
+    r'role_ID': PropertySchema(
+      id: 6,
+      name: r'role_ID',
+      type: IsarType.string,
+    ),
+    r'transaction_permission_ID': PropertySchema(
+      id: 7,
+      name: r'transaction_permission_ID',
+      type: IsarType.string,
+    )
+  },
+  estimateSize: _roleTransactionPermissionEstimateSize,
+  serialize: _roleTransactionPermissionSerialize,
+  deserialize: _roleTransactionPermissionDeserialize,
+  deserializeProp: _roleTransactionPermissionDeserializeProp,
+  idName: r'isarId',
+  indexes: {
+    r'id': IndexSchema(
+      id: -3268401673993471357,
+      name: r'id',
+      unique: true,
+      replace: true,
+      properties: [
+        IndexPropertySchema(
+          name: r'id',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    )
+  },
+  links: {},
+  embeddedSchemas: {},
+  getId: _roleTransactionPermissionGetId,
+  getLinks: _roleTransactionPermissionGetLinks,
+  attach: _roleTransactionPermissionAttach,
+  version: '3.1.0+1',
+);
+
+int _roleTransactionPermissionEstimateSize(
+  RoleTransactionPermission object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  {
+    final value = object.id;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.lastUpdated;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.partialAmount;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.partialPercent;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.permissionLevel;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.role_ID;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.transaction_permission_ID;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  return bytesCount;
+}
+
+void _roleTransactionPermissionSerialize(
+  RoleTransactionPermission object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeString(offsets[0], object.id);
+  writer.writeBool(offsets[1], object.isDirty);
+  writer.writeString(offsets[2], object.lastUpdated);
+  writer.writeString(offsets[3], object.partialAmount);
+  writer.writeString(offsets[4], object.partialPercent);
+  writer.writeString(offsets[5], object.permissionLevel);
+  writer.writeString(offsets[6], object.role_ID);
+  writer.writeString(offsets[7], object.transaction_permission_ID);
+}
+
+RoleTransactionPermission _roleTransactionPermissionDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = RoleTransactionPermission();
+  object.id = reader.readStringOrNull(offsets[0]);
+  object.isDirty = reader.readBool(offsets[1]);
+  object.isarId = id;
+  object.lastUpdated = reader.readStringOrNull(offsets[2]);
+  object.partialAmount = reader.readStringOrNull(offsets[3]);
+  object.partialPercent = reader.readStringOrNull(offsets[4]);
+  object.permissionLevel = reader.readStringOrNull(offsets[5]);
+  object.role_ID = reader.readStringOrNull(offsets[6]);
+  object.transaction_permission_ID = reader.readStringOrNull(offsets[7]);
+  return object;
+}
+
+P _roleTransactionPermissionDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readStringOrNull(offset)) as P;
+    case 1:
+      return (reader.readBool(offset)) as P;
+    case 2:
+      return (reader.readStringOrNull(offset)) as P;
+    case 3:
+      return (reader.readStringOrNull(offset)) as P;
+    case 4:
+      return (reader.readStringOrNull(offset)) as P;
+    case 5:
+      return (reader.readStringOrNull(offset)) as P;
+    case 6:
+      return (reader.readStringOrNull(offset)) as P;
+    case 7:
+      return (reader.readStringOrNull(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+Id _roleTransactionPermissionGetId(RoleTransactionPermission object) {
+  return object.isarId;
+}
+
+List<IsarLinkBase<dynamic>> _roleTransactionPermissionGetLinks(
+    RoleTransactionPermission object) {
+  return [];
+}
+
+void _roleTransactionPermissionAttach(
+    IsarCollection<dynamic> col, Id id, RoleTransactionPermission object) {
+  object.isarId = id;
+}
+
+extension RoleTransactionPermissionByIndex
+    on IsarCollection<RoleTransactionPermission> {
+  Future<RoleTransactionPermission?> getById(String? id) {
+    return getByIndex(r'id', [id]);
+  }
+
+  RoleTransactionPermission? getByIdSync(String? id) {
+    return getByIndexSync(r'id', [id]);
+  }
+
+  Future<bool> deleteById(String? id) {
+    return deleteByIndex(r'id', [id]);
+  }
+
+  bool deleteByIdSync(String? id) {
+    return deleteByIndexSync(r'id', [id]);
+  }
+
+  Future<List<RoleTransactionPermission?>> getAllById(List<String?> idValues) {
+    final values = idValues.map((e) => [e]).toList();
+    return getAllByIndex(r'id', values);
+  }
+
+  List<RoleTransactionPermission?> getAllByIdSync(List<String?> idValues) {
+    final values = idValues.map((e) => [e]).toList();
+    return getAllByIndexSync(r'id', values);
+  }
+
+  Future<int> deleteAllById(List<String?> idValues) {
+    final values = idValues.map((e) => [e]).toList();
+    return deleteAllByIndex(r'id', values);
+  }
+
+  int deleteAllByIdSync(List<String?> idValues) {
+    final values = idValues.map((e) => [e]).toList();
+    return deleteAllByIndexSync(r'id', values);
+  }
+
+  Future<Id> putById(RoleTransactionPermission object) {
+    return putByIndex(r'id', object);
+  }
+
+  Id putByIdSync(RoleTransactionPermission object, {bool saveLinks = true}) {
+    return putByIndexSync(r'id', object, saveLinks: saveLinks);
+  }
+
+  Future<List<Id>> putAllById(List<RoleTransactionPermission> objects) {
+    return putAllByIndex(r'id', objects);
+  }
+
+  List<Id> putAllByIdSync(List<RoleTransactionPermission> objects,
+      {bool saveLinks = true}) {
+    return putAllByIndexSync(r'id', objects, saveLinks: saveLinks);
+  }
+}
+
+extension RoleTransactionPermissionQueryWhereSort on QueryBuilder<
+    RoleTransactionPermission, RoleTransactionPermission, QWhere> {
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterWhere> anyIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+}
+
+extension RoleTransactionPermissionQueryWhere on QueryBuilder<
+    RoleTransactionPermission, RoleTransactionPermission, QWhereClause> {
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterWhereClause> isarIdEqualTo(Id isarId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: isarId,
+        upper: isarId,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterWhereClause> isarIdNotEqualTo(Id isarId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: isarId, includeUpper: false),
+            )
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: isarId, includeLower: false),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: isarId, includeLower: false),
+            )
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: isarId, includeUpper: false),
+            );
+      }
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterWhereClause> isarIdGreaterThan(Id isarId, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.greaterThan(lower: isarId, includeLower: include),
+      );
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterWhereClause> isarIdLessThan(Id isarId, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.lessThan(upper: isarId, includeUpper: include),
+      );
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterWhereClause> isarIdBetween(
+    Id lowerIsarId,
+    Id upperIsarId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerIsarId,
+        includeLower: includeLower,
+        upper: upperIsarId,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterWhereClause> idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'id',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterWhereClause> idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'id',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterWhereClause> idEqualTo(String? id) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'id',
+        value: [id],
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterWhereClause> idNotEqualTo(String? id) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'id',
+              lower: [],
+              upper: [id],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'id',
+              lower: [id],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'id',
+              lower: [id],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'id',
+              lower: [],
+              upper: [id],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+}
+
+extension RoleTransactionPermissionQueryFilter on QueryBuilder<
+    RoleTransactionPermission, RoleTransactionPermission, QFilterCondition> {
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> idEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> idGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> idLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> idBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> idStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'id',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> idEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'id',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+          QAfterFilterCondition>
+      idContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'id',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+          QAfterFilterCondition>
+      idMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'id',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> idIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> idIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'id',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> isDirtyEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isDirty',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> isarIdEqualTo(Id value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> isarIdGreaterThan(
+    Id value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'isarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> isarIdLessThan(
+    Id value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'isarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> isarIdBetween(
+    Id lower,
+    Id upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'isarId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> lastUpdatedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastUpdated',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> lastUpdatedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastUpdated',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> lastUpdatedEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastUpdated',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> lastUpdatedGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastUpdated',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> lastUpdatedLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastUpdated',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> lastUpdatedBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastUpdated',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> lastUpdatedStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'lastUpdated',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> lastUpdatedEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'lastUpdated',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+          QAfterFilterCondition>
+      lastUpdatedContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'lastUpdated',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+          QAfterFilterCondition>
+      lastUpdatedMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'lastUpdated',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> lastUpdatedIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastUpdated',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> lastUpdatedIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'lastUpdated',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> partialAmountIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'partialAmount',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> partialAmountIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'partialAmount',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> partialAmountEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'partialAmount',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> partialAmountGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'partialAmount',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> partialAmountLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'partialAmount',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> partialAmountBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'partialAmount',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> partialAmountStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'partialAmount',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> partialAmountEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'partialAmount',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+          QAfterFilterCondition>
+      partialAmountContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'partialAmount',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+          QAfterFilterCondition>
+      partialAmountMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'partialAmount',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> partialAmountIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'partialAmount',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> partialAmountIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'partialAmount',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> partialPercentIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'partialPercent',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> partialPercentIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'partialPercent',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> partialPercentEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'partialPercent',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> partialPercentGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'partialPercent',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> partialPercentLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'partialPercent',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> partialPercentBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'partialPercent',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> partialPercentStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'partialPercent',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> partialPercentEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'partialPercent',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+          QAfterFilterCondition>
+      partialPercentContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'partialPercent',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+          QAfterFilterCondition>
+      partialPercentMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'partialPercent',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> partialPercentIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'partialPercent',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> partialPercentIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'partialPercent',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> permissionLevelIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'permissionLevel',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> permissionLevelIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'permissionLevel',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> permissionLevelEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'permissionLevel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> permissionLevelGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'permissionLevel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> permissionLevelLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'permissionLevel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> permissionLevelBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'permissionLevel',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> permissionLevelStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'permissionLevel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> permissionLevelEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'permissionLevel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+          QAfterFilterCondition>
+      permissionLevelContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'permissionLevel',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+          QAfterFilterCondition>
+      permissionLevelMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'permissionLevel',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> permissionLevelIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'permissionLevel',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> permissionLevelIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'permissionLevel',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> role_IDIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'role_ID',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> role_IDIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'role_ID',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> role_IDEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'role_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> role_IDGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'role_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> role_IDLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'role_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> role_IDBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'role_ID',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> role_IDStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'role_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> role_IDEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'role_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+          QAfterFilterCondition>
+      role_IDContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'role_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+          QAfterFilterCondition>
+      role_IDMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'role_ID',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> role_IDIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'role_ID',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> role_IDIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'role_ID',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> transaction_permission_IDIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'transaction_permission_ID',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> transaction_permission_IDIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'transaction_permission_ID',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> transaction_permission_IDEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'transaction_permission_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> transaction_permission_IDGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'transaction_permission_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> transaction_permission_IDLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'transaction_permission_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> transaction_permission_IDBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'transaction_permission_ID',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> transaction_permission_IDStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'transaction_permission_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> transaction_permission_IDEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'transaction_permission_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+          QAfterFilterCondition>
+      transaction_permission_IDContains(String value,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'transaction_permission_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+          QAfterFilterCondition>
+      transaction_permission_IDMatches(String pattern,
+          {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'transaction_permission_ID',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> transaction_permission_IDIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'transaction_permission_ID',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterFilterCondition> transaction_permission_IDIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'transaction_permission_ID',
+        value: '',
+      ));
+    });
+  }
+}
+
+extension RoleTransactionPermissionQueryObject on QueryBuilder<
+    RoleTransactionPermission, RoleTransactionPermission, QFilterCondition> {}
+
+extension RoleTransactionPermissionQueryLinks on QueryBuilder<
+    RoleTransactionPermission, RoleTransactionPermission, QFilterCondition> {}
+
+extension RoleTransactionPermissionQuerySortBy on QueryBuilder<
+    RoleTransactionPermission, RoleTransactionPermission, QSortBy> {
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> sortById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> sortByIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> sortByIsDirty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDirty', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> sortByIsDirtyDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDirty', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> sortByLastUpdated() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> sortByLastUpdatedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> sortByPartialAmount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'partialAmount', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> sortByPartialAmountDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'partialAmount', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> sortByPartialPercent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'partialPercent', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> sortByPartialPercentDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'partialPercent', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> sortByPermissionLevel() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'permissionLevel', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> sortByPermissionLevelDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'permissionLevel', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> sortByRole_ID() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'role_ID', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> sortByRole_IDDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'role_ID', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> sortByTransaction_permission_ID() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'transaction_permission_ID', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> sortByTransaction_permission_IDDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'transaction_permission_ID', Sort.desc);
+    });
+  }
+}
+
+extension RoleTransactionPermissionQuerySortThenBy on QueryBuilder<
+    RoleTransactionPermission, RoleTransactionPermission, QSortThenBy> {
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> thenById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> thenByIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> thenByIsDirty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDirty', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> thenByIsDirtyDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDirty', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> thenByIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isarId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> thenByIsarIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isarId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> thenByLastUpdated() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> thenByLastUpdatedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> thenByPartialAmount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'partialAmount', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> thenByPartialAmountDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'partialAmount', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> thenByPartialPercent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'partialPercent', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> thenByPartialPercentDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'partialPercent', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> thenByPermissionLevel() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'permissionLevel', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> thenByPermissionLevelDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'permissionLevel', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> thenByRole_ID() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'role_ID', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> thenByRole_IDDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'role_ID', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> thenByTransaction_permission_ID() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'transaction_permission_ID', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission,
+      QAfterSortBy> thenByTransaction_permission_IDDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'transaction_permission_ID', Sort.desc);
+    });
+  }
+}
+
+extension RoleTransactionPermissionQueryWhereDistinct on QueryBuilder<
+    RoleTransactionPermission, RoleTransactionPermission, QDistinct> {
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission, QDistinct>
+      distinctById({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'id', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission, QDistinct>
+      distinctByIsDirty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isDirty');
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission, QDistinct>
+      distinctByLastUpdated({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastUpdated', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission, QDistinct>
+      distinctByPartialAmount({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'partialAmount',
+          caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission, QDistinct>
+      distinctByPartialPercent({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'partialPercent',
+          caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission, QDistinct>
+      distinctByPermissionLevel({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'permissionLevel',
+          caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission, QDistinct>
+      distinctByRole_ID({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'role_ID', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, RoleTransactionPermission, QDistinct>
+      distinctByTransaction_permission_ID({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'transaction_permission_ID',
+          caseSensitive: caseSensitive);
+    });
+  }
+}
+
+extension RoleTransactionPermissionQueryProperty on QueryBuilder<
+    RoleTransactionPermission, RoleTransactionPermission, QQueryProperty> {
+  QueryBuilder<RoleTransactionPermission, int, QQueryOperations>
+      isarIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isarId');
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, String?, QQueryOperations>
+      idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, bool, QQueryOperations>
+      isDirtyProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isDirty');
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, String?, QQueryOperations>
+      lastUpdatedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastUpdated');
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, String?, QQueryOperations>
+      partialAmountProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'partialAmount');
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, String?, QQueryOperations>
+      partialPercentProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'partialPercent');
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, String?, QQueryOperations>
+      permissionLevelProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'permissionLevel');
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, String?, QQueryOperations>
+      role_IDProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'role_ID');
+    });
+  }
+
+  QueryBuilder<RoleTransactionPermission, String?, QQueryOperations>
+      transaction_permission_IDProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'transaction_permission_ID');
     });
   }
 }
@@ -27635,73 +30998,78 @@ const ReceiptSchema = CollectionSchema(
       name: r'discountAmount',
       type: IsarType.double,
     ),
-    r'id': PropertySchema(
+    r'discountPercent': PropertySchema(
       id: 3,
+      name: r'discountPercent',
+      type: IsarType.long,
+    ),
+    r'id': PropertySchema(
+      id: 4,
       name: r'id',
       type: IsarType.string,
     ),
     r'isDirty': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'isDirty',
       type: IsarType.bool,
     ),
     r'lastUpdated': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'lastUpdated',
       type: IsarType.string,
     ),
     r'paidAmount': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'paidAmount',
       type: IsarType.double,
     ),
     r'paymentType': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'paymentType',
       type: IsarType.string,
     ),
     r'serviceChargeAmount': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'serviceChargeAmount',
       type: IsarType.double,
     ),
     r'shop_branch_ID': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'shop_branch_ID',
       type: IsarType.long,
     ),
     r'shop_customer_ID': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'shop_customer_ID',
       type: IsarType.string,
     ),
     r'shop_user_ID': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'shop_user_ID',
       type: IsarType.long,
     ),
     r'slipFileName': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'slipFileName',
       type: IsarType.string,
     ),
     r'status': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'status',
       type: IsarType.string,
     ),
     r'sumAmount': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'sumAmount',
       type: IsarType.double,
     ),
     r'totalAmount': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'totalAmount',
       type: IsarType.double,
     ),
     r'vatAmount': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'vatAmount',
       type: IsarType.double,
     )
@@ -27794,20 +31162,21 @@ void _receiptSerialize(
   writer.writeString(offsets[0], object.code);
   writer.writeDateTime(offsets[1], object.createdAt);
   writer.writeDouble(offsets[2], object.discountAmount);
-  writer.writeString(offsets[3], object.id);
-  writer.writeBool(offsets[4], object.isDirty);
-  writer.writeString(offsets[5], object.lastUpdated);
-  writer.writeDouble(offsets[6], object.paidAmount);
-  writer.writeString(offsets[7], object.paymentType);
-  writer.writeDouble(offsets[8], object.serviceChargeAmount);
-  writer.writeLong(offsets[9], object.shop_branch_ID);
-  writer.writeString(offsets[10], object.shop_customer_ID);
-  writer.writeLong(offsets[11], object.shop_user_ID);
-  writer.writeString(offsets[12], object.slipFileName);
-  writer.writeString(offsets[13], object.status);
-  writer.writeDouble(offsets[14], object.sumAmount);
-  writer.writeDouble(offsets[15], object.totalAmount);
-  writer.writeDouble(offsets[16], object.vatAmount);
+  writer.writeLong(offsets[3], object.discountPercent);
+  writer.writeString(offsets[4], object.id);
+  writer.writeBool(offsets[5], object.isDirty);
+  writer.writeString(offsets[6], object.lastUpdated);
+  writer.writeDouble(offsets[7], object.paidAmount);
+  writer.writeString(offsets[8], object.paymentType);
+  writer.writeDouble(offsets[9], object.serviceChargeAmount);
+  writer.writeLong(offsets[10], object.shop_branch_ID);
+  writer.writeString(offsets[11], object.shop_customer_ID);
+  writer.writeLong(offsets[12], object.shop_user_ID);
+  writer.writeString(offsets[13], object.slipFileName);
+  writer.writeString(offsets[14], object.status);
+  writer.writeDouble(offsets[15], object.sumAmount);
+  writer.writeDouble(offsets[16], object.totalAmount);
+  writer.writeDouble(offsets[17], object.vatAmount);
 }
 
 Receipt _receiptDeserialize(
@@ -27820,21 +31189,22 @@ Receipt _receiptDeserialize(
   object.code = reader.readStringOrNull(offsets[0]);
   object.createdAt = reader.readDateTimeOrNull(offsets[1]);
   object.discountAmount = reader.readDoubleOrNull(offsets[2]);
-  object.id = reader.readStringOrNull(offsets[3]);
-  object.isDirty = reader.readBool(offsets[4]);
+  object.discountPercent = reader.readLongOrNull(offsets[3]);
+  object.id = reader.readStringOrNull(offsets[4]);
+  object.isDirty = reader.readBool(offsets[5]);
   object.isarId = id;
-  object.lastUpdated = reader.readStringOrNull(offsets[5]);
-  object.paidAmount = reader.readDoubleOrNull(offsets[6]);
-  object.paymentType = reader.readStringOrNull(offsets[7]);
-  object.serviceChargeAmount = reader.readDoubleOrNull(offsets[8]);
-  object.shop_branch_ID = reader.readLongOrNull(offsets[9]);
-  object.shop_customer_ID = reader.readStringOrNull(offsets[10]);
-  object.shop_user_ID = reader.readLongOrNull(offsets[11]);
-  object.slipFileName = reader.readStringOrNull(offsets[12]);
-  object.status = reader.readStringOrNull(offsets[13]);
-  object.sumAmount = reader.readDoubleOrNull(offsets[14]);
-  object.totalAmount = reader.readDoubleOrNull(offsets[15]);
-  object.vatAmount = reader.readDoubleOrNull(offsets[16]);
+  object.lastUpdated = reader.readStringOrNull(offsets[6]);
+  object.paidAmount = reader.readDoubleOrNull(offsets[7]);
+  object.paymentType = reader.readStringOrNull(offsets[8]);
+  object.serviceChargeAmount = reader.readDoubleOrNull(offsets[9]);
+  object.shop_branch_ID = reader.readLongOrNull(offsets[10]);
+  object.shop_customer_ID = reader.readStringOrNull(offsets[11]);
+  object.shop_user_ID = reader.readLongOrNull(offsets[12]);
+  object.slipFileName = reader.readStringOrNull(offsets[13]);
+  object.status = reader.readStringOrNull(offsets[14]);
+  object.sumAmount = reader.readDoubleOrNull(offsets[15]);
+  object.totalAmount = reader.readDoubleOrNull(offsets[16]);
+  object.vatAmount = reader.readDoubleOrNull(offsets[17]);
   return object;
 }
 
@@ -27852,32 +31222,34 @@ P _receiptDeserializeProp<P>(
     case 2:
       return (reader.readDoubleOrNull(offset)) as P;
     case 3:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 4:
-      return (reader.readBool(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 6:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readStringOrNull(offset)) as P;
-    case 8:
       return (reader.readDoubleOrNull(offset)) as P;
+    case 8:
+      return (reader.readStringOrNull(offset)) as P;
     case 9:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 10:
-      return (reader.readStringOrNull(offset)) as P;
-    case 11:
       return (reader.readLongOrNull(offset)) as P;
-    case 12:
+    case 11:
       return (reader.readStringOrNull(offset)) as P;
+    case 12:
+      return (reader.readLongOrNull(offset)) as P;
     case 13:
       return (reader.readStringOrNull(offset)) as P;
     case 14:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 15:
       return (reader.readDoubleOrNull(offset)) as P;
     case 16:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 17:
       return (reader.readDoubleOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -28382,6 +31754,78 @@ extension ReceiptQueryFilter
         upper: upper,
         includeUpper: includeUpper,
         epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition>
+      discountPercentIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'discountPercent',
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition>
+      discountPercentIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'discountPercent',
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> discountPercentEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'discountPercent',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition>
+      discountPercentGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'discountPercent',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> discountPercentLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'discountPercent',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> discountPercentBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'discountPercent',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -29916,6 +33360,18 @@ extension ReceiptQuerySortBy on QueryBuilder<Receipt, Receipt, QSortBy> {
     });
   }
 
+  QueryBuilder<Receipt, Receipt, QAfterSortBy> sortByDiscountPercent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'discountPercent', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterSortBy> sortByDiscountPercentDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'discountPercent', Sort.desc);
+    });
+  }
+
   QueryBuilder<Receipt, Receipt, QAfterSortBy> sortById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -30123,6 +33579,18 @@ extension ReceiptQuerySortThenBy
     });
   }
 
+  QueryBuilder<Receipt, Receipt, QAfterSortBy> thenByDiscountPercent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'discountPercent', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterSortBy> thenByDiscountPercentDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'discountPercent', Sort.desc);
+    });
+  }
+
   QueryBuilder<Receipt, Receipt, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -30325,6 +33793,12 @@ extension ReceiptQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Receipt, Receipt, QDistinct> distinctByDiscountPercent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'discountPercent');
+    });
+  }
+
   QueryBuilder<Receipt, Receipt, QDistinct> distinctById(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -30440,6 +33914,12 @@ extension ReceiptQueryProperty
   QueryBuilder<Receipt, double?, QQueryOperations> discountAmountProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'discountAmount');
+    });
+  }
+
+  QueryBuilder<Receipt, int?, QQueryOperations> discountPercentProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'discountPercent');
     });
   }
 
@@ -34778,43 +38258,53 @@ const FoodOrderItemSchema = CollectionSchema(
       name: r'description',
       type: IsarType.string,
     ),
-    r'food_item_ID': PropertySchema(
+    r'discountAmount': PropertySchema(
       id: 2,
+      name: r'discountAmount',
+      type: IsarType.double,
+    ),
+    r'discountPercent': PropertySchema(
+      id: 3,
+      name: r'discountPercent',
+      type: IsarType.long,
+    ),
+    r'food_item_ID': PropertySchema(
+      id: 4,
       name: r'food_item_ID',
       type: IsarType.string,
     ),
     r'food_order_ID': PropertySchema(
-      id: 3,
+      id: 5,
       name: r'food_order_ID',
       type: IsarType.string,
     ),
     r'food_size_ID': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'food_size_ID',
       type: IsarType.string,
     ),
     r'id': PropertySchema(
-      id: 5,
+      id: 7,
       name: r'id',
       type: IsarType.string,
     ),
     r'isDirty': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'isDirty',
       type: IsarType.bool,
     ),
     r'itemPrice': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'itemPrice',
       type: IsarType.double,
     ),
     r'lastUpdated': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'lastUpdated',
       type: IsarType.string,
     ),
     r'quantity': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'quantity',
       type: IsarType.long,
     )
@@ -34906,14 +38396,16 @@ void _foodOrderItemSerialize(
 ) {
   writer.writeString(offsets[0], object.choiceIDList);
   writer.writeString(offsets[1], object.description);
-  writer.writeString(offsets[2], object.food_item_ID);
-  writer.writeString(offsets[3], object.food_order_ID);
-  writer.writeString(offsets[4], object.food_size_ID);
-  writer.writeString(offsets[5], object.id);
-  writer.writeBool(offsets[6], object.isDirty);
-  writer.writeDouble(offsets[7], object.itemPrice);
-  writer.writeString(offsets[8], object.lastUpdated);
-  writer.writeLong(offsets[9], object.quantity);
+  writer.writeDouble(offsets[2], object.discountAmount);
+  writer.writeLong(offsets[3], object.discountPercent);
+  writer.writeString(offsets[4], object.food_item_ID);
+  writer.writeString(offsets[5], object.food_order_ID);
+  writer.writeString(offsets[6], object.food_size_ID);
+  writer.writeString(offsets[7], object.id);
+  writer.writeBool(offsets[8], object.isDirty);
+  writer.writeDouble(offsets[9], object.itemPrice);
+  writer.writeString(offsets[10], object.lastUpdated);
+  writer.writeLong(offsets[11], object.quantity);
 }
 
 FoodOrderItem _foodOrderItemDeserialize(
@@ -34925,15 +38417,17 @@ FoodOrderItem _foodOrderItemDeserialize(
   final object = FoodOrderItem();
   object.choiceIDList = reader.readStringOrNull(offsets[0]);
   object.description = reader.readStringOrNull(offsets[1]);
-  object.food_item_ID = reader.readStringOrNull(offsets[2]);
-  object.food_order_ID = reader.readStringOrNull(offsets[3]);
-  object.food_size_ID = reader.readStringOrNull(offsets[4]);
-  object.id = reader.readStringOrNull(offsets[5]);
-  object.isDirty = reader.readBool(offsets[6]);
+  object.discountAmount = reader.readDoubleOrNull(offsets[2]);
+  object.discountPercent = reader.readLongOrNull(offsets[3]);
+  object.food_item_ID = reader.readStringOrNull(offsets[4]);
+  object.food_order_ID = reader.readStringOrNull(offsets[5]);
+  object.food_size_ID = reader.readStringOrNull(offsets[6]);
+  object.id = reader.readStringOrNull(offsets[7]);
+  object.isDirty = reader.readBool(offsets[8]);
   object.isarId = id;
-  object.itemPrice = reader.readDoubleOrNull(offsets[7]);
-  object.lastUpdated = reader.readStringOrNull(offsets[8]);
-  object.quantity = reader.readLongOrNull(offsets[9]);
+  object.itemPrice = reader.readDoubleOrNull(offsets[9]);
+  object.lastUpdated = reader.readStringOrNull(offsets[10]);
+  object.quantity = reader.readLongOrNull(offsets[11]);
   return object;
 }
 
@@ -34949,20 +38443,24 @@ P _foodOrderItemDeserializeProp<P>(
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 3:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 4:
       return (reader.readStringOrNull(offset)) as P;
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     case 6:
-      return (reader.readBool(offset)) as P;
-    case 7:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 8:
       return (reader.readStringOrNull(offset)) as P;
+    case 7:
+      return (reader.readStringOrNull(offset)) as P;
+    case 8:
+      return (reader.readBool(offset)) as P;
     case 9:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 10:
+      return (reader.readStringOrNull(offset)) as P;
+    case 11:
       return (reader.readLongOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -35488,6 +38986,164 @@ extension FoodOrderItemQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'description',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterFilterCondition>
+      discountAmountIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'discountAmount',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterFilterCondition>
+      discountAmountIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'discountAmount',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterFilterCondition>
+      discountAmountEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'discountAmount',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterFilterCondition>
+      discountAmountGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'discountAmount',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterFilterCondition>
+      discountAmountLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'discountAmount',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterFilterCondition>
+      discountAmountBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'discountAmount',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterFilterCondition>
+      discountPercentIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'discountPercent',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterFilterCondition>
+      discountPercentIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'discountPercent',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterFilterCondition>
+      discountPercentEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'discountPercent',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterFilterCondition>
+      discountPercentGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'discountPercent',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterFilterCondition>
+      discountPercentLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'discountPercent',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterFilterCondition>
+      discountPercentBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'discountPercent',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -36520,6 +40176,34 @@ extension FoodOrderItemQuerySortBy
   }
 
   QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterSortBy>
+      sortByDiscountAmount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'discountAmount', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterSortBy>
+      sortByDiscountAmountDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'discountAmount', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterSortBy>
+      sortByDiscountPercent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'discountPercent', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterSortBy>
+      sortByDiscountPercentDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'discountPercent', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterSortBy>
       sortByFood_item_ID() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'food_item_ID', Sort.asc);
@@ -36651,6 +40335,34 @@ extension FoodOrderItemQuerySortThenBy
       thenByDescriptionDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'description', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterSortBy>
+      thenByDiscountAmount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'discountAmount', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterSortBy>
+      thenByDiscountAmountDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'discountAmount', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterSortBy>
+      thenByDiscountPercent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'discountPercent', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QAfterSortBy>
+      thenByDiscountPercentDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'discountPercent', Sort.desc);
     });
   }
 
@@ -36788,6 +40500,20 @@ extension FoodOrderItemQueryWhereDistinct
     });
   }
 
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QDistinct>
+      distinctByDiscountAmount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'discountAmount');
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, FoodOrderItem, QDistinct>
+      distinctByDiscountPercent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'discountPercent');
+    });
+  }
+
   QueryBuilder<FoodOrderItem, FoodOrderItem, QDistinct> distinctByFood_item_ID(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -36861,6 +40587,20 @@ extension FoodOrderItemQueryProperty
   QueryBuilder<FoodOrderItem, String?, QQueryOperations> descriptionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'description');
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, double?, QQueryOperations>
+      discountAmountProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'discountAmount');
+    });
+  }
+
+  QueryBuilder<FoodOrderItem, int?, QQueryOperations>
+      discountPercentProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'discountPercent');
     });
   }
 

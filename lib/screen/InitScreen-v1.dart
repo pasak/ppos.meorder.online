@@ -123,8 +123,6 @@ class _InitScreenState extends State<InitScreen> {
         await isar.writeTxn(() async {
           // Clear existing data
           await isar.userList.clear();
-          await isar.roleList.clear();
-          await isar.roleTransactionPermissionList.clear();
           await isar.shopCustomerList.clear();
           await isar.shopTableList.clear();
           await isar.settingValueList.clear();
@@ -160,7 +158,7 @@ class _InitScreenState extends State<InitScreen> {
             ..name = e['Name']
             ..userName = e['UserName']
             ..passwordHash = e['PasswordHash']
-            ..role_ID = e['role_ID']
+            ..role = e['Role']
             ..language = e['Language']
             ..isActive = e['IsActive']
             ..lastUpdated = e['LastUpdated']
@@ -169,36 +167,6 @@ class _InitScreenState extends State<InitScreen> {
           await isar.userList.putAll(user);
 
           setState(() { _debug = 'putAll User success'; });
-
-          // Role
-          final roleListRaw = responseData['RoleList'] as List<dynamic>? ?? [];
-          final roles = roleListRaw.map((e) => Role()
-            ..id = e['ID']
-            ..thaiName = e['ThaiName']
-            ..englishName = e['EnglishName']
-            ..isActive = e['IsActive']
-            ..lastUpdated = e['LastUpdated']
-            ..isDirty = false
-          ).toList();
-          await isar.roleList.putAll(roles);
-
-          setState(() { _debug = 'putAll Role success'; });
-
-          // RoleTransactionPermission
-          final roleTransactionPermissionListRaw = responseData['RoleTransactionPermissionList'] as List<dynamic>? ?? [];
-          final roleTransactionPermissions = roleTransactionPermissionListRaw.map((e) => RoleTransactionPermission()
-            ..id = e['ID']
-            ..role_ID = e['role_ID']
-            ..transaction_permission_ID = e['transaction_permission_ID']
-            ..permissionLevel = e['PermissionLevel']
-            ..partialPercent = e['PartialPercent']?.toString()
-            ..partialAmount = e['PartialAmount']?.toString()
-            ..lastUpdated = e['LastUpdated']
-            ..isDirty = false
-          ).toList();
-          await isar.roleTransactionPermissionList.putAll(roleTransactionPermissions);
-
-          setState(() { _debug = 'putAll RoleTransactionPermission success'; });
 
           // ShopCustomer
           final shopCustomerListRaw = responseData['ShopCustomerList'] as List<dynamic>? ?? [];

@@ -79,6 +79,11 @@ class PrintService {
             if (di.choiceName.isNotEmpty) desc += ' ${di.choiceName}';
             double amount = (di.item.quantity ?? 0) * (di.item.itemPrice ?? 0.0);
 
+            if ((di.item.discountAmount ?? 0.0) > 0.0) {
+              desc += ' -${di.item.discountAmount!.toStringAsFixed(2)}';
+              amount -= di.item.discountAmount!;
+            }
+
             final image = await _rowToImage(desc, amount.toStringAsFixed(2), 24);
             bytes += generator.imageRaster(image);
           }
@@ -149,6 +154,12 @@ class PrintService {
       if (di.choiceName.isNotEmpty) desc += ' ${di.choiceName}';
 
       double amount = (di.item.quantity ?? 0) * (di.item.itemPrice ?? 0.0);
+      
+      if ((di.item.discountAmount ?? 0.0) > 0.0) {
+        desc += ' -${di.item.discountAmount!.toStringAsFixed(2)}';
+        amount -= di.item.discountAmount!;
+      }
+
       await SunmiPrinter.printRow(
         cols: [
           SunmiColumn(text: desc, width: 20, style: SunmiTextStyle(align: SunmiPrintAlign.LEFT)),

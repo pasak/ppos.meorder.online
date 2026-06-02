@@ -72,8 +72,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   final TextEditingController tipAmountController = TextEditingController(
     text: '0',
   );
-  final TextEditingController receiptDiscountPercentCtrl = TextEditingController(text: '');
-  final TextEditingController receiptDiscountAmountCtrl = TextEditingController(text: '');
 
   bool get isThai => widget.config.language == 'th';
 
@@ -89,8 +87,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     receiveAmountController.dispose();
     changeAmountController.dispose();
     tipAmountController.dispose();
-    receiptDiscountPercentCtrl.dispose();
-    receiptDiscountAmountCtrl.dispose();
     super.dispose();
   }
 
@@ -112,10 +108,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
           .findFirst();
 
       if (receipt != null) {
-        double currentPercent = (receipt!.discountPercent ?? 0).toDouble();
-        double currentAmount = receipt!.discountAmount ?? 0.0;
-        receiptDiscountPercentCtrl.text = currentPercent > 0 ? currentPercent.toStringAsFixed(0) : '';
-        receiptDiscountAmountCtrl.text = currentAmount > 0 ? currentAmount.toStringAsFixed(2) : '';
         final foodOrders = await isar.foodOrderList
             .where()
             .filter()
@@ -470,21 +462,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            if (foDiscountReceipt != null || (receipt?.sumAmount ?? 0.0) != (receipt?.totalAmount ?? 0.0)) ...[
+            if ((receipt?.sumAmount ?? 0.0) != (receipt?.totalAmount ?? 0.0)) ...[
               _buildAmountRow(
                 isThai ? 'ยอดรวม' : 'Subtotal',
                 receipt?.sumAmount ?? 0.0,
                 isBold: false,
               ),
               const SizedBox(height: 8),
-              if (foDiscountReceipt != null)
-                _buildReceiptDiscountRow()
-              else
-                _buildAmountRow(
-                  isThai ? 'ส่วนลด' : 'Discount',
-                  receipt?.discountAmount ?? 0.0,
-                  isBold: false,
-                ),
+              _buildAmountRow(
+                isThai ? 'ส่วนลด' : 'Discount',
+                receipt?.discountAmount ?? 0.0,
+                isBold: false,
+              ),
               const SizedBox(height: 8),
             ],
             _buildAmountRow(
@@ -1564,116 +1553,5 @@ class _PaymentScreenState extends State<PaymentScreen> {
       receipt!.isDirty = true;
       await isar.receiptList.put(receipt!);
     });
-  }
-  Future<void> _updateReceiptDiscountDB(double amount, int percent) async {
-    if (receipt == null) return;
-    await isar.writeTxn(() async {
-      receipt!.discountAmount = amount;
-      receipt!.discountPercent = percent;
-      receipt!.totalAmount = (receipt!.sumAmount ?? 0.0) - amount + (receipt!.vatAmount ?? 0.0);
-      receipt!.lastUpdated = DateTime.now().toIso8601String();
-      receipt!.isDirty = true;
-      await isar.receiptList.put(receipt!);
-    });
-    
-    _handleAmount(''); 
-    setState(() {});
-  }
-
-  Widget _buildReceiptDiscountRow() {
-    final level = foDiscountReceipt!['PermissionLevel'];
-    if (level != 'Full' && level != 'Partial') {
-      return _buildAmountRow(isThai ? 'ส่วนลด' : 'Discount', receipt?.discountAmount ?? 0.0);
-    }
-    
-    bool showPercent = true;
-    if (level == 'Partial' && foDiscountReceipt!['PartialPercent'] == null) {
-      showPercent = false;
-    }
-
-    double itemAmount = receipt?.sumAmount ?? 0.0;
-    
-    double maxPercent = level == 'Full' ? 100.0 : double.tryParse(foDiscountReceipt!['PartialPercent'] ?? '0') ?? 0.0;
-    double maxAmount = level == 'Full' ? itemAmount : double.tryParse(foDiscountReceipt!['PartialAmount'] ?? '0') ?? 0.0;
-    
-    void updateDiscountAmount(double dA, {bool forceUpdateText = false}) {
-      double finalAmount = dA;
-      bool exceeded = false;
-      if (level == 'Partial' && maxAmount > 0 && finalAmount > maxAmount) {
-        finalAmount = maxAmount;
-        exceeded = true;
-      }
-      if (finalAmount > itemAmount) {
-        finalAmount = itemAmount;
-        exceeded = true;
-      }
-      
-      if (forceUpdateText || exceeded) {
-        String newText = finalAmount > 0 ? finalAmount.toStringAsFixed(2) : '';
-        if (receiptDiscountAmountCtrl.text != newText) {
-          receiptDiscountAmountCtrl.text = newText;
-          receiptDiscountAmountCtrl.selection = TextSelection.collapsed(offset: newText.length);
-        }
-      }
-      
-      _updateReceiptDiscountDB(finalAmount, int.tryParse(receiptDiscountPercentCtrl.text) ?? 0);
-    }
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            Text(isThai ? 'ส่วนลด' : 'Discount', style: const TextStyle(fontSize: 16)),
-            if (showPercent) ...[
-              const SizedBox(width: 8),
-              SizedBox(
-                width: 60,
-                height: 30,
-                child: TextField(
-                  controller: receiptDiscountPercentCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    hintText: '%',
-                    contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (val) {
-                    double p = double.tryParse(val) ?? 0.0;
-                    if (p > maxPercent) {
-                      p = maxPercent;
-                      String newText = p.toStringAsFixed(0);
-                      if (receiptDiscountPercentCtrl.text != newText) {
-                        receiptDiscountPercentCtrl.text = newText;
-                        receiptDiscountPercentCtrl.selection = TextSelection.collapsed(offset: newText.length);
-                      }
-                    }
-                    double dA = itemAmount * (p / 100.0);
-                    updateDiscountAmount(dA, forceUpdateText: true);
-                  },
-                ),
-              ),
-            ],
-          ],
-        ),
-        SizedBox(
-          width: 80,
-          height: 30,
-          child: TextField(
-            controller: receiptDiscountAmountCtrl,
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.right,
-            decoration: const InputDecoration(
-              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              border: OutlineInputBorder(),
-            ),
-            onChanged: (val) {
-              double dA = double.tryParse(val) ?? 0.0;
-              updateDiscountAmount(dA);
-            },
-          ),
-        ),
-      ],
-    );
   }
 }

@@ -50,6 +50,8 @@ class _MainScreenState extends State<MainScreen> {
       await Isar.open(
         [
           UserSchema,
+          RoleSchema,
+          RoleTransactionPermissionSchema,
           ShopCustomerSchema,
           ShopTableSchema,
           SettingValueSchema,

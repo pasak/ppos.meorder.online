@@ -10,9 +10,35 @@ class User {
   String? name;
   String? userName;
   String? passwordHash;
-  String? role;
+  String? role_ID;
   String? language;
   String? isActive;
+  String? lastUpdated;
+  bool isDirty = false;
+}
+
+@Collection(accessor: 'roleList')
+class Role {
+  Id isarId = Isar.autoIncrement;
+  @Index(unique: true, replace: true)
+  String? id;
+  String? thaiName;
+  String? englishName;
+  String? isActive;
+  String? lastUpdated;
+  bool isDirty = false;
+}
+
+@Collection(accessor: 'roleTransactionPermissionList')
+class RoleTransactionPermission {
+  Id isarId = Isar.autoIncrement;
+  @Index(unique: true, replace: true)
+  String? id;
+  String? role_ID;
+  String? transaction_permission_ID;
+  String? permissionLevel;
+  String? partialPercent;
+  String? partialAmount;
   String? lastUpdated;
   bool isDirty = false;
 }
@@ -219,6 +245,7 @@ class Receipt {
   DateTime? createdAt;
   double? sumAmount;
   double? serviceChargeAmount;
+  int? discountPercent;
   double? discountAmount;
   double? vatAmount;
   double? totalAmount;
@@ -272,6 +299,8 @@ class FoodOrderItem {
   String? food_size_ID;
   double? itemPrice;
   int? quantity;
+  int? discountPercent;
+  double? discountAmount;
   String? choiceIDList;
   String? description;
   String? lastUpdated;

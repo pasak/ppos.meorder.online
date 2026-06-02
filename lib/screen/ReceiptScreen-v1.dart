@@ -64,42 +64,11 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
           : isar.receiptList
               .where()
               .filter()
-              .statusEqualTo(currentStatus == 'Done' ? 'Paid' : currentStatus)
+              .statusEqualTo(currentStatus)
               .and()
               .createdAtGreaterThan(DateTime.parse(todayStr));
 
-      if (currentStatus == 'Paid' || currentStatus == 'Done') {
-        var allReceipts = await query.sortByCreatedAtDesc().findAll();
-        List<Receipt> filtered = [];
-        for (var r in allReceipts) {
-          if (r.id == null) continue;
-          final order = await isar.foodOrderList
-              .where()
-              .filter()
-              .parentIDEqualTo(r.id!)
-              .and()
-              .parentTypeEqualTo('receipt')
-              .findFirst();
-          if (order != null) {
-            if (currentStatus == 'Paid' && (order.status == 'OrderFood' || order.status == 'KitchenPrinted')) {
-              filtered.add(r);
-            } else if (currentStatus == 'Done' && order.status == 'Done') {
-              filtered.add(r);
-            }
-          }
-        }
-        
-        if (currentStatus == 'Done') {
-          final totalCount = filtered.length;
-          hasNextPage = (currentPage + 1) * itemsPerPage < totalCount;
-          int start = currentPage * itemsPerPage;
-          int end = start + itemsPerPage;
-          receipts = filtered.sublist(start, end > totalCount ? totalCount : end);
-        } else {
-          receipts = filtered;
-          hasNextPage = false;
-        }
-      } else if (currentStatus == 'Cancel') {
+      if (currentStatus == 'Paid' || currentStatus == 'Cancel') {
         final totalCount = await query.count();
         hasNextPage = (currentPage + 1) * itemsPerPage < totalCount;
 
@@ -226,55 +195,6 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
     }
   }
 
-  Future<void> _updateReceipt(String id, String status, [double? receiveAmount]) async {
-    try {
-      final receipt = await isar.receiptList.where().filter().idEqualTo(id).findFirst();
-      if (receipt != null) {
-        await isar.writeTxn(() async {
-          receipt.status = status;
-          if (receiveAmount != null) {
-            receipt.paidAmount = receiveAmount;
-          }
-          receipt.lastUpdated = DateTime.now().toIso8601String();
-          receipt.isDirty = true;
-          await isar.receiptList.put(receipt);
-        });
-        await SyncService.syncReceipt(widget.config);
-
-        if (status == 'Paid') {
-          final foodOrders = await isar.foodOrderList
-              .where()
-              .filter()
-              .parentIDEqualTo(id)
-              .and()
-              .parentTypeEqualTo('receipt')
-              .findAll();
-          final displayItems = orderItemsMap[id] ?? [];
-          
-          await PrintService.printReceipt(
-            isar: isar,
-            config: widget.config,
-            receipt: receipt,
-            foodOrders: foodOrders,
-            displayItems: displayItems,
-            isThai: isThai,
-            isMT: receipt.paymentType == 'MoneyTransfer',
-          );
-          
-          await PrintService.printCookingOrder(
-            isar: isar,
-            config: widget.config,
-            foodOrders: foodOrders,
-            displayItems: displayItems,
-          );
-        }
-        _loadData();
-      }
-    } catch (e) {
-      debugPrint("Error updating receipt: $e");
-    }
-  }
-
   Widget _buildStatusButton(String status, String label) {
     bool isSelected = currentStatus == status;
     return Expanded(
@@ -344,8 +264,6 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                 const SizedBox(width: 8),
                 _buildStatusButton('Paid', isThai ? 'ชำระแล้ว' : 'Paid'),
                 const SizedBox(width: 8),
-                _buildStatusButton('Done', isThai ? 'เสร็จ' : 'Done'),
-                const SizedBox(width: 8),
                 _buildStatusButton('Cancel', isThai ? 'ยกเลิก' : 'Cancel'),
               ],
             ),
@@ -380,7 +298,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  if (currentStatus == 'Wait4Payment' && receipt.status == 'Wait4Payment')
+                                  if (currentStatus == 'Wait4Payment')
                                     IconButton(
                                       icon: const Icon(
                                         Icons.attach_money,
@@ -396,107 +314,6 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                                             ),
                                           ),
                                         );
-                                      },
-                                    ),
-                                  if (currentStatus == 'Wait4Payment' && receipt.status == 'InformPayment')
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.image,
-                                        color: Colors.blue,
-                                      ),
-                                      onPressed: () {
-                                        final receiveAmountController = TextEditingController(text: receipt.totalAmount?.toStringAsFixed(2) ?? '0.00');
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) {
-                                            return Dialog(
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  if (receipt.slipFileName != null && receipt.slipFileName!.isNotEmpty)
-                                                    Image.network(
-                                                      '${widget.config.apiUrl}${receipt.slipFileName}',
-                                                      width: double.infinity,
-                                                      fit: BoxFit.cover,
-                                                      errorBuilder: (context, error, stackTrace) => const Padding(
-                                                        padding: EdgeInsets.all(16.0),
-                                                        child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
-                                                      ),
-                                                    ),
-                                                  Padding(
-                                                    padding: const EdgeInsets.all(16.0),
-                                                    child: Row(
-                                                      children: [
-                                                        Expanded(
-                                                          child: TextField(
-                                                            controller: receiveAmountController,
-                                                            keyboardType: const TextInputType.numberWithOptions(
-                                                              decimal: true,
-                                                            ),
-                                                            decoration: InputDecoration(
-                                                              labelText: isThai
-                                                                  ? 'จำนวนเงินที่ได้รับ'
-                                                                  : 'Receive Amount',
-                                                              border: const OutlineInputBorder(),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      Expanded(
-                                                        child: ElevatedButton(
-                                                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                                                          onPressed: () {
-                                                            Navigator.pop(context);
-                                                            _updateReceipt(receipt.id!, 'DeniedPayment');
-                                                          },
-                                                          child: Text(isThai ? 'ปฏิเสธ' : 'Denied', style: const TextStyle(color: Colors.white)),
-                                                        ),
-                                                      ),
-                                                      Expanded(
-                                                        child: ElevatedButton(
-                                                          style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                                                          onPressed: () {
-                                                            double receiveAmt = double.tryParse(receiveAmountController.text) ?? 0.0;
-                                                            Navigator.pop(context);
-                                                            _updateReceipt(receipt.id!, 'Paid', receiveAmt);
-                                                          },
-                                                          child: Text(isThai ? 'ยืนยัน' : 'Confirm', style: const TextStyle(color: Colors.white)),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      },
-                                    ),
-                                  if (currentStatus == 'Paid')
-                                    IconButton(
-                                      icon: const Icon(Icons.check, color: Colors.green),
-                                      onPressed: () async {
-                                        final foodOrders = await isar.foodOrderList
-                                            .where()
-                                            .filter()
-                                            .parentIDEqualTo(receipt.id!)
-                                            .and()
-                                            .parentTypeEqualTo('receipt')
-                                            .findAll();
-                                        
-                                        await isar.writeTxn(() async {
-                                          for (var o in foodOrders) {
-                                            o.status = 'Done';
-                                            o.lastUpdated = DateTime.now().toIso8601String();
-                                            o.isDirty = true;
-                                            await isar.foodOrderList.put(o);
-                                          }
-                                        });
-                                        _loadData();
                                       },
                                     ),
                                   if (currentStatus == 'Paid')

@@ -75,7 +75,7 @@ class _SignInScreenState extends State<SignInScreen> {
          if (isMatch) {
             final updatedConfig = _currentConfig.copyWith(
               UserID: user.id.toString(),
-              UserRole: user.role,
+              UserRole: user.role_ID,
               language: user.language,
             );
 
@@ -87,7 +87,7 @@ class _SignInScreenState extends State<SignInScreen> {
               final content = await file.readAsString();
               final branchData = jsonDecode(content);
               branchData['UserID'] = user.id.toString();
-              branchData['UserRole'] = user.role;
+              branchData['UserRole'] = user.role_ID;
               branchData['language'] = user.language;
               
               await file.writeAsString(jsonEncode(branchData));
