@@ -79,25 +79,32 @@ class PrintService {
             if (di.choiceName.isNotEmpty) desc += ' ${di.choiceName}';
             double amount = (di.item.quantity ?? 0) * (di.item.itemPrice ?? 0.0);
 
+            if ((di.item.discountAmount ?? 0.0) > 0.0) {
+              desc += ' -${di.item.discountAmount!.toStringAsFixed(2)}';
+              amount -= di.item.discountAmount!;
+            }
+
             final image = await _rowToImage(desc, amount.toStringAsFixed(2), 24);
             bytes += generator.imageRaster(image);
           }
           bytes += generator.imageRaster(await _dividerImage());
 
-          bytes += generator.imageRaster(
-            await _rowToImage(
-              isThai ? 'ยอดรวม' : 'Sum Amount',
-              (receipt?.sumAmount ?? 0.0).toStringAsFixed(2),
-              24,
-            ),
-          );
-          bytes += generator.imageRaster(
-            await _rowToImage(
-              isThai ? 'ส่วนลด' : 'Discount',
-              (receipt?.discountAmount ?? 0.0).toStringAsFixed(2),
-              24,
-            ),
-          );
+          if ((receipt?.sumAmount ?? 0.0) != (receipt?.totalAmount ?? 0.0)) {
+            bytes += generator.imageRaster(
+              await _rowToImage(
+                isThai ? 'ยอดรวม' : 'Sum Amount',
+                (receipt?.sumAmount ?? 0.0).toStringAsFixed(2),
+                24,
+              ),
+            );
+            bytes += generator.imageRaster(
+              await _rowToImage(
+                isThai ? 'ส่วนลด' : 'Discount',
+                (receipt?.discountAmount ?? 0.0).toStringAsFixed(2),
+                24,
+              ),
+            );
+          }
           bytes += generator.imageRaster(
             await _rowToImage(
               isThai ? 'ยอดรวมทั้งหมด' : 'Total Amount',
@@ -147,6 +154,12 @@ class PrintService {
       if (di.choiceName.isNotEmpty) desc += ' ${di.choiceName}';
 
       double amount = (di.item.quantity ?? 0) * (di.item.itemPrice ?? 0.0);
+      
+      if ((di.item.discountAmount ?? 0.0) > 0.0) {
+        desc += ' -${di.item.discountAmount!.toStringAsFixed(2)}';
+        amount -= di.item.discountAmount!;
+      }
+
       await SunmiPrinter.printRow(
         cols: [
           SunmiColumn(text: desc, width: 20, style: SunmiTextStyle(align: SunmiPrintAlign.LEFT)),
@@ -155,18 +168,20 @@ class PrintService {
       );
     }
     await SunmiPrinter.line();
-    await SunmiPrinter.printRow(
-      cols: [
-        SunmiColumn(text: isThai ? 'ยอดรวม' : 'Sum Amount', width: 20, style: SunmiTextStyle(align: SunmiPrintAlign.LEFT)),
-        SunmiColumn(text: (receipt?.sumAmount ?? 0.0).toStringAsFixed(2), width: 10, style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT)),
-      ],
-    );
-    await SunmiPrinter.printRow(
-      cols: [
-        SunmiColumn(text: isThai ? 'ส่วนลด' : 'Discount', width: 20, style: SunmiTextStyle(align: SunmiPrintAlign.LEFT)),
-        SunmiColumn(text: (receipt?.discountAmount ?? 0.0).toStringAsFixed(2), width: 10, style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT)),
-      ],
-    );
+    if ((receipt?.sumAmount ?? 0.0) != (receipt?.totalAmount ?? 0.0)) {
+      await SunmiPrinter.printRow(
+        cols: [
+          SunmiColumn(text: isThai ? 'ยอดรวม' : 'Sum Amount', width: 20, style: SunmiTextStyle(align: SunmiPrintAlign.LEFT)),
+          SunmiColumn(text: (receipt?.sumAmount ?? 0.0).toStringAsFixed(2), width: 10, style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT)),
+        ],
+      );
+      await SunmiPrinter.printRow(
+        cols: [
+          SunmiColumn(text: isThai ? 'ส่วนลด' : 'Discount', width: 20, style: SunmiTextStyle(align: SunmiPrintAlign.LEFT)),
+          SunmiColumn(text: (receipt?.discountAmount ?? 0.0).toStringAsFixed(2), width: 10, style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT)),
+        ],
+      );
+    }
     await SunmiPrinter.printRow(
       cols: [
         SunmiColumn(text: isThai ? 'ยอดรวมทั้งหมด' : 'Total Amount', width: 15, style: SunmiTextStyle(align: SunmiPrintAlign.LEFT)),

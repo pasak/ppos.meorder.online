@@ -64,11 +64,11 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
           : isar.receiptList
               .where()
               .filter()
-              .statusEqualTo(currentStatus == 'Served' ? 'Paid' : currentStatus)
+              .statusEqualTo(currentStatus == 'Done' ? 'Paid' : currentStatus)
               .and()
               .createdAtGreaterThan(DateTime.parse(todayStr));
 
-      if (currentStatus == 'Paid' || currentStatus == 'Served') {
+      if (currentStatus == 'Paid' || currentStatus == 'Done') {
         var allReceipts = await query.sortByCreatedAtDesc().findAll();
         List<Receipt> filtered = [];
         for (var r in allReceipts) {
@@ -340,33 +340,13 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
-                _buildStatusButton('Wait4Payment', isThai ? 'รอ' : 'Wait'),
+                _buildStatusButton('Wait4Payment', isThai ? 'รอชำระ' : 'Wait4Payment'),
                 const SizedBox(width: 8),
-                _buildStatusButton('Paid', isThai ? 'จ่าย' : 'Paid'),
+                _buildStatusButton('Paid', isThai ? 'ชำระแล้ว' : 'Paid'),
                 const SizedBox(width: 8),
-                _buildStatusButton('Served', isThai ? 'เสิร์ฟ' : 'Served'),
+                _buildStatusButton('Done', isThai ? 'เสร็จ' : 'Done'),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: currentStatus == 'Cancel'
-                          ? Colors.blue
-                          : Colors.grey[200],
-                      foregroundColor: currentStatus == 'Cancel'
-                          ? Colors.white
-                          : Colors.black87,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        currentStatus = 'Cancel';
-                        currentPage = 0;
-                        expandedReceiptIds.clear();
-                      });
-                      _loadData();
-                    },
-                    child: const Icon(Icons.delete),
-                  ),
-                ),                
+                _buildStatusButton('Cancel', isThai ? 'ยกเลิก' : 'Cancel'),
               ],
             ),
           ),
@@ -510,7 +490,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                                         
                                         await isar.writeTxn(() async {
                                           for (var o in foodOrders) {
-                                            o.status = 'Served';
+                                            o.status = 'Done';
                                             o.lastUpdated = DateTime.now().toIso8601String();
                                             o.isDirty = true;
                                             await isar.foodOrderList.put(o);

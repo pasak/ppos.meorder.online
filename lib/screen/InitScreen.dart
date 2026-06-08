@@ -105,6 +105,7 @@ class _InitScreenState extends State<InitScreen> {
         final updatedConfig = _currentConfig.copyWith(
           shop_ID: branchData['shop_ID']?.toString(),
           ShopName: branchData['ShopName'],
+          TaxID: branchData['TaxID'],
           shop_branch_ID: branchData['shop_branch_ID']?.toString(),
           service_module_ID: branchData['service_module_ID'],
           BranchName: branchData['BranchName'],
@@ -113,6 +114,7 @@ class _InitScreenState extends State<InitScreen> {
           isActive: (branchData['IsActive'] == 'Y') ? true : false, 
           ExpireDate: branchData['ExpireDate'],
           LastUpdated: branchData['LastUpdated'],
+          PosID: branchData['PosID']?.toString(),
         );
 
         setState(() { _debug = 'updatedConfig success'; });

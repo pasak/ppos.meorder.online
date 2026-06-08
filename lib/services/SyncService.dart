@@ -32,11 +32,11 @@ class SyncService {
     return value.toString();
   }
 
-  static Future<void> syncReceipt(EnvConfig config) async {
+  static Future<bool> syncReceipt(EnvConfig config) async {
     debugPrint('syncReceipt started');
     final isar = Isar.getInstance()!;
     final lastSync = await isar.lastSyncList.where().findFirst();
-    if (lastSync == null || lastSync.receipt == null) return;
+    if (lastSync == null || lastSync.receipt == null) return false;
 
     final syncTime = lastSync.receipt!;
 
@@ -89,7 +89,7 @@ class SyncService {
       'ReceiptList': receipts.map((e) {
         final json = {
           'id': e.id,
-          'shop_branch_ID': e.shop_branch_ID,
+          'pos_ID': e.pos_ID,
           'shop_user_ID': e.shop_user_ID,
           'shop_customer_ID': e.shop_customer_ID,
           'code': e.code,
@@ -162,13 +162,13 @@ class SyncService {
       }
     }
 
-    debugPrint('request.fields: ${request.fields}');
+    debugPrint('syncReceipt request.fields: ${request.fields}');
 
     try {
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
-      debugPrint('Sync response: ${response.statusCode}');
+      debugPrint('syncReceipt Sync response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final newSyncTime = DateTime.now().toIso8601String();
@@ -212,7 +212,7 @@ class SyncService {
                 if (id != null) {
                   var receipt = await isar.receiptList.where().filter().idEqualTo(id).findFirst() ?? Receipt();
                   receipt.id = id;
-                  receipt.shop_branch_ID = _parseInt(item['Shop_branch_ID'] ?? item['shop_branch_ID']);
+                  receipt.pos_ID = _parseInt(item['Pos_ID'] ?? item['pos_ID']);
                   receipt.shop_user_ID = _parseInt(item['Shop_user_ID'] ?? item['shop_user_ID']);
                   receipt.shop_customer_ID = _parseString(item['Shop_customer_ID'] ?? item['shop_customer_ID']);
                   receipt.code = _parseString(item['Code'] ?? item['code']);
@@ -280,11 +280,14 @@ class SyncService {
             }
           }
         });
+        return true;
       } else {
         debugPrint('Sync failed: ${response.statusCode} ${response.body}');
+        return false;
       }
     } catch (e) {
       debugPrint('Sync error: $e');
+      return false;
     }
   }
 }

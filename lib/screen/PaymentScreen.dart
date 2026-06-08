@@ -942,7 +942,21 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    onPressed: () async { await PrintService.printPaymentInfo(config: widget.config, receipt: receipt, mtValues: mtValues, isThai: isThai); },
+                    onPressed: () async {
+                      debugPrint('print button pressed, calling syncReceipt');
+
+                      bool isSyncSuccess = await SyncService.syncReceipt(widget.config);
+
+                      debugPrint('syncReceipt completed isSyncSuccess=${isSyncSuccess}');
+
+                      if (isSyncSuccess) {
+                        await PrintService.printPaymentInfo(config: widget.config, receipt: receipt, mtValues: mtValues, isThai: isThai);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(isThai ? 'ซิงค์ข้อมูลไม่สำเร็จ' : 'Sync failed')),
+                        );
+                      }
+                    },
                     child: Text(isThai ? 'พิมพ์' : 'Print'),
                   ),
                 ),

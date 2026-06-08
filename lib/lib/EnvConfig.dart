@@ -9,6 +9,7 @@ class EnvConfig {
   final bool isFileExists; // สถานะการมีอยู่ของไฟล์ store.json
   final String? shop_ID;
   final String? ShopName;
+  final String? TaxID;
   final String? shop_branch_ID;
   final String? service_module_ID;
   final String? BranchName;
@@ -25,6 +26,7 @@ class EnvConfig {
   final String? PrinterAddress;
   final String? ExpireDate;
   final String? LastUpdated;
+  final String? PosID;
 
   EnvConfig({
     required this.appTitle,
@@ -34,6 +36,7 @@ class EnvConfig {
     required this.isFileExists,
     this.shop_ID,
     this.ShopName,
+    this.TaxID,
     this.shop_branch_ID,
     this.service_module_ID,
     this.BranchName,
@@ -50,12 +53,14 @@ class EnvConfig {
     this.PrinterAddress,
     this.ExpireDate,
     this.LastUpdated,
+    this.PosID,
   });
 
   // 💡 สร้างเมธอด .copyWith() สำหรับการสร้าง config ตัวใหม่ที่มีการเปลี่ยนแปลงบางส่วน
   EnvConfig copyWith({
     String? shop_ID,
     String? ShopName,
+    String? TaxID,
     String? shop_branch_ID,
     String? service_module_ID,
     String? BranchName,
@@ -72,6 +77,7 @@ class EnvConfig {
     String? PrinterAddress,
     String? ExpireDate,
     String? LastUpdated,
+    String? PosID,
   }) {
     return EnvConfig(
       appTitle: appTitle,
@@ -81,6 +87,7 @@ class EnvConfig {
       isFileExists: isFileExists,
       shop_ID: shop_ID ?? this.shop_ID,
       ShopName: ShopName ?? this.ShopName,
+      TaxID: TaxID ?? this.TaxID,
       shop_branch_ID: shop_branch_ID ?? this.shop_branch_ID,
       service_module_ID: service_module_ID ?? this.service_module_ID,
       BranchName: BranchName ?? this.BranchName,
@@ -97,6 +104,7 @@ class EnvConfig {
       PrinterAddress: PrinterAddress ?? this.PrinterAddress,
       ExpireDate: ExpireDate ?? this.ExpireDate,
       LastUpdated: LastUpdated ?? this.LastUpdated,
+      PosID: PosID ?? this.PosID,
     );
   }
 

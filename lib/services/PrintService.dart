@@ -47,15 +47,27 @@ class PrintService {
           );
           await SunmiPrinter.lineWrap(2);
         } else {
-          String textToPrint = _replaceVariables(rawText, config, foodOrders);
+          String textToPrint = _replaceVariables(rawText, config, foodOrders, receipt);
           if (textToPrint.isNotEmpty) {
-            await SunmiPrinter.printText(
-              textToPrint,
-              style: SunmiTextStyle(
-                align: _getAlign(dt.alignment),
-                fontSize: dt.fontSize ?? 24,
-              ),
-            );
+            if (dt.alignment == 'Full' && textToPrint.contains(',')) {
+              List<String> parts = textToPrint.split(',');
+              String leftPart = parts.isNotEmpty ? parts[0] : '';
+              String rightPart = parts.length > 1 ? parts.sublist(1).join(',') : '';
+              await SunmiPrinter.printRow(
+                cols: [
+                  SunmiColumn(text: leftPart, width: 15, style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: dt.fontSize ?? 24)),
+                  SunmiColumn(text: rightPart, width: 15, style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT, fontSize: dt.fontSize ?? 24)),
+                ],
+              );
+            } else {
+              await SunmiPrinter.printText(
+                textToPrint,
+                style: SunmiTextStyle(
+                  align: _getAlign(dt.alignment),
+                  fontSize: dt.fontSize ?? 24,
+                ),
+              );
+            }
           }
         }
       }
@@ -125,14 +137,24 @@ class PrintService {
           );
           bytes += generator.feed(2);
         } else {
-          String textToPrint = _replaceVariables(rawText, config, foodOrders);
+          String textToPrint = _replaceVariables(rawText, config, foodOrders, receipt);
           if (textToPrint.isNotEmpty) {
-            final imageToPrint = await _textToImage(
-              textToPrint,
-              dt.fontSize ?? 24,
-              dt.alignment,
-            );
-            bytes += generator.imageRaster(imageToPrint);
+            if (dt.alignment == 'Full' && textToPrint.contains(',')) {
+              List<String> parts = textToPrint.split(',');
+              String leftPart = parts.isNotEmpty ? parts[0] : '';
+              String rightPart = parts.length > 1 ? parts.sublist(1).join(',') : '';
+              final imageToPrint = await _rowToImage(
+                leftPart, rightPart, dt.fontSize ?? 24
+              );
+              bytes += generator.imageRaster(imageToPrint);
+            } else {
+              final imageToPrint = await _textToImage(
+                textToPrint,
+                dt.fontSize ?? 24,
+                dt.alignment,
+              );
+              bytes += generator.imageRaster(imageToPrint);
+            }
           }
         }
       }
@@ -477,7 +499,7 @@ class PrintService {
     }
   }
 
-  static String _replaceVariables(String template, EnvConfig config, [List<FoodOrder>? foodOrders]) {
+  static String _replaceVariables(String template, EnvConfig config, [List<FoodOrder>? foodOrders, Receipt? receipt]) {
     String result = template;
     Map<String, String> configMap = {
       'shop_ID': config.shop_ID ?? '',
@@ -495,10 +517,34 @@ class PrintService {
       'PrinterAddress': config.PrinterAddress ?? '',
       'ExpireDate': config.ExpireDate ?? '',
       'LastUpdated': config.LastUpdated ?? '',
+      'TaxID': config.TaxID ?? '',
+      'PosID': config.PosID ?? '',
     };
     configMap.forEach((key, value) {
       result = result.replaceAll('[config.$key]', value);
     });
+
+    if (receipt != null) {
+      result = result.replaceAll('[Receipt.code]', receipt.code ?? '');
+      
+      if (receipt.createdAt != null) {
+        DateTime dt = receipt.createdAt!.toLocal();
+        String D = dt.day.toString().padLeft(2, '0');
+        String M = dt.month.toString().padLeft(2, '0');
+        String T = (dt.year + 543).toString();
+        String E = dt.year.toString();
+        String H = dt.hour.toString().padLeft(2, '0');
+        String Min = dt.minute.toString().padLeft(2, '0');
+        String S = dt.second.toString().padLeft(2, '0');
+
+        result = result.replaceAll('[Receipt.DMT]', '$D/$M/$T');
+        result = result.replaceAll('[Receipt.DME]', '$D/$M/$E');
+        result = result.replaceAll('[Receipt.TMD]', '$T-$M-$D');
+        result = result.replaceAll('[Receipt.EMD]', '$E-$M-$D');
+        result = result.replaceAll('[Receipt.HMS]', '$H:$Min:$S');
+        result = result.replaceAll('[Receipt.HM]', '$H:$Min');
+      }
+    }
 
     if (foodOrders != null && result.contains('[FoodOrder.Number]')) {
       final numbers = foodOrders.map((e) => e.number?.toString() ?? '').where((e) => e.isNotEmpty).join(', ');
@@ -514,7 +560,7 @@ class PrintService {
     final matches = RegExp(r'\[(.*?)\]').allMatches(text);
     for (final match in matches) {
       String inner = match.group(1) ?? '';
-      if (!inner.startsWith('config.') && inner != 'ReceiptItem' && inner != 'FoodOrder.Number') {
+      if (!inner.startsWith('config.') && !inner.startsWith('Receipt.') && inner != 'ReceiptItem' && inner != 'FoodOrder.Number') {
         return false;
       }
     }

@@ -238,7 +238,7 @@ class Receipt {
   Id isarId = Isar.autoIncrement;
   @Index(unique: true, replace: true)
   String? id;
-  int? shop_branch_ID;
+  int? pos_ID;
   int? shop_user_ID;
   String? shop_customer_ID;
   String? code;

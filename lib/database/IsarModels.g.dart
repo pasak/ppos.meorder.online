@@ -31028,15 +31028,15 @@ const ReceiptSchema = CollectionSchema(
       name: r'paymentType',
       type: IsarType.string,
     ),
-    r'serviceChargeAmount': PropertySchema(
+    r'pos_ID': PropertySchema(
       id: 9,
+      name: r'pos_ID',
+      type: IsarType.long,
+    ),
+    r'serviceChargeAmount': PropertySchema(
+      id: 10,
       name: r'serviceChargeAmount',
       type: IsarType.double,
-    ),
-    r'shop_branch_ID': PropertySchema(
-      id: 10,
-      name: r'shop_branch_ID',
-      type: IsarType.long,
     ),
     r'shop_customer_ID': PropertySchema(
       id: 11,
@@ -31168,8 +31168,8 @@ void _receiptSerialize(
   writer.writeString(offsets[6], object.lastUpdated);
   writer.writeDouble(offsets[7], object.paidAmount);
   writer.writeString(offsets[8], object.paymentType);
-  writer.writeDouble(offsets[9], object.serviceChargeAmount);
-  writer.writeLong(offsets[10], object.shop_branch_ID);
+  writer.writeLong(offsets[9], object.pos_ID);
+  writer.writeDouble(offsets[10], object.serviceChargeAmount);
   writer.writeString(offsets[11], object.shop_customer_ID);
   writer.writeLong(offsets[12], object.shop_user_ID);
   writer.writeString(offsets[13], object.slipFileName);
@@ -31196,8 +31196,8 @@ Receipt _receiptDeserialize(
   object.lastUpdated = reader.readStringOrNull(offsets[6]);
   object.paidAmount = reader.readDoubleOrNull(offsets[7]);
   object.paymentType = reader.readStringOrNull(offsets[8]);
-  object.serviceChargeAmount = reader.readDoubleOrNull(offsets[9]);
-  object.shop_branch_ID = reader.readLongOrNull(offsets[10]);
+  object.pos_ID = reader.readLongOrNull(offsets[9]);
+  object.serviceChargeAmount = reader.readDoubleOrNull(offsets[10]);
   object.shop_customer_ID = reader.readStringOrNull(offsets[11]);
   object.shop_user_ID = reader.readLongOrNull(offsets[12]);
   object.slipFileName = reader.readStringOrNull(offsets[13]);
@@ -31234,9 +31234,9 @@ P _receiptDeserializeProp<P>(
     case 8:
       return (reader.readStringOrNull(offset)) as P;
     case 9:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 10:
       return (reader.readLongOrNull(offset)) as P;
+    case 10:
+      return (reader.readDoubleOrNull(offset)) as P;
     case 11:
       return (reader.readStringOrNull(offset)) as P;
     case 12:
@@ -32410,6 +32410,75 @@ extension ReceiptQueryFilter
     });
   }
 
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> pos_IDIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'pos_ID',
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> pos_IDIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'pos_ID',
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> pos_IDEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'pos_ID',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> pos_IDGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'pos_ID',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> pos_IDLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'pos_ID',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> pos_IDBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'pos_ID',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition>
       serviceChargeAmountIsNull() {
     return QueryBuilder.apply(this, (query) {
@@ -32490,77 +32559,6 @@ extension ReceiptQueryFilter
         upper: upper,
         includeUpper: includeUpper,
         epsilon: epsilon,
-      ));
-    });
-  }
-
-  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> shop_branch_IDIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'shop_branch_ID',
-      ));
-    });
-  }
-
-  QueryBuilder<Receipt, Receipt, QAfterFilterCondition>
-      shop_branch_IDIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'shop_branch_ID',
-      ));
-    });
-  }
-
-  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> shop_branch_IDEqualTo(
-      int? value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'shop_branch_ID',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Receipt, Receipt, QAfterFilterCondition>
-      shop_branch_IDGreaterThan(
-    int? value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'shop_branch_ID',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> shop_branch_IDLessThan(
-    int? value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'shop_branch_ID',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> shop_branch_IDBetween(
-    int? lower,
-    int? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'shop_branch_ID',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
       ));
     });
   }
@@ -33432,6 +33430,18 @@ extension ReceiptQuerySortBy on QueryBuilder<Receipt, Receipt, QSortBy> {
     });
   }
 
+  QueryBuilder<Receipt, Receipt, QAfterSortBy> sortByPos_ID() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pos_ID', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterSortBy> sortByPos_IDDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pos_ID', Sort.desc);
+    });
+  }
+
   QueryBuilder<Receipt, Receipt, QAfterSortBy> sortByServiceChargeAmount() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'serviceChargeAmount', Sort.asc);
@@ -33441,18 +33451,6 @@ extension ReceiptQuerySortBy on QueryBuilder<Receipt, Receipt, QSortBy> {
   QueryBuilder<Receipt, Receipt, QAfterSortBy> sortByServiceChargeAmountDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'serviceChargeAmount', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Receipt, Receipt, QAfterSortBy> sortByShop_branch_ID() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'shop_branch_ID', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Receipt, Receipt, QAfterSortBy> sortByShop_branch_IDDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'shop_branch_ID', Sort.desc);
     });
   }
 
@@ -33663,6 +33661,18 @@ extension ReceiptQuerySortThenBy
     });
   }
 
+  QueryBuilder<Receipt, Receipt, QAfterSortBy> thenByPos_ID() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pos_ID', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterSortBy> thenByPos_IDDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pos_ID', Sort.desc);
+    });
+  }
+
   QueryBuilder<Receipt, Receipt, QAfterSortBy> thenByServiceChargeAmount() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'serviceChargeAmount', Sort.asc);
@@ -33672,18 +33682,6 @@ extension ReceiptQuerySortThenBy
   QueryBuilder<Receipt, Receipt, QAfterSortBy> thenByServiceChargeAmountDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'serviceChargeAmount', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Receipt, Receipt, QAfterSortBy> thenByShop_branch_ID() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'shop_branch_ID', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Receipt, Receipt, QAfterSortBy> thenByShop_branch_IDDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'shop_branch_ID', Sort.desc);
     });
   }
 
@@ -33832,15 +33830,15 @@ extension ReceiptQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Receipt, Receipt, QDistinct> distinctByServiceChargeAmount() {
+  QueryBuilder<Receipt, Receipt, QDistinct> distinctByPos_ID() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'serviceChargeAmount');
+      return query.addDistinctBy(r'pos_ID');
     });
   }
 
-  QueryBuilder<Receipt, Receipt, QDistinct> distinctByShop_branch_ID() {
+  QueryBuilder<Receipt, Receipt, QDistinct> distinctByServiceChargeAmount() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'shop_branch_ID');
+      return query.addDistinctBy(r'serviceChargeAmount');
     });
   }
 
@@ -33953,16 +33951,16 @@ extension ReceiptQueryProperty
     });
   }
 
+  QueryBuilder<Receipt, int?, QQueryOperations> pos_IDProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'pos_ID');
+    });
+  }
+
   QueryBuilder<Receipt, double?, QQueryOperations>
       serviceChargeAmountProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'serviceChargeAmount');
-    });
-  }
-
-  QueryBuilder<Receipt, int?, QQueryOperations> shop_branch_IDProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'shop_branch_ID');
     });
   }
 

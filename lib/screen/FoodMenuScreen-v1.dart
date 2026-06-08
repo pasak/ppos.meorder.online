@@ -352,7 +352,7 @@ class _FoodMenuScreenState extends State<FoodMenuScreen> {
             .filter()
             .idEqualTo(fo.parentID!)
             .findFirst();
-        if (receipt != null && receipt.shop_branch_ID == currentBranchId) {
+        if (receipt != null && receipt.pos_ID == currentBranchId) {
           if (fo.number != null && fo.number! > maxNumber) {
             maxNumber = fo.number!;
           }
@@ -413,14 +413,10 @@ class _FoodMenuScreenState extends State<FoodMenuScreen> {
           int seqNumber = 0;
           final docCodeList = await isar.documentCodeList.where().findAll();
 
-          final prefix = docCodeList
-              .where((e) => e.name == 'PREFIX')
-              .firstOrNull;
+          final prefix = docCodeList.where((e) => e.name == 'PREFIX').firstOrNull;
           final year = docCodeList.where((e) => e.name == 'YEAR').firstOrNull;
           final month = docCodeList.where((e) => e.name == 'MONTH').firstOrNull;
-          final numberCode = docCodeList
-              .where((e) => e.name == 'NUMBER')
-              .firstOrNull;
+          final numberCode = docCodeList.where((e) => e.name == 'NUMBER').firstOrNull;
 
           if (prefix != null && prefix.value != null) {
             code += prefix.value! + (prefix.seperator ?? '');
@@ -463,7 +459,7 @@ class _FoodMenuScreenState extends State<FoodMenuScreen> {
           receiptID = uuid.v4();
           final receipt = Receipt()
             ..id = receiptID
-            ..shop_branch_ID = int.tryParse(widget.config.shop_branch_ID ?? '0')
+            ..pos_ID = int.tryParse(widget.config.shop_branch_ID ?? '0')
             ..shop_user_ID = int.tryParse(widget.config.UserID ?? '0')
             ..shop_customer_ID = shop_customer_ID
             ..code = code
@@ -770,20 +766,20 @@ class _FoodMenuScreenState extends State<FoodMenuScreen> {
                         ),
                         if (item.sizes.isNotEmpty) ...[
                           const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Text(
+                              isThai ? 'ขนาด:' : 'Size:',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ),
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
                             children: [
-                              Padding(
-                                padding: const EdgeInsets.only(top: 6),
-                                child: Text(
-                                  isThai ? 'ขนาด:' : 'Size:',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                              ),
                               ...item.sizes.map(
                                 (s) => ChoiceChip(
                                   label: Text(
@@ -808,20 +804,20 @@ class _FoodMenuScreenState extends State<FoodMenuScreen> {
                         ],
                         for (var opt in item.options) ...[
                           const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Text(
+                              '${isThai ? opt.data.thaiName : opt.data.englishName}:',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ),
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
                             children: [
-                              Padding(
-                                padding: const EdgeInsets.only(top: 6),
-                                child: Text(
-                                  '${isThai ? opt.data.thaiName : opt.data.englishName}:',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                              ),
                               ...opt.choices.map(
                                 (c) => ChoiceChip(
                                   label: Text(
@@ -847,20 +843,20 @@ class _FoodMenuScreenState extends State<FoodMenuScreen> {
                         ],
                         if (item.standaloneChoices.isNotEmpty) ...[
                           const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Text(
+                              isThai ? 'เพิ่ม:' : 'Add:',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ),
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
                             children: [
-                              Padding(
-                                padding: const EdgeInsets.only(top: 6),
-                                child: Text(
-                                  isThai ? 'เพิ่ม:' : 'Add:',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                              ),
                               ...item.standaloneChoices.map(
                                 (c) => ChoiceChip(
                                   label: Text(
