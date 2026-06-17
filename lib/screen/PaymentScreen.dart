@@ -7,6 +7,7 @@ import 'package:meorder_ppos/screen/ReceiptScreen.dart';
 import 'package:meorder_ppos/screen/PPosScreen.dart';
 import 'package:meorder_ppos/services/PrintService.dart';
 import 'package:meorder_ppos/model/DisplayOrderItem.dart';
+import 'package:meorder_ppos/model/DisplayReceiptItem.dart';
 import 'package:meorder_ppos/services/SyncService.dart';
 import 'package:meorder_ppos/services/RolePermissionServices.dart';
 import 'dart:io';
@@ -42,12 +43,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
   bool isLoading = true;
 
   Map<String, String?>? foDiscountFood;
+  Map<String, String?>? foDiscountMerchandise;
   Map<String, String?>? foDiscountReceipt;
   Map<String, String?>? foReceiveCash;
   Map<String, String?>? foCancelFoodOrder;
 
   Receipt? receipt;
   List<DisplayOrderItem> displayItems = [];
+  List<DisplayReceiptItem> displayReceiptItems = [];
   bool hasMT = false;
   bool hasPP = false;
   bool hasOnline = false;
@@ -58,7 +61,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   String selectedMethod = 'Cash';
   String _debugText = '';
-  bool isDebug = false;
+  bool isDebug = true;
   double receiveAmount = 0.0;
   double changeAmount = 0.0;
   double tipAmount = 0.0;
@@ -100,6 +103,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       final roleID = widget.config.UserRole;
       if (roleID != null) {
         foDiscountFood = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_DISCOUNT_FOOD');
+        foDiscountMerchandise = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_DISCOUNT_MERCHANDISE');
         foDiscountReceipt = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_DISCOUNT_RECEIPT');
         foReceiveCash = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_RECEIVE_CASH');
         foCancelFoodOrder = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_CANCEL_FOOD_ORDER');
@@ -213,6 +217,66 @@ class _PaymentScreenState extends State<PaymentScreen> {
         }
 
         displayItems = tempDisplayItems;
+
+        final receiptItems = await isar.receiptItemList
+            .where()
+            .filter()
+            .receipt_IDEqualTo(receipt!.id)
+            .findAll();
+
+        List<DisplayReceiptItem> tempDisplayReceiptItems = [];
+
+        for (var rItem in receiptItems) {
+          String itemName = '';
+          String unitName = '';
+          if (rItem.merchandise_item_ID != null) {
+            final mItem = await isar.merchandiseItemList
+                .where()
+                .filter()
+                .idEqualTo(rItem.merchandise_item_ID!)
+                .findFirst();
+            if (mItem != null) {
+              itemName = mItem.productName ?? '';
+              unitName = mItem.unitName ?? '';
+            }
+          }
+          if (rItem.merchandise_pack_ID != null) {
+            final mPack = await isar.merchandisePackList
+                .where()
+                .filter()
+                .idEqualTo(rItem.merchandise_pack_ID!)
+                .findFirst();
+            if (mPack != null) {
+              final currentLevel = mPack.level ?? 1;
+              
+              if (currentLevel > 1) {
+                final allPacks = await isar.merchandisePackList.where()
+                    .filter()
+                    .merchandise_item_IDEqualTo(rItem.merchandise_item_ID)
+                    .findAll();
+                    
+                try {
+                  final prevPack = allPacks.firstWhere((p) => (p.level ?? 1) == currentLevel - 1);
+                  unitName = prevPack.packName ?? '';
+                } catch (e) {
+                  allPacks.sort((a, b) => (a.level ?? 1).compareTo(b.level ?? 1));
+                  int packIdx = allPacks.indexWhere((p) => p.id == mPack.id);
+                  if (packIdx > 0) {
+                    unitName = allPacks[packIdx - 1].packName ?? '';
+                  }
+                }
+              }
+              itemName += ' ${mPack.packName ?? '-'} ${mPack.quantity ?? 1} $unitName';
+            }
+          }
+          tempDisplayReceiptItems.add(
+            DisplayReceiptItem(
+              item: rItem,
+              itemName: itemName.trim(),
+            ),
+          );
+        }
+        displayReceiptItems = tempDisplayReceiptItems;
 
         final mtPayment = await isar.paymentList
             .where()
@@ -440,6 +504,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
                               '-${di.item.discountAmount!.toStringAsFixed(2)}',
                               style: const TextStyle(fontSize: 14, color: Colors.red),
                             ),
+                          if (di.item.description != null && di.item.description!.isNotEmpty)
+                            Text(
+                              '* ${di.item.description}',
+                              style: const TextStyle(fontSize: 14, color: Colors.black54),
+                            ),
                         ],
                       ),
                     ),
@@ -457,6 +526,51 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         onPressed: () => _showDiscountItemDialog(di, amount),
+                      ),
+                  ],
+                ),
+              );
+            }),
+            ...displayReceiptItems.map((di) {
+              String desc = '${di.item.quantity ?? 0}x ${di.itemName}';
+
+              double amount =
+                  (di.item.quantity ?? 0) * (di.item.itemPrice ?? 0.0);
+              double itemAmount = amount - (di.item.discountAmount ?? 0.0);
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(desc, style: const TextStyle(fontSize: 16)),
+                          if ((di.item.discountAmount ?? 0.0) > 0.0)
+                            Text(
+                              '-${di.item.discountAmount!.toStringAsFixed(2)}',
+                              style: const TextStyle(fontSize: 14, color: Colors.red),
+                            ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        itemAmount.toStringAsFixed(2),
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    if (foDiscountMerchandise != null)
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () => _showDiscountReceiptItemDialog(di, amount),
                       ),
                   ],
                 ),
@@ -700,7 +814,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     ),
                     onPressed: changeAmount > 0 ? _change2Tip : null,
                     child: Text(
-                      isThai ? 'ไม่รับเงินทอน ให้เป็นทิป' : 'Change to Tip',
+                      isThai ? 'ให้เป็นทิป' : 'Change to Tip',
                     ),
                   ),
                 ),
@@ -950,7 +1064,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       debugPrint('syncReceipt completed isSyncSuccess=${isSyncSuccess}');
 
                       if (isSyncSuccess) {
-                        await PrintService.printPaymentInfo(config: widget.config, receipt: receipt, mtValues: mtValues, isThai: isThai);
+                        await PrintService.printPaymentInfo(isar: isar, config: widget.config, receipt: receipt, mtValues: mtValues, isThai: isThai);
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text(isThai ? 'ซิงค์ข้อมูลไม่สำเร็จ' : 'Sync failed')),
@@ -1066,7 +1180,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   void _processPayment() async {
-    if (isDebug) { setState(() => _debugText = 'processPayment'); }
+    if (isDebug) { setState(() => _debugText = 'processPayment'); debugPrint(_debugText); }
     if (receipt == null) return;
 
     receipt!.paidAmount = (receipt!.totalAmount ?? 0.0) + tipAmount;
@@ -1089,78 +1203,25 @@ class _PaymentScreenState extends State<PaymentScreen> {
       }
     });
 
-    final settings = await isar.settingValueList.where().filter().anyOf([
-      'FOC_PRN_RCP_CSH',
-      'FOC_PRN_COK',
-      'FOC_PAUSE_PRN_COK',
-    ], (q, String id) => q.setting_IDEqualTo(id)).findAll();
-
-    Map<String, bool> settingValue = {
-      'FOC_PRN_RCP_CSH': true,
-      'FOC_PRN_COK': true,
-      'FOC_PAUSE_PRN_COK': false,
-    };
-
-    for (var sv in settings) {
-      if (sv.setting_ID != null) {
-        settingValue[sv.setting_ID!] = (sv.value == 'Y');
-      }
-    }
-
-    if (widget.config.PrinterModel == 'Xprinter N160ii') {
-      settingValue['FOC_PAUSE_PRN_COK'] = false;
-    }
-
-    if (settingValue['FOC_PRN_RCP_CSH'] == true) {
-      await PrintService.printReceipt(isar: isar, config: widget.config, receipt: receipt, foodOrders: foodOrders, displayItems: displayItems, isThai: isThai);
-      if (isDebug) { setState(() => _debugText = '_printReceipt'); }
-    }
-
-    if (settingValue['FOC_PRN_COK'] == true &&
-        widget.config.isKitchen == true) {
-      if (settingValue['FOC_PAUSE_PRN_COK'] == true) {
-        if (!mounted) return;
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) {
-            return AlertDialog(
-              content: Text(
-                isThai
-                    ? 'ฉีกใบเสร็จรับเงินให้ลูกค้า แล้วกดปุ่มเพื่อพิมพ์ใบสั่งอาหาร'
-                    : 'Tear off the receipt and press to print cooking order.',
-              ),
-              actions: [
-                ElevatedButton(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await PrintService.printCookingOrder(isar: isar, config: widget.config, foodOrders: foodOrders, displayItems: displayItems);
-                    await SyncService.syncReceipt(widget.config);
-                    _navigateBack();
-                  },
-                  child: Text(
-                    isThai ? 'พิมพ์ใบสั่งอาหาร' : 'Print Cooking Order',
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-        return;
-      } else {
-        await PrintService.printCookingOrder(isar: isar, config: widget.config, foodOrders: foodOrders, displayItems: displayItems);
-        if (isDebug) { setState(() => _debugText = '_printCookingOrder'); }
-      }
-    }
-
-    if (isDebug) { setState(() => _debugText = 'call syncReceipt'); }
-
-    await SyncService.syncReceipt(widget.config);
-    // _navigateBack(); 
+    await PrintService.processPrintFlow(
+      context: context,
+      isar: isar,
+      config: widget.config,
+      receipt: receipt,
+      foodOrders: foodOrders,
+      displayItems: displayItems,
+      isThai: isThai,
+      isMT: false,
+      onComplete: () async {
+        if (isDebug) { setState(() => _debugText = 'call syncReceipt'); debugPrint(_debugText); }
+        await SyncService.syncReceipt(widget.config);
+        _navigateBack();
+      },
+    ); 
   }
 
   void _processMTPayment() async {
-    if (isDebug) { setState(() => _debugText = 'processMTPayment'); }
+    if (isDebug) { setState(() => _debugText = 'processMTPayment'); debugPrint(_debugText); }
     if (receipt == null) return;
 
     receipt!.paidAmount = (receipt!.totalAmount ?? 0.0) + tipAmount;
@@ -1183,74 +1244,21 @@ class _PaymentScreenState extends State<PaymentScreen> {
       }
     });
 
-    final settings = await isar.settingValueList.where().filter().anyOf([
-      'FOC_PRN_RCP_CSH',
-      'FOC_PRN_COK',
-      'FOC_PAUSE_PRN_COK',
-    ], (q, String id) => q.setting_IDEqualTo(id)).findAll();
-
-    Map<String, bool> settingValue = {
-      'FOC_PRN_RCP_CSH': true,
-      'FOC_PRN_COK': true,
-      'FOC_PAUSE_PRN_COK': false,
-    };
-
-    for (var sv in settings) {
-      if (sv.setting_ID != null) {
-        settingValue[sv.setting_ID!] = (sv.value == 'Y');
-      }
-    }
-
-    if (widget.config.PrinterModel == 'Xprinter N160ii') {
-      settingValue['FOC_PAUSE_PRN_COK'] = false;
-    }
-
-    if (settingValue['FOC_PRN_RCP_CSH'] == true) {
-      await PrintService.printReceipt(isar: isar, config: widget.config, receipt: receipt, foodOrders: foodOrders, displayItems: displayItems, isThai: isThai, isMT: true);
-      if (isDebug) { setState(() => _debugText = '_printReceipt'); }
-    }
-
-    if (settingValue['FOC_PRN_COK'] == true &&
-        widget.config.isKitchen == true) {
-      if (settingValue['FOC_PAUSE_PRN_COK'] == true) {
-        if (!mounted) return;
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) {
-            return AlertDialog(
-              content: Text(
-                isThai
-                    ? 'ฉีกใบเสร็จรับเงินให้ลูกค้า แล้วกดปุ่มเพื่อพิมพ์ใบสั่งอาหาร'
-                    : 'Tear off the receipt and press to print cooking order.',
-              ),
-              actions: [
-                ElevatedButton(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await PrintService.printCookingOrder(isar: isar, config: widget.config, foodOrders: foodOrders, displayItems: displayItems);
-                    await SyncService.syncReceipt(widget.config);
-                    _navigateBack();
-                  },
-                  child: Text(
-                    isThai ? 'พิมพ์ใบสั่งอาหาร' : 'Print Cooking Order',
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-        return;
-      } else {
-        await PrintService.printCookingOrder(isar: isar, config: widget.config, foodOrders: foodOrders, displayItems: displayItems);
-        if (isDebug) { setState(() => _debugText = '_printCookingOrder done'); }
-      }
-    }
-
-    if (isDebug) { setState(() => _debugText = 'call syncReceipt'); }
-
-    await SyncService.syncReceipt(widget.config);
-    // _navigateBack(); 
+    await PrintService.processPrintFlow(
+      context: context,
+      isar: isar,
+      config: widget.config,
+      receipt: receipt,
+      foodOrders: foodOrders,
+      displayItems: displayItems,
+      isThai: isThai,
+      isMT: true,
+      onComplete: () async {
+        if (isDebug) { setState(() => _debugText = 'call syncReceipt'); debugPrint(_debugText); }
+        await SyncService.syncReceipt(widget.config);
+        _navigateBack();
+      },
+    ); 
   }
 
   void _navigateBack() {
@@ -1335,7 +1343,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _generatePPQr() async {
-    if (isDebug) { setState(() => _debugText = 'Generating PP QR'); }
+    if (isDebug) { setState(() => _debugText = 'Generating PP QR'); debugPrint(_debugText); }
     setState(() {
       _isGeneratingPP = true;
     });
@@ -1403,6 +1411,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         setState(() {
           _debugText = 'PP QR Error: $e';
         });
+        debugPrint(_debugText);
       }
       debugPrint("Error generating PP QR: $e");
     } finally {
@@ -1536,6 +1545,130 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  void _showDiscountReceiptItemDialog(DisplayReceiptItem di, double itemAmount) {
+    if (foDiscountMerchandise == null) return;
+    
+    final level = foDiscountMerchandise!['PermissionLevel'];
+    if (level != 'Full' && level != 'Partial') return;
+    
+    bool showPercent = true;
+    if (level == 'Partial' && foDiscountMerchandise!['PartialPercent'] == null) {
+      showPercent = false;
+    }
+
+    double maxPercent = level == 'Full' ? 100.0 : double.tryParse(foDiscountMerchandise!['PartialPercent'] ?? '0') ?? 0.0;
+    double maxAmount = level == 'Full' ? itemAmount : double.tryParse(foDiscountMerchandise!['PartialAmount'] ?? '0') ?? 0.0;
+    
+    double currentPercent = (di.item.discountPercent ?? 0).toDouble();
+    double currentAmount = di.item.discountAmount ?? 0.0;
+
+    TextEditingController percentCtrl = TextEditingController(text: currentPercent > 0 ? currentPercent.toStringAsFixed(0) : '');
+    TextEditingController amountCtrl = TextEditingController(text: currentAmount > 0 ? currentAmount.toStringAsFixed(2) : '');
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            
+            void updateDiscountAmount(double dA, {bool forceUpdateText = false}) {
+              double finalAmount = dA;
+              bool exceeded = false;
+              if (level == 'Partial' && maxAmount > 0 && finalAmount > maxAmount) {
+                finalAmount = maxAmount;
+                exceeded = true;
+              }
+              if (finalAmount > itemAmount) {
+                finalAmount = itemAmount;
+                exceeded = true;
+              }
+              currentAmount = finalAmount;
+              
+              if (forceUpdateText || exceeded) {
+                String newText = finalAmount > 0 ? finalAmount.toStringAsFixed(2) : '';
+                if (amountCtrl.text != newText) {
+                  amountCtrl.text = newText;
+                  amountCtrl.selection = TextSelection.collapsed(offset: newText.length);
+                }
+              }
+            }
+
+            return AlertDialog(
+              title: Text(isThai ? 'ส่วนลดสินค้า' : 'Merchandise Discount'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(di.itemName),
+                  Text('${isThai ? 'ราคา' : 'Price'}: ${itemAmount.toStringAsFixed(2)}'),
+                  const SizedBox(height: 16),
+                  if (showPercent) ...[
+                    TextField(
+                      controller: percentCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: isThai ? 'ลด %' : 'discount %',
+                      ),
+                      onChanged: (val) {
+                        double p = double.tryParse(val) ?? 0.0;
+                        if (p > maxPercent) {
+                          p = maxPercent;
+                          String newText = p.toStringAsFixed(0);
+                          if (percentCtrl.text != newText) {
+                            percentCtrl.text = newText;
+                            percentCtrl.selection = TextSelection.collapsed(offset: newText.length);
+                          }
+                        }
+                        double dA = itemAmount * (p / 100.0);
+                        updateDiscountAmount(dA, forceUpdateText: true);
+                        setStateDialog((){});
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  TextField(
+                    controller: amountCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: isThai ? 'ลด (บาท)' : 'discount (Baht)',
+                    ),
+                    onChanged: (val) {
+                      double dA = double.tryParse(val) ?? 0.0;
+                      updateDiscountAmount(dA);
+                      setStateDialog((){});
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(isThai ? 'ยกเลิก' : 'Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    di.item.discountPercent = int.tryParse(percentCtrl.text) ?? 0;
+                    di.item.discountAmount = currentAmount;
+                    
+                    await isar.writeTxn(() async {
+                      di.item.lastUpdated = DateTime.now().toIso8601String();
+                      di.item.isDirty = true;
+                      await isar.receiptItemList.put(di.item);
+                    });
+
+                    await _recalculateFoodOrder();
+                    Navigator.pop(context);
+                    setState(() {});
+                  },
+                  child: Text(isThai ? 'บันทึก' : 'Save'),
+                ),
+              ],
+            );
+          }
+        );
+      }
+    );
+  }
+
   Future<void> _recalculateFoodOrder() async {
     if (receipt == null) return;
     
@@ -1545,6 +1678,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
         .parentIDEqualTo(receipt!.id!)
         .and()
         .parentTypeEqualTo('receipt')
+        .findAll();
+
+    final receiptItems = await isar.receiptItemList
+        .where()
+        .filter()
+        .receipt_IDEqualTo(receipt!.id)
         .findAll();
     
     await isar.writeTxn(() async {
@@ -1570,6 +1709,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
         await isar.foodOrderList.put(order);
         
         newSumAmount += orderAmount;
+      }
+      
+      for (var rItem in receiptItems) {
+        double amt = ((rItem.itemPrice ?? 0) * (rItem.quantity ?? 0));
+        double itemDiscount = rItem.discountAmount ?? 0.0;
+        newSumAmount += (amt - itemDiscount);
       }
       
       receipt!.sumAmount = newSumAmount;

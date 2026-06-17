@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:meorder_ppos/lib/EnvConfig.dart';
@@ -83,13 +84,13 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
           if (order != null) {
             if (currentStatus == 'Paid' && (order.status == 'OrderFood' || order.status == 'KitchenPrinted')) {
               filtered.add(r);
-            } else if (currentStatus == 'Done' && order.status == 'Done') {
+            } else if (currentStatus == 'Served' && order.status == 'Served') {
               filtered.add(r);
             }
           }
         }
         
-        if (currentStatus == 'Done') {
+        if (currentStatus == 'Served') {
           final totalCount = filtered.length;
           hasNextPage = (currentPage + 1) * itemsPerPage < totalCount;
           int start = currentPage * itemsPerPage;
@@ -251,7 +252,8 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
               .findAll();
           final displayItems = orderItemsMap[id] ?? [];
           
-          await PrintService.printReceipt(
+          await PrintService.processPrintFlow(
+            context: context,
             isar: isar,
             config: widget.config,
             receipt: receipt,
@@ -259,14 +261,11 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
             displayItems: displayItems,
             isThai: isThai,
             isMT: receipt.paymentType == 'MoneyTransfer',
+            onComplete: () {
+              _loadData();
+            },
           );
-          
-          await PrintService.printCookingOrder(
-            isar: isar,
-            config: widget.config,
-            foodOrders: foodOrders,
-            displayItems: displayItems,
-          );
+          return;
         }
         _loadData();
       }
@@ -424,8 +423,28 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                                         Icons.image,
                                         color: Colors.blue,
                                       ),
-                                      onPressed: () {
+                                      onPressed: () async {
                                         final receiveAmountController = TextEditingController(text: receipt.totalAmount?.toStringAsFixed(2) ?? '0.00');
+
+                                        final pt = await isar.paymentTransactionList
+                                            .where()
+                                            .filter()
+                                            .receipt_IDEqualTo(receipt.id)
+                                            .sortByIdDesc()
+                                            .findFirst();
+
+                                        List<String> verifyReasons = [];
+                                        if (pt?.verifyReason != null && pt!.verifyReason!.isNotEmpty) {
+                                          try {
+                                            final decoded = jsonDecode(pt.verifyReason!);
+                                            if (decoded is List) {
+                                              verifyReasons = decoded.map((e) => e.toString()).toList();
+                                            }
+                                          } catch (_) {}
+                                        }
+
+                                        final imagePath = pt?.slipFileName ?? receipt.slipFileName;
+
                                         showDialog(
                                           context: context,
                                           builder: (context) {
@@ -433,9 +452,53 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                                               child: Column(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
-                                                  if (receipt.slipFileName != null && receipt.slipFileName!.isNotEmpty)
+                                                  if (pt != null && pt.reponseCode == 'PASS')
+                                                    Container(
+                                                      margin: const EdgeInsets.only(top: 16, left: 16, right: 16),
+                                                      padding: const EdgeInsets.all(12),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.green[50],
+                                                        border: Border.all(color: Colors.green[200]!),
+                                                        borderRadius: BorderRadius.circular(8),
+                                                      ),
+                                                      child: Row(
+                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                        children: [
+                                                          Text(isThai ? 'ผลการตรวจสอบสลิป' : 'Slip Verify Result', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green[700])),
+                                                          Text(isThai ? 'ผ่าน' : 'Pass', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green[700])),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  if (pt != null && pt.reponseCode != null && pt.reponseCode != 'INFORM' && pt.reponseCode != 'PASS' && pt.reponseCode != 'PAID')
+                                                    Container(
+                                                      margin: const EdgeInsets.only(top: 16, left: 16, right: 16),
+                                                      padding: const EdgeInsets.all(12),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.red[50],
+                                                        border: Border.all(color: Colors.red[200]!),
+                                                        borderRadius: BorderRadius.circular(8),
+                                                      ),
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          Row(
+                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                            children: [
+                                                              Text(isThai ? 'ผลการตรวจสอบสลิป' : 'Slip Verify Result', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red[700])),
+                                                              Text(pt.reponseCode == 'FAIL' ? (isThai ? 'ตรวจสอบสลิปไม่ผ่าน' : 'Slip Verify Failed') : (isThai ? 'ยอดเงินไม่ตรงกับสลิป' : 'Partial Payment'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red[700])),
+                                                            ],
+                                                          ),
+                                                          if (verifyReasons.isNotEmpty) ...[
+                                                            const Divider(color: Colors.red),
+                                                            Text(isThai ? 'เหตุผล' : 'Reason', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red[700])),
+                                                            ...verifyReasons.map((r) => Text('• $r', style: TextStyle(color: Colors.red[600], fontSize: 12))).toList(),
+                                                          ]
+                                                        ],
+                                                      )
+                                                    ),
+                                                  if (imagePath != null && imagePath.isNotEmpty)
                                                     Image.network(
-                                                      '${widget.config.apiUrl}${receipt.slipFileName}',
+                                                      '${widget.config.apiUrl}$imagePath',
                                                       width: double.infinity,
                                                       fit: BoxFit.cover,
                                                       errorBuilder: (context, error, stackTrace) => const Padding(
@@ -515,7 +578,15 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                                             o.isDirty = true;
                                             await isar.foodOrderList.put(o);
                                           }
+/* ไม่ต้อง update receipt.status = 'Served' เพราะหน้าที่ของใบเสร็จ สิ้นสุดที่การจ่ายเงิน
+                                          receipt.status = 'Served';
+                                          receipt.lastUpdated = DateTime.now().toIso8601String();
+                                          receipt.isDirty = true;
+                                          await isar.receiptList.put(receipt);
+*/
                                         });
+
+                                        await SyncService.syncReceipt(widget.config);
                                         _loadData();
                                       },
                                     ),
@@ -537,21 +608,17 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                                                 .and()
                                                 .parentTypeEqualTo('receipt')
                                                 .findAll();
-                                            await PrintService.printReceipt(
+                                            await PrintService.processPrintFlow(
+                                              context: context,
                                               isar: isar,
                                               config: widget.config,
                                               receipt: receipt,
                                               foodOrders: foodOrders,
                                               displayItems: items,
                                               isThai: isThai,
-                                            );
-                                            await PrintService.printCookingOrder(
-                                              isar: isar,
-                                              config: widget.config,
-                                              foodOrders: foodOrders,
-                                              displayItems: items,
-                                            );
-                                            if (printColor == 'red') {
+                                              isMT: receipt.paymentType == 'MoneyTransfer',
+                                              onComplete: () async {
+                                                if (printColor == 'red') {
                                               await isar.writeTxn(() async {
                                                 for (var o in foodOrders) {
                                                   o.status = 'KitchenPrinted';
@@ -567,7 +634,9 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
 
                                               await SyncService.syncReceipt(widget.config);
                                               _loadData();
-                                            }
+                                                }
+                                              },
+                                            );
                                           },
                                         );
                                       },

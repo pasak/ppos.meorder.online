@@ -131,6 +131,7 @@ class _InitScreenState extends State<InitScreen> {
           await isar.shopTableList.clear();
           await isar.settingValueList.clear();
           await isar.documentCodeList.clear();
+          await isar.documentTypeList.clear();
           await isar.documentTemplateList.clear();
           await isar.foodCategoryList.clear();
           await isar.foodSizeList.clear();
@@ -145,6 +146,10 @@ class _InitScreenState extends State<InitScreen> {
           await isar.foodOrderItemList.clear();
           await isar.paymentList.clear();
           await isar.paymentValueList.clear();
+          await isar.merchandiseCategoryList.clear();
+          await isar.merchandiseItemList.clear();
+          await isar.merchandisePackList.clear();
+          await isar.receiptItemList.clear();
           await isar.lastSyncList.clear();
 
           // LastSync
@@ -270,10 +275,23 @@ class _InitScreenState extends State<InitScreen> {
 
           setState(() { _debug = 'putAll DocumentCode success'; });
 
+          // DocumentType
+          final documentTypeListRaw = responseData['DocumentTypeList'] as List<dynamic>? ?? [];
+          final documentType = documentTypeListRaw.map((e) => DocumentType()
+            ..id = e['ID']
+            ..printerModel = e['PrinterModel']
+            ..lastUpdated = e['LastUpdated']
+            ..isDirty = false
+          ).toList();
+          await isar.documentTypeList.putAll(documentType);
+
+          setState(() { _debug = 'putAll DocumentType success'; });
+
           // DocumentTemplate
           final documentTemplateListRaw = responseData['DocumentTemplateList'] as List<dynamic>? ?? [];
           final documentTemplate = documentTemplateListRaw.map((e) => DocumentTemplate()
             ..id = e['ID']
+            ..document_type_ID = e['document_type_ID']
             ..seq = e['Seq']
             ..printText = e['PrintText']
             ..alignment = e['Alignment']
@@ -492,6 +510,57 @@ class _InitScreenState extends State<InitScreen> {
           await isar.paymentValueList.putAll(paymentValue);
 
           setState(() { _debug = 'putAll PaymentValue success'; });
+
+          // MerchandiseCategory
+          final merchandiseCategoryListRaw = responseData['MerchandiseCategoryList'] as List<dynamic>? ?? [];
+          final merchandiseCategory = merchandiseCategoryListRaw.map((e) => MerchandiseCategory()
+            ..id = e['ID']
+            ..parentType = e['ParentType']
+            ..parentID = e['ParentID']
+            ..categoryName = e['CategoryName']
+            ..isActive = e['IsActive']
+            ..lastUpdated = e['LastUpdated']
+            ..isDirty = false
+          ).toList();
+          await isar.merchandiseCategoryList.putAll(merchandiseCategory);
+
+          setState(() { _debug = 'putAll MerchandiseCategory success'; });
+
+          // MerchandiseItem
+          final merchandiseItemListRaw = responseData['MerchandiseItemList'] as List<dynamic>? ?? [];
+          final merchandiseItem = merchandiseItemListRaw.map((e) => MerchandiseItem()
+            ..id = e['ID']
+            ..barcode = e['Barcode']
+            ..merchandise_category_ID = e['merchandise_category_ID']
+            ..productName = e['ProductName']
+            ..price = double.tryParse(e['Price']?.toString() ?? '')
+            ..unitName = e['UnitName']
+            ..tax = e['Tax']
+            ..isActive = e['IsActive']
+            ..lastUpdated = e['LastUpdated']
+            ..isDirty = false
+          ).toList();
+          await isar.merchandiseItemList.putAll(merchandiseItem);
+
+          setState(() { _debug = 'putAll MerchandiseItem success'; });
+
+          // MerchandisePack
+          final merchandisePackListRaw = responseData['MerchandisePackList'] as List<dynamic>? ?? [];
+          final merchandisePack = merchandisePackListRaw.map((e) => MerchandisePack()
+            ..id = e['ID']
+            ..barcode = e['Barcode']
+            ..merchandise_item_ID = e['merchandise_item_ID']
+            ..level = int.tryParse(e['Level']?.toString() ?? '')
+            ..quantity = int.tryParse(e['Quantity']?.toString() ?? '')
+            ..packName = e['PackName']
+            ..price = double.tryParse(e['Price']?.toString() ?? '')
+            ..isActive = e['IsActive']
+            ..lastUpdated = e['LastUpdated']
+            ..isDirty = false
+          ).toList();
+          await isar.merchandisePackList.putAll(merchandisePack);
+
+          setState(() { _debug = 'putAll MerchandisePack success'; });
         });
 
         setState(() { _isLoading = false; });

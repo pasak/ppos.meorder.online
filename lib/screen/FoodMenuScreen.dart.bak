@@ -342,8 +342,7 @@ class _FoodMenuScreenState extends State<FoodMenuScreen> {
         .createdAtStartsWith(todayPrefix)
         .findAll();
 
-    int currentBranchId =
-        int.tryParse(widget.config.shop_branch_ID ?? '0') ?? 0;
+    int currentPosID = int.tryParse(widget.config.PosID ?? '0') ?? 0;
 
     for (var fo in ordersToday) {
       if (fo.parentType == 'receipt' && fo.parentID != null) {
@@ -352,7 +351,7 @@ class _FoodMenuScreenState extends State<FoodMenuScreen> {
             .filter()
             .idEqualTo(fo.parentID!)
             .findFirst();
-        if (receipt != null && receipt.pos_ID == currentBranchId) {
+        if (receipt != null && receipt.pos_ID == currentPosID) {
           if (fo.number != null && fo.number! > maxNumber) {
             maxNumber = fo.number!;
           }
@@ -413,25 +412,40 @@ class _FoodMenuScreenState extends State<FoodMenuScreen> {
           int seqNumber = 0;
           final docCodeList = await isar.documentCodeList.where().findAll();
 
-          final prefix = docCodeList.where((e) => e.name == 'PREFIX').firstOrNull;
-          final year = docCodeList.where((e) => e.name == 'YEAR').firstOrNull;
-          final month = docCodeList.where((e) => e.name == 'MONTH').firstOrNull;
-          final numberCode = docCodeList.where((e) => e.name == 'NUMBER').firstOrNull;
+          docCodeList.sort((a, b) => (a.seq ?? 0).compareTo(b.seq ?? 0));
 
-          if (prefix != null && prefix.value != null) {
-            code += prefix.value! + (prefix.seperator ?? '');
-          }
+          var numberCode;
 
-          if (year != null && year.value != null && year.value!.isNotEmpty) {
-            int y = now.year;
-            if (year.value!.startsWith('BE')) y += 543;
-            if (year.value!.contains('2')) y = y % 100;
-            code += '$y${year.seperator ?? ''}';
-          }
-
-          if (month != null) {
-            String m = now.month.toString().padLeft(2, '0');
-            code += '$m${month.seperator ?? ''}';
+          for (var docCode in docCodeList) {
+            switch (docCode.name) {
+              case 'POSID':
+                code += (widget.config.PosID ?? '') + (docCode.seperator ?? '');
+                break;
+              case 'PREFIX':
+                if (docCode.value != null) {
+                  code += docCode.value! + (docCode.seperator ?? '');
+                }
+                break;
+              case 'YEAR':
+                if (docCode.value != null && docCode.value!.isNotEmpty) {
+                  int y = now.year;
+                  if (docCode.value!.startsWith('BE')) y += 543;
+                  if (docCode.value!.contains('2')) y = y % 100;
+                  code += '$y${docCode.seperator ?? ''}';
+                }
+                break;
+              case 'MONTH':
+                String m = now.month.toString().padLeft(2, '0');
+                code += '$m${docCode.seperator ?? ''}';
+                break;
+              case 'DAY':
+                String d = now.day.toString().padLeft(2, '0');
+                code += '$d${docCode.seperator ?? ''}';
+                break;
+              case 'NUMBER':
+                numberCode = docCode;
+                break;
+            }
           }
 
           String codePrefix = code;
@@ -459,7 +473,7 @@ class _FoodMenuScreenState extends State<FoodMenuScreen> {
           receiptID = uuid.v4();
           final receipt = Receipt()
             ..id = receiptID
-            ..pos_ID = int.tryParse(widget.config.shop_branch_ID ?? '0')
+            ..pos_ID = int.tryParse(widget.config.PosID ?? '0')
             ..shop_user_ID = int.tryParse(widget.config.UserID ?? '0')
             ..shop_customer_ID = shop_customer_ID
             ..code = code

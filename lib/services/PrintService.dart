@@ -15,6 +15,104 @@ import 'package:meorder_ppos/model/DisplayOrderItem.dart';
 import 'package:meorder_ppos/services/SyncService.dart';
 
 class PrintService {
+  static Future<void> processPrintFlow({
+    required BuildContext context,
+    required Isar isar,
+    required EnvConfig config,
+    required Receipt? receipt,
+    required List<FoodOrder> foodOrders,
+    required List<DisplayOrderItem> displayItems,
+    required bool isThai,
+    bool isMT = false,
+    required VoidCallback onComplete,
+  }) async {
+    final settings = await isar.settingValueList.where().filter().anyOf([
+      'FOC_PRN_RCP_CSH',
+      'FOC_PRN_COK',
+      'FOC_PAUSE_PRN_COK',
+    ], (q, String id) => q.setting_IDEqualTo(id)).findAll();
+
+    Map<String, bool> settingValue = {
+      'FOC_PRN_RCP_CSH': true,
+      'FOC_PRN_COK': true,
+      'FOC_PAUSE_PRN_COK': false,
+    };
+
+    for (var sv in settings) {
+      if (sv.setting_ID != null) {
+        settingValue[sv.setting_ID!] = (sv.value == 'Y');
+      }
+    }
+
+    if (config.PrinterModel == 'Xprinter N160ii') {
+      settingValue['FOC_PAUSE_PRN_COK'] = false;
+    }
+
+    if (settingValue['FOC_PRN_RCP_CSH'] == true) {
+      await printReceipt(
+        isar: isar,
+        config: config,
+        receipt: receipt,
+        foodOrders: foodOrders,
+        displayItems: displayItems,
+        isThai: isThai,
+        isMT: isMT,
+      );
+    }
+
+    if (settingValue['FOC_PRN_COK'] == true) {
+      if (settingValue['FOC_PAUSE_PRN_COK'] == true) {
+        if (!context.mounted) return;
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return AlertDialog(
+              content: Text(
+                isThai
+                    ? 'ฉีกใบเสร็จรับเงินให้ลูกค้า แล้วกดปุ่มเพื่อพิมพ์ใบสั่งอาหาร'
+                    : 'Tear off the receipt and press to print cooking order.',
+              ),
+              actions: [
+                ElevatedButton(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    await printCookingOrder(
+                      isar: isar,
+                      config: config,
+                      foodOrders: foodOrders,
+                      displayItems: displayItems,
+                    );
+                    onComplete();
+                  },
+                  child: Text(
+                    isThai ? 'พิมพ์ใบสั่งอาหาร' : 'Print Cooking Order',
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+        return;
+      } else {
+        await printCookingOrder(
+          isar: isar,
+          config: config,
+          foodOrders: foodOrders,
+          displayItems: displayItems,
+        );
+      }
+    }
+
+    onComplete();
+  }
+
+  static Future<void> _printSunmiNewLine(int numberOfLine) async {
+    for (var i = 0; i < numberOfLine; i++) {
+      await SunmiPrinter.printText(' ', style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: 24));
+    }
+  }
+
   static Future<void> printReceipt({
     required Isar isar,
     required EnvConfig config,
@@ -24,12 +122,32 @@ class PrintService {
     required bool isThai,
     bool isMT = false,
   }) async {
+    bool isDebug = false;
+
+    final documentTypes = await isar.documentTypeList
+        .where()
+        .filter()
+        .printerModelEqualTo(config.PrinterModel)
+        .findAll();
+    final documentType = documentTypes.isNotEmpty ? documentTypes.first : null;
+
+    if (isDebug) { 
+      debugPrint('PrintService Printer Model: $config.PrinterModel');
+      debugPrint('PrintService Document Type: $documentType');
+    }
+
+    if (documentType == null) return;
+
     final templates = await isar.documentTemplateList
         .where()
         .filter()
+        .document_type_IDEqualTo(documentType.id)
+        .and()
         .isActiveEqualTo('Y')
         .sortBySeq()
         .findAll();
+
+    if (isDebug) { debugPrint('PrintService Templates: $templates'); }
 
     if (config.PrinterModel == 'Sunmi V series') {
       for (var dt in templates) {
@@ -38,14 +156,14 @@ class PrintService {
         if (rawText.contains('[KitchenItem]')) continue;
 
         if (rawText.contains('[ReceiptItem]')) {
-          await SunmiPrinter.lineWrap(2);
+          await _printSunmiNewLine(1);
           await _printReceiptItemsSunmi(
             displayItems: displayItems,
             receipt: receipt,
             isThai: isThai,
             isMT: isMT,
           );
-          await SunmiPrinter.lineWrap(2);
+          await _printSunmiNewLine(1);
         } else {
           String textToPrint = _replaceVariables(rawText, config, foodOrders, receipt);
           if (textToPrint.isNotEmpty) {
@@ -55,8 +173,8 @@ class PrintService {
               String rightPart = parts.length > 1 ? parts.sublist(1).join(',') : '';
               await SunmiPrinter.printRow(
                 cols: [
-                  SunmiColumn(text: leftPart, width: 15, style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: dt.fontSize ?? 24)),
-                  SunmiColumn(text: rightPart, width: 15, style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT, fontSize: dt.fontSize ?? 24)),
+                  SunmiColumn(text: leftPart, width: 15, style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: (dt.fontSize ?? 24).clamp(1, 96).toInt())),
+                  SunmiColumn(text: rightPart, width: 15, style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT, fontSize: (dt.fontSize ?? 24).clamp(1, 96).toInt())),
                 ],
               );
             } else {
@@ -64,14 +182,14 @@ class PrintService {
                 textToPrint,
                 style: SunmiTextStyle(
                   align: _getAlign(dt.alignment),
-                  fontSize: dt.fontSize ?? 24,
+                  fontSize: (dt.fontSize ?? 24).clamp(1, 96).toInt(),
                 ),
               );
             }
           }
         }
       }
-      await SunmiPrinter.lineWrap(2);
+      await _printSunmiNewLine(3);
     } else {
       List<int> bytes = [];
       final profile = await CapabilityProfile.load();
@@ -98,6 +216,11 @@ class PrintService {
 
             final image = await _rowToImage(desc, amount.toStringAsFixed(2), 24);
             bytes += generator.imageRaster(image);
+
+            if (di.item.description != null && di.item.description!.isNotEmpty) {
+              final descImage = await _textToImage('  * ${di.item.description}', 24, 'Left');
+              bytes += generator.imageRaster(descImage);
+            }
           }
           bytes += generator.imageRaster(await _dividerImage());
 
@@ -188,6 +311,13 @@ class PrintService {
           SunmiColumn(text: amount.toStringAsFixed(2), width: 10, style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT)),
         ],
       );
+
+      if (di.item.description != null && di.item.description!.isNotEmpty) {
+        await SunmiPrinter.printText(
+          '  * ${di.item.description}',
+          style: SunmiTextStyle(align: SunmiPrintAlign.LEFT),
+        );
+      }
     }
     await SunmiPrinter.line();
     if ((receipt?.sumAmount ?? 0.0) != (receipt?.totalAmount ?? 0.0)) {
@@ -233,15 +363,28 @@ class PrintService {
   }) async {
     debugPrint('start printCookingOrder');
 
+    final documentTypes = await isar.documentTypeList
+        .where()
+        .filter()
+        .printerModelEqualTo(config.PrinterModel)
+        .findAll();
+    final documentType = documentTypes.isNotEmpty ? documentTypes.first : null;
+
+    if (documentType == null) return;
+
     final templates = await isar.documentTemplateList
         .where()
         .filter()
+        .document_type_IDEqualTo(documentType.id)
+        .and()
         .printTextContains('FoodOrder.Number')
         .findAll();
 
     final kitchenTemplates = await isar.documentTemplateList
         .where()
         .filter()
+        .document_type_IDEqualTo(documentType.id)
+        .and()
         .printTextContains('[KitchenItem]')
         .findAll();
     final dtKitchen = kitchenTemplates.isNotEmpty ? kitchenTemplates.first : null;
@@ -260,7 +403,7 @@ class PrintService {
             order.number?.toString() ?? '',
             style: SunmiTextStyle(
               align: _getAlign(dt.alignment),
-              fontSize: dt.fontSize ?? 24,
+              fontSize: (dt.fontSize ?? 24).clamp(1, 96).toInt(),
               bold: true,
             ),
           );
@@ -272,10 +415,17 @@ class PrintService {
 
           await SunmiPrinter.printText(
             desc,
-            style: SunmiTextStyle(align: _getAlign(kAlign), fontSize: kFontSize),
+            style: SunmiTextStyle(align: _getAlign(kAlign), fontSize: kFontSize.clamp(1, 96).toInt()),
           );
+
+          if (di.item.description != null && di.item.description!.isNotEmpty) {
+            await SunmiPrinter.printText(
+              '  * ${di.item.description}',
+              style: SunmiTextStyle(align: _getAlign(kAlign), fontSize: kFontSize.clamp(1, 96).toInt()),
+            );
+          }
         }
-        await SunmiPrinter.lineWrap(2);
+        await _printSunmiNewLine(5);
       }
     } else {
       List<int> bytes = [];
@@ -303,6 +453,11 @@ class PrintService {
 
           final imageToPrint = await _textToImage(desc, kFontSize, kAlign);
           bytes += generator.imageRaster(imageToPrint);
+
+          if (di.item.description != null && di.item.description!.isNotEmpty) {
+            final descImage = await _textToImage('  * ${di.item.description}', kFontSize, kAlign);
+            bytes += generator.imageRaster(descImage);
+          }
         }
         bytes += generator.feed(2);
       }
@@ -356,6 +511,7 @@ class PrintService {
   }
 
   static Future<void> printPaymentInfo({
+    required Isar isar,
     required EnvConfig config,
     required Receipt? receipt,
     required List<PaymentValue> mtValues,
@@ -364,16 +520,36 @@ class PrintService {
     if (receipt == null) return;
     await SyncService.syncReceipt(config);
 
+    String orderNo = '';
+    try {
+      final foodOrders = await isar.foodOrderList
+          .where()
+          .filter()
+          .parentIDEqualTo(receipt.id)
+          .and()
+          .parentTypeEqualTo('receipt')
+          .findAll();
+      if (foodOrders.isNotEmpty) {
+        orderNo = foodOrders.map((e) => e.number?.toString() ?? '').where((e) => e.isNotEmpty).join(', ');
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+
     List<String> requiredParams = ["MT_BANK_CODE", "MT_ACCOUNT_NAME", "MT_ACCOUNT_NUMBER", "MT_THAI_MEDIA"];
     List<PaymentValue> displayValues = mtValues.where((pv) => requiredParams.contains(pv.payment_parameter_ID)).toList();
 
     String qrUrl = '${config.foodUrl ?? ''}inform-payment/receipt/${receipt.id ?? ''}';
 
     if (config.PrinterModel == 'Sunmi V series') {
+      if (orderNo.isNotEmpty) {
+        await SunmiPrinter.printText(orderNo, style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 50, bold: true));
+        await _printSunmiNewLine(1);
+      }
       await SunmiPrinter.printText(isThai ? 'กรุณาโอนเงิน' : 'Please transfer', style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 20));
       await SunmiPrinter.printText((receipt.totalAmount ?? 0.0).toStringAsFixed(2), style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 50, bold: true));
       await SunmiPrinter.printText(isThai ? 'บาท เข้าบัญชีธนาคาร' : 'Baht to bank account', style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 20));
-      await SunmiPrinter.lineWrap(1);
+      await _printSunmiNewLine(1);
 
       for (var pv in displayValues) {
         if (pv.type == 'T') {
@@ -392,7 +568,12 @@ class PrintService {
           }
           if (imgBytes != null) {
             try {
-              await SunmiPrinter.lineWrap(1);
+              img.Image? decodedImage = img.decodeImage(imgBytes);
+              if (decodedImage != null) {
+                img.Image resized = img.copyResize(decodedImage, width: 384);
+                imgBytes = Uint8List.fromList(img.encodeJpg(resized));
+              }
+              await _printSunmiNewLine(1);
               await SunmiPrinter.printImage(imgBytes);
             } catch (e) {
               debugPrint("Print Image Error: $e");
@@ -400,16 +581,22 @@ class PrintService {
           }
         }
       }
-      await SunmiPrinter.lineWrap(1);
+      await _printSunmiNewLine(1);
       await SunmiPrinter.printText(isThai ? 'เสร็จแล้ว แจ้งโอนเงิน โดยสแกน QR code' : 'After transfer, notify via QR code', style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 20));
-      await SunmiPrinter.lineWrap(1);
+      await _printSunmiNewLine(1);
       await SunmiPrinter.printQRCode(qrUrl);
-      await SunmiPrinter.lineWrap(3);
+      await _printSunmiNewLine(3);
     } else {
       List<int> bytes = [];
       final profile = await CapabilityProfile.load();
       final generator = Generator(PaperSize.mm80, profile);
       bytes += generator.reset();
+
+      if (orderNo.isNotEmpty) {
+        final imageToPrint = await _textToImage(orderNo, 50, 'Center', isBold: true);
+        bytes += generator.imageRaster(imageToPrint);
+        bytes += generator.feed(1);
+      }
 
       bytes += generator.imageRaster(await _textToImage(isThai ? 'กรุณาโอนเงิน' : 'Please transfer', 20, 'center'));
       bytes += generator.imageRaster(await _textToImage((receipt.totalAmount ?? 0.0).toStringAsFixed(2), 50, 'center', isBold: true));
@@ -477,9 +664,9 @@ class PrintService {
 
     if (config.PrinterModel == 'Sunmi V series') {
       await SunmiPrinter.printText(orderNo, style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, fontSize: 36, bold: true));
-      await SunmiPrinter.lineWrap(1);
+      await _printSunmiNewLine(1);
       await SunmiPrinter.printImage(imgBytes);
-      await SunmiPrinter.lineWrap(2);
+      await _printSunmiNewLine(5);
     } else {
       List<int> bytes = [];
       final profile = await CapabilityProfile.load();

@@ -105,6 +105,7 @@ class _InitScreenState extends State<InitScreen> {
         final updatedConfig = _currentConfig.copyWith(
           shop_ID: branchData['shop_ID']?.toString(),
           ShopName: branchData['ShopName'],
+          TaxID: branchData['TaxID'],
           shop_branch_ID: branchData['shop_branch_ID']?.toString(),
           service_module_ID: branchData['service_module_ID'],
           BranchName: branchData['BranchName'],
@@ -113,6 +114,7 @@ class _InitScreenState extends State<InitScreen> {
           isActive: (branchData['IsActive'] == 'Y') ? true : false, 
           ExpireDate: branchData['ExpireDate'],
           LastUpdated: branchData['LastUpdated'],
+          PosID: branchData['PosID']?.toString(),
         );
 
         setState(() { _debug = 'updatedConfig success'; });
@@ -123,10 +125,13 @@ class _InitScreenState extends State<InitScreen> {
         await isar.writeTxn(() async {
           // Clear existing data
           await isar.userList.clear();
+          await isar.roleList.clear();
+          await isar.roleTransactionPermissionList.clear();
           await isar.shopCustomerList.clear();
           await isar.shopTableList.clear();
           await isar.settingValueList.clear();
           await isar.documentCodeList.clear();
+          await isar.documentTypeList.clear();
           await isar.documentTemplateList.clear();
           await isar.foodCategoryList.clear();
           await isar.foodSizeList.clear();
@@ -158,7 +163,7 @@ class _InitScreenState extends State<InitScreen> {
             ..name = e['Name']
             ..userName = e['UserName']
             ..passwordHash = e['PasswordHash']
-            ..role = e['Role']
+            ..role_ID = e['role_ID']
             ..language = e['Language']
             ..isActive = e['IsActive']
             ..lastUpdated = e['LastUpdated']
@@ -167,6 +172,36 @@ class _InitScreenState extends State<InitScreen> {
           await isar.userList.putAll(user);
 
           setState(() { _debug = 'putAll User success'; });
+
+          // Role
+          final roleListRaw = responseData['RoleList'] as List<dynamic>? ?? [];
+          final roles = roleListRaw.map((e) => Role()
+            ..id = e['ID']
+            ..thaiName = e['ThaiName']
+            ..englishName = e['EnglishName']
+            ..isActive = e['IsActive']
+            ..lastUpdated = e['LastUpdated']
+            ..isDirty = false
+          ).toList();
+          await isar.roleList.putAll(roles);
+
+          setState(() { _debug = 'putAll Role success'; });
+
+          // RoleTransactionPermission
+          final roleTransactionPermissionListRaw = responseData['RoleTransactionPermissionList'] as List<dynamic>? ?? [];
+          final roleTransactionPermissions = roleTransactionPermissionListRaw.map((e) => RoleTransactionPermission()
+            ..id = e['ID']
+            ..role_ID = e['role_ID']
+            ..transaction_permission_ID = e['transaction_permission_ID']
+            ..permissionLevel = e['PermissionLevel']
+            ..partialPercent = e['PartialPercent']?.toString()
+            ..partialAmount = e['PartialAmount']?.toString()
+            ..lastUpdated = e['LastUpdated']
+            ..isDirty = false
+          ).toList();
+          await isar.roleTransactionPermissionList.putAll(roleTransactionPermissions);
+
+          setState(() { _debug = 'putAll RoleTransactionPermission success'; });
 
           // ShopCustomer
           final shopCustomerListRaw = responseData['ShopCustomerList'] as List<dynamic>? ?? [];
@@ -236,10 +271,23 @@ class _InitScreenState extends State<InitScreen> {
 
           setState(() { _debug = 'putAll DocumentCode success'; });
 
+          // DocumentType
+          final documentTypeListRaw = responseData['DocumentTypeList'] as List<dynamic>? ?? [];
+          final documentType = documentTypeListRaw.map((e) => DocumentType()
+            ..id = e['ID']
+            ..printerModel = e['PrinterModel']
+            ..lastUpdated = e['LastUpdated']
+            ..isDirty = false
+          ).toList();
+          await isar.documentTypeList.putAll(documentType);
+
+          setState(() { _debug = 'putAll DocumentType success'; });
+
           // DocumentTemplate
           final documentTemplateListRaw = responseData['DocumentTemplateList'] as List<dynamic>? ?? [];
           final documentTemplate = documentTemplateListRaw.map((e) => DocumentTemplate()
             ..id = e['ID']
+            ..document_type_ID = e['document_type_ID']
             ..seq = e['Seq']
             ..printText = e['PrintText']
             ..alignment = e['Alignment']

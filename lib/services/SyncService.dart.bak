@@ -234,24 +234,6 @@ class SyncService {
               }
             }
 
-            if (responseData['PaymentTransactionList'] is List) {
-              for (var item in responseData['PaymentTransactionList']) {
-                final int? id = _parseInt(item['ID'] ?? item['id']);
-                if (id != null) {
-                  var pt = await isar.paymentTransactionList.where().filter().idEqualTo(id).findFirst() ?? PaymentTransaction();
-                  pt.id = id;
-                  pt.receipt_ID = _parseString(item['Receipt_ID'] ?? item['receipt_ID']);
-                  pt.reponseCode = _parseString(item['ReponseCode'] ?? item['reponseCode']);
-                  pt.slipFileName = _parseString(item['SlipFileName'] ?? item['slipFileName']);
-                  pt.verifyReason = _parseString(item['VerifyReason'] ?? item['verifyReason']);
-                  pt.lastUpdated = _parseString(item['LastUpdated'] ?? item['lastUpdated']);
-                  pt.isDirty = false;
-                  
-                  await isar.paymentTransactionList.put(pt);
-                }
-              }
-            }
-
             // 2. Process FoodOrderList
             if (responseData['FoodOrderList'] is List) {
               for (var item in responseData['FoodOrderList']) {

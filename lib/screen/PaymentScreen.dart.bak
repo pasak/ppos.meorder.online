@@ -42,6 +42,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   bool isLoading = true;
 
   Map<String, String?>? foDiscountFood;
+  Map<String, String?>? foDiscountMerchandise;
   Map<String, String?>? foDiscountReceipt;
   Map<String, String?>? foReceiveCash;
   Map<String, String?>? foCancelFoodOrder;
@@ -58,7 +59,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   String selectedMethod = 'Cash';
   String _debugText = '';
-  bool isDebug = false;
+  bool isDebug = true;
   double receiveAmount = 0.0;
   double changeAmount = 0.0;
   double tipAmount = 0.0;
@@ -100,6 +101,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       final roleID = widget.config.UserRole;
       if (roleID != null) {
         foDiscountFood = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_DISCOUNT_FOOD');
+        foDiscountMerchandise = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_DISCOUNT_MERCHANDISE');
         foDiscountReceipt = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_DISCOUNT_RECEIPT');
         foReceiveCash = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_RECEIVE_CASH');
         foCancelFoodOrder = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_CANCEL_FOOD_ORDER');
@@ -440,6 +442,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
                               '-${di.item.discountAmount!.toStringAsFixed(2)}',
                               style: const TextStyle(fontSize: 14, color: Colors.red),
                             ),
+                          if (di.item.description != null && di.item.description!.isNotEmpty)
+                            Text(
+                              '* ${di.item.description}',
+                              style: const TextStyle(fontSize: 14, color: Colors.black54),
+                            ),
                         ],
                       ),
                     ),
@@ -700,7 +707,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     ),
                     onPressed: changeAmount > 0 ? _change2Tip : null,
                     child: Text(
-                      isThai ? 'ไม่รับเงินทอน ให้เป็นทิป' : 'Change to Tip',
+                      isThai ? 'ให้เป็นทิป' : 'Change to Tip',
                     ),
                   ),
                 ),
@@ -942,7 +949,21 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    onPressed: () async { await PrintService.printPaymentInfo(config: widget.config, receipt: receipt, mtValues: mtValues, isThai: isThai); },
+                    onPressed: () async {
+                      debugPrint('print button pressed, calling syncReceipt');
+
+                      bool isSyncSuccess = await SyncService.syncReceipt(widget.config);
+
+                      debugPrint('syncReceipt completed isSyncSuccess=${isSyncSuccess}');
+
+                      if (isSyncSuccess) {
+                        await PrintService.printPaymentInfo(isar: isar, config: widget.config, receipt: receipt, mtValues: mtValues, isThai: isThai);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(isThai ? 'ซิงค์ข้อมูลไม่สำเร็จ' : 'Sync failed')),
+                        );
+                      }
+                    },
                     child: Text(isThai ? 'พิมพ์' : 'Print'),
                   ),
                 ),
@@ -1052,7 +1073,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   void _processPayment() async {
-    if (isDebug) { setState(() => _debugText = 'processPayment'); }
+    if (isDebug) { setState(() => _debugText = 'processPayment'); debugPrint(_debugText); }
     if (receipt == null) return;
 
     receipt!.paidAmount = (receipt!.totalAmount ?? 0.0) + tipAmount;
@@ -1075,78 +1096,25 @@ class _PaymentScreenState extends State<PaymentScreen> {
       }
     });
 
-    final settings = await isar.settingValueList.where().filter().anyOf([
-      'FOC_PRN_RCP_CSH',
-      'FOC_PRN_COK',
-      'FOC_PAUSE_PRN_COK',
-    ], (q, String id) => q.setting_IDEqualTo(id)).findAll();
-
-    Map<String, bool> settingValue = {
-      'FOC_PRN_RCP_CSH': true,
-      'FOC_PRN_COK': true,
-      'FOC_PAUSE_PRN_COK': false,
-    };
-
-    for (var sv in settings) {
-      if (sv.setting_ID != null) {
-        settingValue[sv.setting_ID!] = (sv.value == 'Y');
-      }
-    }
-
-    if (widget.config.PrinterModel == 'Xprinter N160ii') {
-      settingValue['FOC_PAUSE_PRN_COK'] = false;
-    }
-
-    if (settingValue['FOC_PRN_RCP_CSH'] == true) {
-      await PrintService.printReceipt(isar: isar, config: widget.config, receipt: receipt, foodOrders: foodOrders, displayItems: displayItems, isThai: isThai);
-      if (isDebug) { setState(() => _debugText = '_printReceipt'); }
-    }
-
-    if (settingValue['FOC_PRN_COK'] == true &&
-        widget.config.isKitchen == true) {
-      if (settingValue['FOC_PAUSE_PRN_COK'] == true) {
-        if (!mounted) return;
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) {
-            return AlertDialog(
-              content: Text(
-                isThai
-                    ? 'ฉีกใบเสร็จรับเงินให้ลูกค้า แล้วกดปุ่มเพื่อพิมพ์ใบสั่งอาหาร'
-                    : 'Tear off the receipt and press to print cooking order.',
-              ),
-              actions: [
-                ElevatedButton(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await PrintService.printCookingOrder(isar: isar, config: widget.config, foodOrders: foodOrders, displayItems: displayItems);
-                    await SyncService.syncReceipt(widget.config);
-                    _navigateBack();
-                  },
-                  child: Text(
-                    isThai ? 'พิมพ์ใบสั่งอาหาร' : 'Print Cooking Order',
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-        return;
-      } else {
-        await PrintService.printCookingOrder(isar: isar, config: widget.config, foodOrders: foodOrders, displayItems: displayItems);
-        if (isDebug) { setState(() => _debugText = '_printCookingOrder'); }
-      }
-    }
-
-    if (isDebug) { setState(() => _debugText = 'call syncReceipt'); }
-
-    await SyncService.syncReceipt(widget.config);
-    // _navigateBack(); 
+    await PrintService.processPrintFlow(
+      context: context,
+      isar: isar,
+      config: widget.config,
+      receipt: receipt,
+      foodOrders: foodOrders,
+      displayItems: displayItems,
+      isThai: isThai,
+      isMT: false,
+      onComplete: () async {
+        if (isDebug) { setState(() => _debugText = 'call syncReceipt'); debugPrint(_debugText); }
+        await SyncService.syncReceipt(widget.config);
+        _navigateBack();
+      },
+    ); 
   }
 
   void _processMTPayment() async {
-    if (isDebug) { setState(() => _debugText = 'processMTPayment'); }
+    if (isDebug) { setState(() => _debugText = 'processMTPayment'); debugPrint(_debugText); }
     if (receipt == null) return;
 
     receipt!.paidAmount = (receipt!.totalAmount ?? 0.0) + tipAmount;
@@ -1169,74 +1137,21 @@ class _PaymentScreenState extends State<PaymentScreen> {
       }
     });
 
-    final settings = await isar.settingValueList.where().filter().anyOf([
-      'FOC_PRN_RCP_CSH',
-      'FOC_PRN_COK',
-      'FOC_PAUSE_PRN_COK',
-    ], (q, String id) => q.setting_IDEqualTo(id)).findAll();
-
-    Map<String, bool> settingValue = {
-      'FOC_PRN_RCP_CSH': true,
-      'FOC_PRN_COK': true,
-      'FOC_PAUSE_PRN_COK': false,
-    };
-
-    for (var sv in settings) {
-      if (sv.setting_ID != null) {
-        settingValue[sv.setting_ID!] = (sv.value == 'Y');
-      }
-    }
-
-    if (widget.config.PrinterModel == 'Xprinter N160ii') {
-      settingValue['FOC_PAUSE_PRN_COK'] = false;
-    }
-
-    if (settingValue['FOC_PRN_RCP_CSH'] == true) {
-      await PrintService.printReceipt(isar: isar, config: widget.config, receipt: receipt, foodOrders: foodOrders, displayItems: displayItems, isThai: isThai, isMT: true);
-      if (isDebug) { setState(() => _debugText = '_printReceipt'); }
-    }
-
-    if (settingValue['FOC_PRN_COK'] == true &&
-        widget.config.isKitchen == true) {
-      if (settingValue['FOC_PAUSE_PRN_COK'] == true) {
-        if (!mounted) return;
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) {
-            return AlertDialog(
-              content: Text(
-                isThai
-                    ? 'ฉีกใบเสร็จรับเงินให้ลูกค้า แล้วกดปุ่มเพื่อพิมพ์ใบสั่งอาหาร'
-                    : 'Tear off the receipt and press to print cooking order.',
-              ),
-              actions: [
-                ElevatedButton(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await PrintService.printCookingOrder(isar: isar, config: widget.config, foodOrders: foodOrders, displayItems: displayItems);
-                    await SyncService.syncReceipt(widget.config);
-                    _navigateBack();
-                  },
-                  child: Text(
-                    isThai ? 'พิมพ์ใบสั่งอาหาร' : 'Print Cooking Order',
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-        return;
-      } else {
-        await PrintService.printCookingOrder(isar: isar, config: widget.config, foodOrders: foodOrders, displayItems: displayItems);
-        if (isDebug) { setState(() => _debugText = '_printCookingOrder done'); }
-      }
-    }
-
-    if (isDebug) { setState(() => _debugText = 'call syncReceipt'); }
-
-    await SyncService.syncReceipt(widget.config);
-    // _navigateBack(); 
+    await PrintService.processPrintFlow(
+      context: context,
+      isar: isar,
+      config: widget.config,
+      receipt: receipt,
+      foodOrders: foodOrders,
+      displayItems: displayItems,
+      isThai: isThai,
+      isMT: true,
+      onComplete: () async {
+        if (isDebug) { setState(() => _debugText = 'call syncReceipt'); debugPrint(_debugText); }
+        await SyncService.syncReceipt(widget.config);
+        _navigateBack();
+      },
+    ); 
   }
 
   void _navigateBack() {
@@ -1321,7 +1236,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _generatePPQr() async {
-    if (isDebug) { setState(() => _debugText = 'Generating PP QR'); }
+    if (isDebug) { setState(() => _debugText = 'Generating PP QR'); debugPrint(_debugText); }
     setState(() {
       _isGeneratingPP = true;
     });
@@ -1389,6 +1304,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         setState(() {
           _debugText = 'PP QR Error: $e';
         });
+        debugPrint(_debugText);
       }
       debugPrint("Error generating PP QR: $e");
     } finally {

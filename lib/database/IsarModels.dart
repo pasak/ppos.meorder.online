@@ -103,11 +103,22 @@ class DocumentCode {
   bool isDirty = false;
 }
 
+@Collection(accessor: 'documentTypeList')
+class DocumentType {
+  Id isarId = Isar.autoIncrement;
+  @Index(unique: true, replace: true)
+  String? id;
+  String? printerModel;
+  String? lastUpdated;
+  bool isDirty = false;
+}
+
 @Collection(accessor: 'documentTemplateList')
 class DocumentTemplate {
   Id isarId = Isar.autoIncrement;
   @Index(unique: true, replace: true)
   int? id;
+  String? document_type_ID;
   int? seq;
   String? printText;
   String? alignment;
@@ -343,4 +354,78 @@ class LastSync {
   int? id;
   String? master;
   String? receipt;
+}
+
+@Collection(accessor: 'paymentTransactionList')
+class PaymentTransaction {
+  Id isarId = Isar.autoIncrement;
+  @Index(unique: true, replace: true)
+  int? id;
+  String? receipt_ID;
+  String? reponseCode;
+  String? slipFileName;
+  String? verifyReason;
+  String? lastUpdated;
+  bool isDirty = false;
+}
+
+@Collection(accessor: 'merchandiseCategoryList')
+class MerchandiseCategory {
+  Id isarId = Isar.autoIncrement;
+  @Index(unique: true, replace: true)
+  String? id;
+  String? parentType;
+  String? parentID;
+  String? categoryName;
+  String? isActive;
+  String? lastUpdated;
+  bool isDirty = false;
+}
+
+@Collection(accessor: 'merchandiseItemList')
+class MerchandiseItem {
+  Id isarId = Isar.autoIncrement;
+  @Index(unique: true, replace: true)
+  String? id;
+  String? barcode;
+  String? merchandise_category_ID;
+  String? productName;
+  double? price;
+  String? unitName;
+  String? tax;
+  String? isActive;
+  String? lastUpdated;
+  bool isDirty = false;
+}
+
+@Collection(accessor: 'merchandisePackList')
+class MerchandisePack {
+  Id isarId = Isar.autoIncrement;
+  @Index(unique: true, replace: true)
+  String? id;
+  String? barcode;
+  String? merchandise_item_ID;
+  int? level;
+  int? quantity;
+  String? packName;
+  double? price;
+  String? isActive;
+  String? lastUpdated;
+  bool isDirty = false;
+}
+
+@Collection(accessor: 'receiptItemList')
+class ReceiptItem {
+  Id isarId = Isar.autoIncrement;
+  @Index(unique: true, replace: true)
+  String? id;
+  String? receipt_ID;
+  String? merchandise_item_ID;
+  String? merchandise_pack_ID;
+  double? itemPrice;
+  int? quantity;
+  int? discountPercent;
+  double? discountAmount;
+  String? lastUpdated;
+  bool isDirty = false;
 }

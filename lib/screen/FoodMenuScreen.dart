@@ -16,6 +16,7 @@ class FoodItemViewModel {
   int quantity = 0;
   double itemPrice = 0.0;
   String? selectedSizeID;
+  final TextEditingController descriptionController = TextEditingController();
 
   FoodItemViewModel({required this.data}) {
     itemPrice = data.price ?? 0.0;
@@ -342,8 +343,7 @@ class _FoodMenuScreenState extends State<FoodMenuScreen> {
         .createdAtStartsWith(todayPrefix)
         .findAll();
 
-    int currentBranchId =
-        int.tryParse(widget.config.shop_branch_ID ?? '0') ?? 0;
+    int currentPosID = int.tryParse(widget.config.PosID ?? '0') ?? 0;
 
     for (var fo in ordersToday) {
       if (fo.parentType == 'receipt' && fo.parentID != null) {
@@ -352,7 +352,7 @@ class _FoodMenuScreenState extends State<FoodMenuScreen> {
             .filter()
             .idEqualTo(fo.parentID!)
             .findFirst();
-        if (receipt != null && receipt.pos_ID == currentBranchId) {
+        if (receipt != null && receipt.pos_ID == currentPosID) {
           if (fo.number != null && fo.number! > maxNumber) {
             maxNumber = fo.number!;
           }
@@ -474,7 +474,7 @@ class _FoodMenuScreenState extends State<FoodMenuScreen> {
           receiptID = uuid.v4();
           final receipt = Receipt()
             ..id = receiptID
-            ..pos_ID = int.tryParse(widget.config.shop_branch_ID ?? '0')
+            ..pos_ID = int.tryParse(widget.config.PosID ?? '0')
             ..shop_user_ID = int.tryParse(widget.config.UserID ?? '0')
             ..shop_customer_ID = shop_customer_ID
             ..code = code
@@ -571,7 +571,7 @@ class _FoodMenuScreenState extends State<FoodMenuScreen> {
               ..itemPrice = vm.itemPrice
               ..quantity = vm.quantity
               ..choiceIDList = ''
-              ..description = vm.data.kitchenName
+              ..description = vm.descriptionController.text
               ..lastUpdated = now.toIso8601String()
               ..isDirty = true;
 
@@ -895,6 +895,15 @@ class _FoodMenuScreenState extends State<FoodMenuScreen> {
                             ],
                           ),
                         ],
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: item.descriptionController,
+                          decoration: InputDecoration(
+                            labelText: isThai ? 'ความต้องการพิเศษเพิ่มเติม' : 'Special Request',
+                            border: const OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                        ),
                         const Divider(height: 24),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,

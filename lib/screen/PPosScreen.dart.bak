@@ -25,9 +25,7 @@ class _PPosScreenState extends State<PPosScreen> {
   bool _canSellMerchandise = false;
   Isar isar = Isar.getInstance()!;
   
-  bool get isThai => widget.config.language == 'th';
-
-  String _currentSection = 'Cart'; // 'Category', 'SearchResult', 'Cart'
+  String _currentSection = 'Category'; // 'Category', 'SearchResult', 'Cart'
   List<Map<String, dynamic>> _categoriesNode = [];
   List<MerchandiseItem> _searchResult = [];
   List<ReceiptItem> _cartItems = [];
@@ -370,61 +368,49 @@ class _PPosScreenState extends State<PPosScreen> {
                   icon: const Icon(Icons.category, color: Colors.black),
                   onPressed: () { setState(() { _currentSection = 'Category'; }); },
                 ),
-              ],
-              
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  reverse: true,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (_canSellMerchandise) ...[
-                        IconButton(
-                          icon: const Icon(Icons.qr_code_scanner, color: Colors.black),
-                          onPressed: () => _openScanner(onScan: _handleScanCode),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.search, color: Colors.black),
-                          onPressed: () { setState(() { _currentSection = 'SearchResult'; }); },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.shopping_cart, color: Colors.black),
-                          onPressed: () { setState(() { _currentSection = 'Cart'; }); },
-                        ),
-                      ], // if (_canSellMerchandise)
+                const Spacer(),
 
-                      if (_canOrderFood) ...[
-                        IconButton(
-                          icon: const Icon(Icons.add, color: Colors.black),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => FoodMenuScreen(
-                                  config: widget.config,
-                                  shop_open_table_ID: '0',
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-
-                      IconButton(
-                        icon: const Icon(Icons.list, color: Colors.black),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ReceiptScreen(config: widget.config),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+                IconButton(
+                  icon: const Icon(Icons.qr_code_scanner, color: Colors.black),
+                  onPressed: () => _openScanner(onScan: _handleScanCode),
                 ),
+                IconButton(
+                  icon: const Icon(Icons.search, color: Colors.black),
+                  onPressed: () { setState(() { _currentSection = 'SearchResult'; }); },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.shopping_cart, color: Colors.black),
+                  onPressed: () { setState(() { _currentSection = 'Cart'; }); },
+                ),
+              ], // if (!_canSellMerchandise)
+
+              if (_canOrderFood) ...[
+                IconButton(
+                  icon: const Icon(Icons.add, color: Colors.black),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FoodMenuScreen(
+                          config: widget.config,
+                          shop_open_table_ID: '0',
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+
+              IconButton(
+                icon: const Icon(Icons.list, color: Colors.black),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ReceiptScreen(config: widget.config),
+                    ),
+                  );
+                },
               ),
             ], // if (!_isExpired)
           ], // children
@@ -631,7 +617,6 @@ class _PPosScreenState extends State<PPosScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            /*
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -645,64 +630,6 @@ class _PPosScreenState extends State<PPosScreen> {
                 ),
               ],
             ),
-            */
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      isThai ? 'รวม' : 'Total',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.black54,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        '$totalQty',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      isThai ? 'รายการ' : 'Items',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Text(
-                      totalAmt.toStringAsFixed(0),
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      isThai ? 'บ.' : 'THB',
-                      style: const TextStyle(color: Colors.black54),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-
             const SizedBox(height: 12),
             Row(
               children: [
@@ -719,8 +646,8 @@ class _PPosScreenState extends State<PPosScreen> {
                         _cartItems.clear();
                       });
                     },
-                    child: Text(
-                      isThai ? 'ยกเลิก' : 'Cancel',
+                    child: const Text(
+                      'Cancel',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                   ),
@@ -736,7 +663,7 @@ class _PPosScreenState extends State<PPosScreen> {
                     ),
                     onPressed: totalQty > 0 ? _orderMerchandise : null,
                     child: Text(
-                      isThai ? 'ซื้อสินค้า' : 'Order Merchandise',
+                      widget.config.language == 'th' ? 'ซื้อสินค้า' : 'Order Merchandise',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -760,7 +687,7 @@ class _PPosScreenState extends State<PPosScreen> {
         appBar: AppBar(title: const Text('PPOS')),
         body: Center(
           child: Text(
-            isThai ? 'บริการหมดอายุ กรุณาชำระค่าบริการ' : 'Service Expired Please Pay Fee',
+            widget.config.language == 'th' ? 'บริการหมดอายุ กรุณาชำระค่าบริการ' : 'Service Expired Please Pay Fee',
             style: const TextStyle(fontSize: 20, color: Colors.red, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),

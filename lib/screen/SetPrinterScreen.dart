@@ -188,14 +188,27 @@ class _SetPrinterScreenState extends State<SetPrinterScreen> {
     bytes += generator.reset();
 
     final isar = Isar.getInstance()!;
+
+    final documentTypes = await isar.documentTypeList
+        .where()
+        .filter()
+        .printerModelEqualTo(_selectedModel)
+        .findAll();
+    final documentType = documentTypes.isNotEmpty ? documentTypes.first : null;
+
+    if (documentType == null) return bytes;
+
     final templates = await isar.documentTemplateList
         .where()
         .filter()
+        .document_type_IDEqualTo(documentType.id)
+        .and()
         .isActiveEqualTo('Y')
         .sortBySeq()
         .findAll();
 
     for (var dt in templates) {
+      if (dt.alignment == 'Full') continue;
       String rawText = dt.printText ?? '';
       if (!_shouldPrintTemplate(rawText)) continue;
       
@@ -242,19 +255,41 @@ class _SetPrinterScreenState extends State<SetPrinterScreen> {
     }
   }
 
+  static Future<void> _printSunmiNewLine(int numberOfLine) async {
+    for (var i = 0; i < numberOfLine; i++) {
+      await SunmiPrinter.printText(' ', style: SunmiTextStyle(align: SunmiPrintAlign.LEFT, fontSize: 24));
+    }
+  }
+
   Future<void> _printTestSunmi() async {
     setState(() { _isPrinting = true; });
 
     try {
       final isar = Isar.getInstance()!;
+
+      final documentTypes = await isar.documentTypeList
+          .where()
+          .filter()
+          .printerModelEqualTo(_selectedModel)
+          .findAll();
+      final documentType = documentTypes.isNotEmpty ? documentTypes.first : null;
+
+      if (documentType == null) {
+        setState(() { _isPrinting = false; });
+        return;
+      }
+
       final templates = await isar.documentTemplateList
           .where()
           .filter()
+          .document_type_IDEqualTo(documentType.id)
+          .and()
           .isActiveEqualTo('Y')
           .sortBySeq()
           .findAll();
 
       for (var dt in templates) {
+        if (dt.alignment == 'Full') continue;
         String rawText = dt.printText ?? '';
         if (!_shouldPrintTemplate(rawText)) continue;
         
@@ -269,7 +304,7 @@ class _SetPrinterScreenState extends State<SetPrinterScreen> {
         );
       }
 
-      await SunmiPrinter.lineWrap(2); 
+      await _printSunmiNewLine(3);
 
       setState(() { _isPrinting = false; });
       _saveConfigAndNavigate('Sunmi V series', 'Internal', '');
