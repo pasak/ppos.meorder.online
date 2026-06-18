@@ -380,7 +380,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => FoodMenuScreen(
+            builder: (context) => PPosScreen(
               config: widget.config,
               receiptID: widget.receiptID,
             ),
@@ -397,7 +397,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => FoodMenuScreen(
+                  builder: (context) => PPosScreen(
                     config: widget.config,
                     receiptID: widget.receiptID,
                   ),
@@ -1195,6 +1195,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
         .parentTypeEqualTo('receipt')
         .findAll();
 
+    final receiptItems = await isar.receiptItemList.where().filter().receipt_IDEqualTo(receipt!.id!).findAll();
+
     await isar.writeTxn(() async {
       await isar.receiptList.put(receipt!);
       for (var order in foodOrders) {
@@ -1210,6 +1212,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       receipt: receipt,
       foodOrders: foodOrders,
       displayItems: displayItems,
+      receiptItems: receiptItems,
       isThai: isThai,
       isMT: false,
       onComplete: () async {
@@ -1236,6 +1239,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
         .parentTypeEqualTo('receipt')
         .findAll();
 
+    final receiptItems = await isar.receiptItemList.where().filter().receipt_IDEqualTo(receipt!.id!).findAll();
+
     await isar.writeTxn(() async {
       await isar.receiptList.put(receipt!);
       for (var order in foodOrders) {
@@ -1251,6 +1256,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       receipt: receipt,
       foodOrders: foodOrders,
       displayItems: displayItems,
+      receiptItems: receiptItems,
       isThai: isThai,
       isMT: true,
       onComplete: () async {

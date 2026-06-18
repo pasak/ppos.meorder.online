@@ -13,7 +13,8 @@ import 'package:meorder_ppos/services/RolePermissionServices.dart';
 
 class PPosScreen extends StatefulWidget {
   final EnvConfig config;
-  const PPosScreen({super.key, required this.config});
+  final String? receiptID;
+  const PPosScreen({super.key, required this.config, this.receiptID});
 
   @override
   State<PPosScreen> createState() => _PPosScreenState();
@@ -290,16 +291,28 @@ class _PPosScreenState extends State<PPosScreen> {
           itemCount: packs.length,
           itemBuilder: (ctx, idx) {
             final p = packs[idx];
-            return ListTile(
-              title: Text('${p.packName} (${p.quantity} ${item.unitName})'),
-              subtitle: Text('Price: ${_formatPrice(p.price)}'),
-              trailing: IconButton(
-                icon: const Icon(Icons.add, color: Colors.green),
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  _addToCart(item, p);
-                }
-              )
+            return Card(
+              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: ListTile(
+                title: Text('${p.packName} (${p.quantity} ${item.unitName})'),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _formatPrice(p.price),
+                      style: const TextStyle(fontSize: 30, color: Colors.blue),
+                    ),
+                    const SizedBox(width: 16),
+                    IconButton(
+                      icon: const Icon(Icons.add_shopping_cart, color: Colors.green),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _addToCart(item, p);
+                      }
+                    )
+                  ],
+                ),
+              ),
             );
           }
         );
@@ -310,7 +323,7 @@ class _PPosScreenState extends State<PPosScreen> {
   Future<void> _orderMerchandise() async {
     if (_cartItems.isEmpty) return;
     try {
-      final receiptID = const Uuid().v4();
+      final uuid = const Uuid();
       DateTime now = DateTime.now();
       
       double totalAmount = 0;
@@ -318,25 +331,106 @@ class _PPosScreenState extends State<PPosScreen> {
         totalAmount += ((ci.itemPrice ?? 0) * (ci.quantity ?? 1));
       }
 
-      String code = 'POS-${now.millisecondsSinceEpoch % 100000}';
-
-      final receipt = Receipt()
-        ..id = receiptID
-        ..pos_ID = int.tryParse(widget.config.PosID ?? '0')
-        ..shop_user_ID = int.tryParse(widget.config.UserID ?? '0')
-        ..code = code
-        ..createdAt = now
-        ..sumAmount = totalAmount
-        ..totalAmount = totalAmount
-        ..status = 'Wait4Payment'
-        ..lastUpdated = now.toIso8601String()
-        ..isDirty = true;
+      String? receiptID = widget.receiptID;
 
       await isar.writeTxn(() async {
-        await isar.receiptList.put(receipt);
-        for (var ci in _cartItems) {
-          ci.receipt_ID = receiptID;
-          await isar.receiptItemList.put(ci);
+        Receipt? existingReceipt;
+        if (receiptID != null) {
+          existingReceipt = await isar.receiptList.where().filter().idEqualTo(receiptID).findFirst();
+        }
+
+        if (existingReceipt != null) {
+          existingReceipt.sumAmount = (existingReceipt.sumAmount ?? 0.0) + totalAmount;
+          existingReceipt.totalAmount = (existingReceipt.totalAmount ?? 0.0) + totalAmount;
+          existingReceipt.status = 'Wait4Payment';
+          existingReceipt.lastUpdated = now.toIso8601String();
+          existingReceipt.isDirty = true;
+          await isar.receiptList.put(existingReceipt);
+
+          for (var ci in _cartItems) {
+            ci.receipt_ID = receiptID;
+            await isar.receiptItemList.put(ci);
+          }
+        } else {
+          String code = '';
+          int seqNumber = 0;
+          final docCodeList = await isar.documentCodeList.where().findAll();
+          docCodeList.sort((a, b) => (a.seq ?? 0).compareTo(b.seq ?? 0));
+          var numberCode;
+
+          for (var docCode in docCodeList) {
+            switch (docCode.name) {
+              case 'POSID':
+                code += (widget.config.PosID ?? '') + (docCode.seperator ?? '');
+                break;
+              case 'PREFIX':
+                if (docCode.value != null) {
+                  code += docCode.value! + (docCode.seperator ?? '');
+                }
+                break;
+              case 'YEAR':
+                if (docCode.value != null && docCode.value!.isNotEmpty) {
+                  int y = now.year;
+                  if (docCode.value!.startsWith('BE')) y += 543;
+                  if (docCode.value!.contains('2')) y = y % 100;
+                  code += '$y${docCode.seperator ?? ''}';
+                }
+                break;
+              case 'MONTH':
+                String m = now.month.toString().padLeft(2, '0');
+                code += '$m${docCode.seperator ?? ''}';
+                break;
+              case 'DAY':
+                String d = now.day.toString().padLeft(2, '0');
+                code += '$d${docCode.seperator ?? ''}';
+                break;
+              case 'NUMBER':
+                numberCode = docCode;
+                break;
+            }
+          }
+
+          String codePrefix = code;
+          int digit = 4;
+          if (numberCode != null) {
+            digit = int.tryParse(numberCode.seperator ?? '4') ?? 4;
+            if (numberCode.value == 'SEQUENCE') {
+              final existingCount = await isar.receiptList
+                  .where()
+                  .filter()
+                  .codeStartsWith(codePrefix)
+                  .count();
+              seqNumber = existingCount + 1;
+              code += seqNumber.toString().padLeft(digit, '0');
+            } else {
+              seqNumber = now.millisecondsSinceEpoch % 10000;
+              code += seqNumber.toString().padLeft(digit, '0');
+            }
+          } else {
+            seqNumber = now.millisecondsSinceEpoch % 10000;
+            code += seqNumber.toString().padLeft(digit, '0');
+          }
+
+          receiptID = uuid.v4();
+          final receipt = Receipt()
+            ..id = receiptID
+            ..pos_ID = int.tryParse(widget.config.PosID ?? '0')
+            ..shop_user_ID = int.tryParse(widget.config.UserID ?? '0')
+            ..shop_customer_ID = '0'
+            ..code = code
+            ..createdAt = now
+            ..sumAmount = totalAmount
+            ..totalAmount = totalAmount
+            ..status = 'Wait4Payment'
+            ..lastUpdated = now.toIso8601String()
+            ..isDirty = true;
+
+          await isar.receiptList.put(receipt);
+
+          for (var ci in _cartItems) {
+            ci.receipt_ID = receiptID;
+            await isar.receiptItemList.put(ci);
+          }
         }
       });
 
@@ -344,7 +438,7 @@ class _PPosScreenState extends State<PPosScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => PaymentScreen(config: widget.config, receiptID: receiptID)
+          builder: (context) => PaymentScreen(config: widget.config, receiptID: receiptID!)
         )
       );
     } catch (e) {
@@ -396,7 +490,7 @@ class _PPosScreenState extends State<PPosScreen> {
 
                       if (_canOrderFood) ...[
                         IconButton(
-                          icon: const Icon(Icons.add, color: Colors.black),
+                          icon: const Icon(Icons.restaurant_menu, color: Colors.black),
                           onPressed: () {
                             Navigator.push(
                               context,
@@ -524,10 +618,14 @@ class _PPosScreenState extends State<PPosScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: ListTile(
                 title: Text(item.productName ?? ''),
-                subtitle: Text('Price: ${_formatPrice(item.price)}'),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    Text(
+                      _formatPrice(item.price),
+                      style: const TextStyle(fontSize: 30, color: Colors.blue),
+                    ),
+                    const SizedBox(width: 16),
                     if (packCount > 0)
                       IconButton(
                         icon: const Icon(Icons.layers, color: Colors.blue), // Pack icon
@@ -563,10 +661,13 @@ class _PPosScreenState extends State<PPosScreen> {
           margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: ListTile(
             title: Text(name),
-            subtitle: Text('Price: ${_formatPrice(ci.itemPrice)}'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                Text(
+                  _formatPrice(ci.itemPrice),
+                  style: const TextStyle(fontSize: 30, color: Colors.blue),
+                ),
                 IconButton(
                   icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
                   onPressed: () {

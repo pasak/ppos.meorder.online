@@ -26,6 +26,7 @@ class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController _controller = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   
+  bool _obscurePassword = true;
   bool _isButtonEnabled = false;
   late EnvConfig _currentConfig;
 
@@ -144,12 +145,23 @@ class _SignInScreenState extends State<SignInScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 40), 
                 child: TextField(
                   controller: _passwordController,
-                  obscureText: true,
+                  obscureText: _obscurePassword,
                   keyboardType: TextInputType.text,
                   style: const TextStyle(fontSize: 30),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'รหัสผ่าน (Password)',
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        size: 30,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
                   ),
                 ),
               ),

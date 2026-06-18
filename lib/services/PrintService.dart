@@ -20,8 +20,9 @@ class PrintService {
     required Isar isar,
     required EnvConfig config,
     required Receipt? receipt,
-    required List<FoodOrder> foodOrders,
+    List<FoodOrder>? foodOrders,
     required List<DisplayOrderItem> displayItems,
+    List<ReceiptItem>? receiptItems,
     required bool isThai,
     bool isMT = false,
     required VoidCallback onComplete,
@@ -55,13 +56,15 @@ class PrintService {
         receipt: receipt,
         foodOrders: foodOrders,
         displayItems: displayItems,
+        receiptItems: receiptItems,
         isThai: isThai,
         isMT: isMT,
       );
     }
 
-    if (settingValue['FOC_PRN_COK'] == true) {
-      if (settingValue['FOC_PAUSE_PRN_COK'] == true) {
+    if (foodOrders != null && foodOrders.isNotEmpty) {
+      if (settingValue['FOC_PRN_COK'] == true) {
+        if (settingValue['FOC_PAUSE_PRN_COK'] == true) {
         if (!context.mounted) return;
         showDialog(
           context: context,
@@ -103,6 +106,7 @@ class PrintService {
         );
       }
     }
+  }
 
     onComplete();
   }
@@ -117,8 +121,9 @@ class PrintService {
     required Isar isar,
     required EnvConfig config,
     required Receipt? receipt,
-    required List<FoodOrder> foodOrders,
+    List<FoodOrder>? foodOrders,
     required List<DisplayOrderItem> displayItems,
+    List<ReceiptItem>? receiptItems,
     required bool isThai,
     bool isMT = false,
   }) async {
@@ -158,7 +163,9 @@ class PrintService {
         if (rawText.contains('[ReceiptItem]')) {
           await _printSunmiNewLine(1);
           await _printReceiptItemsSunmi(
+            isar: isar,
             displayItems: displayItems,
+            receiptItems: receiptItems,
             receipt: receipt,
             isThai: isThai,
             isMT: isMT,
@@ -222,6 +229,45 @@ class PrintService {
               bytes += generator.imageRaster(descImage);
             }
           }
+          
+          for (var ri in receiptItems ?? []) {
+            var mItem = await isar.merchandiseItemList.where().filter().idEqualTo(ri.merchandise_item_ID ?? '').findFirst();
+            String itemName = mItem?.productName ?? '';
+            String unitName = mItem?.unitName ?? '';
+            
+            if (ri.merchandise_pack_ID != null) {
+              var mPack = await isar.merchandisePackList.where().filter().idEqualTo(ri.merchandise_pack_ID ?? '').findFirst();
+              if (mPack != null) {
+                final currentLevel = mPack.level ?? 1;
+                if (currentLevel > 1) {
+                  final allPacks = await isar.merchandisePackList.where()
+                      .filter()
+                      .merchandise_item_IDEqualTo(ri.merchandise_item_ID)
+                      .findAll();
+                  try {
+                    final prevPack = allPacks.firstWhere((p) => (p.level ?? 1) == currentLevel - 1);
+                    unitName = prevPack.packName ?? '';
+                  } catch (e) {
+                    allPacks.sort((a, b) => (a.level ?? 1).compareTo(b.level ?? 1));
+                    int packIdx = allPacks.indexWhere((p) => p.id == mPack.id);
+                    if (packIdx > 0) {
+                      unitName = allPacks[packIdx - 1].packName ?? '';
+                    }
+                  }
+                }
+                itemName += ' ${mPack.packName ?? '-'} ${mPack.quantity ?? 1} $unitName';
+              }
+            }
+            String desc = '${ri.quantity ?? 0}x $itemName';
+            double amount = (ri.quantity ?? 0) * (ri.itemPrice ?? 0.0);
+            if ((ri.discountAmount ?? 0.0) > 0.0) {
+              desc += ' -${ri.discountAmount!.toStringAsFixed(2)}';
+              amount -= ri.discountAmount!;
+            }
+            final image = await _rowToImage(desc, amount.toStringAsFixed(2), 24);
+            bytes += generator.imageRaster(image);
+          }
+          
           bytes += generator.imageRaster(await _dividerImage());
 
           if ((receipt?.sumAmount ?? 0.0) != (receipt?.totalAmount ?? 0.0)) {
@@ -288,7 +334,9 @@ class PrintService {
   }
 
   static Future<void> _printReceiptItemsSunmi({
+    required Isar isar,
     required List<DisplayOrderItem> displayItems,
+    List<ReceiptItem>? receiptItems,
     required Receipt? receipt,
     required bool isThai,
     bool isMT = false,
@@ -319,6 +367,49 @@ class PrintService {
         );
       }
     }
+    
+    for (var ri in receiptItems ?? []) {
+      var mItem = await isar.merchandiseItemList.where().filter().idEqualTo(ri.merchandise_item_ID ?? '').findFirst();
+      String itemName = mItem?.productName ?? '';
+      String unitName = mItem?.unitName ?? '';
+      
+      if (ri.merchandise_pack_ID != null) {
+        var mPack = await isar.merchandisePackList.where().filter().idEqualTo(ri.merchandise_pack_ID ?? '').findFirst();
+        if (mPack != null) {
+          final currentLevel = mPack.level ?? 1;
+          if (currentLevel > 1) {
+            final allPacks = await isar.merchandisePackList.where()
+                .filter()
+                .merchandise_item_IDEqualTo(ri.merchandise_item_ID)
+                .findAll();
+            try {
+              final prevPack = allPacks.firstWhere((p) => (p.level ?? 1) == currentLevel - 1);
+              unitName = prevPack.packName ?? '';
+            } catch (e) {
+              allPacks.sort((a, b) => (a.level ?? 1).compareTo(b.level ?? 1));
+              int packIdx = allPacks.indexWhere((p) => p.id == mPack.id);
+              if (packIdx > 0) {
+                unitName = allPacks[packIdx - 1].packName ?? '';
+              }
+            }
+          }
+          itemName += ' ${mPack.packName ?? '-'} ${mPack.quantity ?? 1} $unitName';
+        }
+      }
+      String desc = '${ri.quantity ?? 0}x $itemName';
+      double amount = (ri.quantity ?? 0) * (ri.itemPrice ?? 0.0);
+      if ((ri.discountAmount ?? 0.0) > 0.0) {
+        desc += ' -${ri.discountAmount!.toStringAsFixed(2)}';
+        amount -= ri.discountAmount!;
+      }
+      await SunmiPrinter.printRow(
+        cols: [
+          SunmiColumn(text: desc, width: 20, style: SunmiTextStyle(align: SunmiPrintAlign.LEFT)),
+          SunmiColumn(text: amount.toStringAsFixed(2), width: 10, style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT)),
+        ],
+      );
+    }
+    
     await SunmiPrinter.line();
     if ((receipt?.sumAmount ?? 0.0) != (receipt?.totalAmount ?? 0.0)) {
       await SunmiPrinter.printRow(

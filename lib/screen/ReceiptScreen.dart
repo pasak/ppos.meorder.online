@@ -251,6 +251,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
               .parentTypeEqualTo('receipt')
               .findAll();
           final displayItems = orderItemsMap[id] ?? [];
+          final receiptItems = await isar.receiptItemList.where().filter().receipt_IDEqualTo(id).findAll();
           
           await PrintService.processPrintFlow(
             context: context,
@@ -259,6 +260,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
             receipt: receipt,
             foodOrders: foodOrders,
             displayItems: displayItems,
+            receiptItems: receiptItems,
             isThai: isThai,
             isMT: receipt.paymentType == 'MoneyTransfer',
             onComplete: () {
@@ -608,6 +610,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                                                 .and()
                                                 .parentTypeEqualTo('receipt')
                                                 .findAll();
+                                            final receiptItems = await isar.receiptItemList.where().filter().receipt_IDEqualTo(receipt.id!).findAll();
                                             await PrintService.processPrintFlow(
                                               context: context,
                                               isar: isar,
@@ -615,6 +618,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                                               receipt: receipt,
                                               foodOrders: foodOrders,
                                               displayItems: items,
+                                              receiptItems: receiptItems,
                                               isThai: isThai,
                                               isMT: receipt.paymentType == 'MoneyTransfer',
                                               onComplete: () async {

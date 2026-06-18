@@ -55,6 +55,11 @@ class SyncService {
         .filter()
         .isDirtyEqualTo(true)
         .findAll();
+    final receiptItems = await isar.receiptItemList
+        .where()
+        .filter()
+        .isDirtyEqualTo(true)
+        .findAll();
 
     // Still proceed to call API even if dirty items are empty to get pullData
     // Wait, the original code had: if (receipts.isEmpty && foodOrders.isEmpty && foodOrderItems.isEmpty) return;
@@ -136,6 +141,20 @@ class SyncService {
         };
         return capitalizeKeys(json);
       }).toList(),
+      'ReceiptItemList': receiptItems.map((e) {
+        final json = {
+          'id': e.id,
+          'receipt_ID': e.receipt_ID,
+          'merchandise_item_ID': e.merchandise_item_ID,
+          'merchandise_pack_ID': e.merchandise_pack_ID,
+          'itemPrice': e.itemPrice,
+          'quantity': e.quantity,
+          'discountPercent': e.discountPercent,
+          'discountAmount': e.discountAmount,
+          'lastUpdated': e.lastUpdated,
+        };
+        return capitalizeKeys(json);
+      }).toList(),
     };
 
     final uri = Uri.parse('${config.apiUrl}api/pos/sync-receipt');
@@ -147,6 +166,7 @@ class SyncService {
     request.fields['pos_ID'] = config.PosID.toString();
     request.fields['LastSync'] = syncTime;
     request.fields['ReceiptList'] = jsonEncode(pushData['ReceiptList']);
+    request.fields['ReceiptItemList'] = jsonEncode(pushData['ReceiptItemList']);
     request.fields['FoodOrderList'] = jsonEncode(pushData['FoodOrderList']);
     request.fields['FoodOrderItemList'] = jsonEncode(pushData['FoodOrderItemList']);
 
