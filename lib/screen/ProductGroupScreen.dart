@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:meorder_product/lib/EnvConfig.dart';
-import 'package:meorder_product/screen/HomeScreen.dart';
-import 'package:meorder_product/screen/ProductItemScreen.dart';
-import 'package:meorder_product/screen/StockCountScreen.dart';
-import 'package:meorder_product/screen/PrintScreen.dart';
+import 'package:meorder_ppos/lib/EnvConfig.dart';
+// import 'package:meorder_product/screen/HomeScreen.dart';
+// import 'package:meorder_product/screen/ProductItemScreen.dart';
+// import 'package:meorder_product/screen/StockCountScreen.dart';
+import 'package:meorder_ppos/screen/PrintScreen.dart';
 class ProductGroupScreen extends StatefulWidget {
   final EnvConfig config;
 
@@ -37,7 +37,7 @@ class _ProductGroupScreenState extends State<ProductGroupScreen> {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${widget.config.apiToken}',
     };
-    final body = jsonEncode({'shop_ID': widget.config.id});
+    final body = jsonEncode({'shop_ID': widget.config.shop_ID});
 
     try {
       final response = await http.post(uri, headers: headers, body: body);
@@ -54,7 +54,7 @@ class _ProductGroupScreenState extends State<ProductGroupScreen> {
         }
       } else {
         setState(() {
-          _error = 'API Error ${response.statusCode}\napiUrl: ${widget.config.apiUrl}\napiToken: ${widget.config.apiToken}\nid: ${widget.config.id}\nURL: $uri';
+          _error = 'API Error ${response.statusCode}\napiUrl: ${widget.config.apiUrl}\napiToken: ${widget.config.apiToken}\nid: ${widget.config.shop_ID}\nURL: $uri';
         });
       }
     } catch (e) {
@@ -238,7 +238,7 @@ class _ProductGroupScreenState extends State<ProductGroupScreen> {
                       Navigator.pop(context);
                       
                       String finalParentType = 'shop';
-                      dynamic finalParentId = widget.config.id;
+                      dynamic finalParentId = widget.config.shop_ID;
                       
                       if (selectedParentId != 0) {
                         finalParentType = 'product_group';
@@ -290,10 +290,10 @@ class _ProductGroupScreenState extends State<ProductGroupScreen> {
 
   void _navigateToProducts(Map<String, dynamic> group) {
     // Navigate to ProductItemScreen to manage actual products
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => ProductItemScreen(config: widget.config, group: group)),
-    );
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(builder: (context) => ProductItemScreen(config: widget.config, group: group)),
+    // );
   }
 
   Widget _buildGroupNode(Map<String, dynamic> group, int level) {
@@ -363,10 +363,10 @@ class _ProductGroupScreenState extends State<ProductGroupScreen> {
           IconButton(
             icon: const Icon(Icons.inventory),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => StockCountScreen(config: widget.config)),
-              );
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(builder: (context) => StockCountScreen(config: widget.config)),
+              // );
             },
             tooltip: 'นับสต๊อก',
           ),
@@ -382,7 +382,7 @@ class _ProductGroupScreenState extends State<ProductGroupScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () => _showEditDialog(parentType: 'shop', parentId: widget.config.id),
+            onPressed: () => _showEditDialog(parentType: 'shop', parentId: widget.config.shop_ID),
             tooltip: 'เพิ่มกลุ่มหลัก',
           ),
           IconButton(

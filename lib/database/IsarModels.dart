@@ -388,6 +388,7 @@ class MerchandiseItem {
   @Index(unique: true, replace: true)
   String? id;
   String? barcode;
+  String? sku;
   String? merchandise_category_ID;
   String? productName;
   double? price;
@@ -396,6 +397,9 @@ class MerchandiseItem {
   String? isActive;
   String? lastUpdated;
   bool isDirty = false;
+  
+  @ignore
+  double? availableQuantity;
 }
 
 @Collection(accessor: 'merchandisePackList')
@@ -404,6 +408,7 @@ class MerchandisePack {
   @Index(unique: true, replace: true)
   String? id;
   String? barcode;
+  String? sku;
   String? merchandise_item_ID;
   int? level;
   int? quantity;
@@ -412,6 +417,9 @@ class MerchandisePack {
   String? isActive;
   String? lastUpdated;
   bool isDirty = false;
+  
+  @ignore
+  double? availableQuantity;
 }
 
 @Collection(accessor: 'receiptItemList')
@@ -426,6 +434,37 @@ class ReceiptItem {
   int? quantity;
   int? discountPercent;
   double? discountAmount;
+  String? lastUpdated;
+  bool isDirty = false;
+}
+
+@Collection(accessor: 'merchandiseStockList')
+class MerchandiseStock {
+  Id isarId = Isar.autoIncrement;
+  @Index(unique: true, replace: true)
+  String? id;
+  String? storeType;
+  int? storeID;
+  String? stockType;
+  String? stockID;
+  double? currentQuantity;
+  double? availableQuantity;
+  String? lastUpdated;
+  bool isDirty = false;
+}
+
+@Collection(accessor: 'transferStockList')
+class TransferStock {
+  Id isarId = Isar.autoIncrement;
+  @Index(unique: true, replace: true)
+  String? id;
+  String? byType;
+  String? byID;
+  String? transferType;
+  String? from_merchandise_stock_ID;
+  double? fromQuantity;
+  String? to_merchandise_stock_ID;
+  double? toQuantity;
   String? lastUpdated;
   bool isDirty = false;
 }

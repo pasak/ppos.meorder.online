@@ -5,6 +5,7 @@ import 'package:meorder_ppos/lib/EnvConfig.dart';
 import 'package:meorder_ppos/screen/FoodMenuScreen.dart';
 import 'package:meorder_ppos/screen/PaymentScreen.dart';
 import 'package:meorder_ppos/screen/ReceiptScreen.dart';
+import 'package:meorder_ppos/screen/SettingScreen.dart';
 import 'package:isar/isar.dart';
 import 'package:meorder_ppos/database/IsarModels.dart';
 import 'package:uuid/uuid.dart';
@@ -21,9 +22,11 @@ class PPosScreen extends StatefulWidget {
 }
 
 class _PPosScreenState extends State<PPosScreen> {
-  bool _isExpired = false;
+  bool _isLifeTime = false;
+  bool get _isExpired => widget.config.isExpired ?? false;
   bool _canOrderFood = false;
   bool _canSellMerchandise = false;
+  bool _canSellNonStock = false;
   Isar isar = Isar.getInstance()!;
   
   bool get isThai => widget.config.language == 'th';
@@ -41,7 +44,7 @@ class _PPosScreenState extends State<PPosScreen> {
   @override
   void initState() {
     super.initState();
-    _checkExpiration();
+    _checkLifeTime();
     _checkPermissions();
     _loadCategories();
   }
@@ -52,11 +55,13 @@ class _PPosScreenState extends State<PPosScreen> {
     final roleID = widget.config.UserRole!;
     final foOrderFood = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_ORDER_FOOD');
     final foSellMerchandise = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_SELL_MERCHANDISE');
+    final foSellNonStock = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_SELL_NON_STOCK');
 
     if (mounted) {
       setState(() {
         _canOrderFood = foOrderFood?['PermissionLevel'] == 'Full';
         _canSellMerchandise = foSellMerchandise?['PermissionLevel'] == 'Full';
+        _canSellNonStock = foSellNonStock?['PermissionLevel'] == 'Full';
       });
     }
 
@@ -83,17 +88,9 @@ class _PPosScreenState extends State<PPosScreen> {
     }
   }
 
-  void _checkExpiration() {
-    if (widget.config.ExpireDate != null &&
-        widget.config.ExpireDate!.isNotEmpty) {
-      try {
-        DateTime expireDate = DateTime.parse(widget.config.ExpireDate!);
-        if (DateTime.now().isAfter(expireDate)) {
-          _isExpired = true;
-        }
-      } catch (e) {
-        debugPrint("Error parsing ExpireDate: $e");
-      }
+  void _checkLifeTime() {
+    if (widget.config.IntervalType == 'LIFE') {
+      _isLifeTime = true;
     }
   }
 
@@ -151,19 +148,161 @@ class _PPosScreenState extends State<PPosScreen> {
          .productNameContains(term, caseSensitive: false)
          .findAll();
       
+      final stockResults = await _getStock(results);
+      
       setState(() {
-         _searchResult = results;
-         if (results.isNotEmpty) _currentSection = 'SearchResult';
+         _searchResult = stockResults;
+         if (stockResults.isNotEmpty) _currentSection = 'SearchResult';
       });
     }
   }
 
   Future<void> _searchByCategory(String categoryID) async {
     final results = await isar.merchandiseItemList.where().filter().merchandise_category_IDEqualTo(categoryID).findAll();
+    final stockResults = await _getStock(results);
     setState(() {
-      _searchResult = results;
+      _searchResult = stockResults;
       _currentSection = 'SearchResult';
     });
+  }
+
+  Future<double?> _checkNextLevelMerchandiseStockList(String stockType, String stockID) async {
+    if (stockType == 'merchandise_item') {
+      var packL1List = await isar.merchandisePackList
+          .where()
+          .filter()
+          .merchandise_item_IDEqualTo(stockID)
+          .and()
+          .levelEqualTo(1)
+          .findAll();
+
+      double totalQty = 0;
+      for (var pack in packL1List) {
+        var packStock = await isar.merchandiseStockList
+            .where()
+            .filter()
+            .storeTypeEqualTo('shop_branch')
+            .and()
+            .storeIDEqualTo(int.tryParse(widget.config.shop_branch_ID ?? '0') ?? 0)
+            .and()
+            .stockTypeEqualTo('merchandise_pack')
+            .and()
+            .stockIDEqualTo(pack.id)
+            .findFirst();
+
+        double packAvail = packStock?.availableQuantity ?? 0.0;
+        if (packAvail > 0) {
+          totalQty += packAvail * (pack.quantity ?? 1).toDouble();
+        } else {
+          double? nextQty = await _checkNextLevelMerchandiseStockList('merchandise_pack', pack.id!);
+          if (nextQty != null && nextQty > 0) {
+             totalQty += nextQty * (pack.quantity ?? 1).toDouble();
+          }
+        }
+      }
+      return totalQty > 0 ? totalQty : null;
+
+    } else if (stockType == 'merchandise_pack') {
+      var currentPack = await isar.merchandisePackList
+          .where()
+          .filter()
+          .idEqualTo(stockID)
+          .findFirst();
+
+      if (currentPack != null) {
+        int currentLevel = currentPack.level ?? 1;
+        var nextLevelPacks = await isar.merchandisePackList
+            .where()
+            .filter()
+            .merchandise_item_IDEqualTo(currentPack.merchandise_item_ID)
+            .and()
+            .levelEqualTo(currentLevel + 1)
+            .findAll();
+
+        double totalQty = 0;
+        for (var nextPack in nextLevelPacks) {
+          var nextPackStock = await isar.merchandiseStockList
+              .where()
+              .filter()
+              .storeTypeEqualTo('shop_branch')
+              .and()
+              .storeIDEqualTo(int.tryParse(widget.config.shop_branch_ID ?? '0') ?? 0)
+              .and()
+              .stockTypeEqualTo('merchandise_pack')
+              .and()
+              .stockIDEqualTo(nextPack.id)
+              .findFirst();
+
+          double nextAvail = nextPackStock?.availableQuantity ?? 0.0;
+          if (nextAvail > 0) {
+            totalQty += nextAvail * (nextPack.quantity ?? 1).toDouble();
+          } else {
+            double? nextQty = await _checkNextLevelMerchandiseStockList('merchandise_pack', nextPack.id!);
+            if (nextQty != null && nextQty > 0) {
+              totalQty += nextQty * (nextPack.quantity ?? 1).toDouble();
+            }
+          }
+        }
+        return totalQty > 0 ? totalQty : null;
+      }
+    }
+    return null;
+  }
+
+  Future<List<MerchandiseItem>> _getStock(List<MerchandiseItem> merchandiseItemList) async {
+    List<MerchandiseItem> results = [];
+
+    final bool isDebug = true;
+
+    for (var mi in merchandiseItemList) {
+      var ms = await isar.merchandiseStockList
+          .where()
+          .filter()
+          .storeTypeEqualTo('shop_branch')
+          .and()
+          .storeIDEqualTo(int.tryParse(widget.config.shop_branch_ID ?? '0') ?? 0)
+          .and()
+          .stockTypeEqualTo('merchandise_item')
+          .and()
+          .stockIDEqualTo(mi.id)
+          .findFirst();
+
+      if (ms == null) {
+        ms = MerchandiseStock()
+          ..id = const Uuid().v4()
+          ..storeType = 'shop_branch'
+          ..storeID = int.tryParse(widget.config.shop_branch_ID ?? '0') ?? 0
+          ..stockType = 'merchandise_item'
+          ..stockID = mi.id
+          ..currentQuantity = 0.0
+          ..availableQuantity = 0.0 
+          ..lastUpdated = DateTime.now().toIso8601String()
+          ..isDirty = true;
+          
+        await isar.writeTxn(() async {
+          await isar.merchandiseStockList.put(ms!);
+        });
+
+        if (isDebug) { 
+          debugPrint('_getStock create MerchandiseStock id: ${ms!.id}, storeType: ${ms!.storeType}, storeID: ${ms!.storeID}, stockType: ${ms!.stockType}, stockID: ${ms!.stockID}, current: ${ms!.currentQuantity}, available: ${ms!.availableQuantity}, isDirty: ${ms!.isDirty}'); 
+        }
+      }
+
+      mi.availableQuantity = ms.availableQuantity;
+
+      if (_canSellNonStock || (mi.availableQuantity ?? 0.0) > 0.0) {
+        results.add(mi);
+      } else {
+        double? packQty = await _checkNextLevelMerchandiseStockList('merchandise_item', mi.id!);
+
+        if (packQty != null && packQty > 0) {
+          mi.availableQuantity = packQty;
+          results.add(mi);
+        }
+      }
+    }
+
+    return results;
   }
 
   void _openScanner({required Function(String) onScan}) {
@@ -214,6 +353,12 @@ class _PPosScreenState extends State<PPosScreen> {
   Future<void> _handleScanCode(String code) async {
     var item = await isar.merchandiseItemList.where().filter().barcodeEqualTo(code).findFirst();
     if (item != null) {
+      var stockList = await _getStock([item]);
+      if (stockList.isNotEmpty) {
+        item = stockList.first;
+      } else {
+        item.availableQuantity = 0.0;
+      }
       _addToCart(item, null);
       return;
     }
@@ -222,6 +367,25 @@ class _PPosScreenState extends State<PPosScreen> {
     if (pack != null) {
       var pItem = await isar.merchandiseItemList.where().filter().idEqualTo(pack.merchandise_item_ID ?? '').findFirst();
       if (pItem != null) {
+         var packStock = await isar.merchandiseStockList
+             .where()
+             .filter()
+             .storeTypeEqualTo('shop_branch')
+             .and()
+             .storeIDEqualTo(int.tryParse(widget.config.shop_branch_ID ?? '0') ?? 0)
+             .and()
+             .stockTypeEqualTo('merchandise_pack')
+             .and()
+             .stockIDEqualTo(pack.id)
+             .findFirst();
+
+         double pAvail = packStock?.availableQuantity ?? 0.0;
+         if (pAvail == 0) {
+           double? nextQty = await _checkNextLevelMerchandiseStockList('merchandise_pack', pack.id!);
+           pAvail = nextQty ?? 0.0;
+         }
+         pack.availableQuantity = pAvail;
+         
          _addToCart(pItem, pack);
          return;
       }
@@ -230,7 +394,27 @@ class _PPosScreenState extends State<PPosScreen> {
   }
 
   Future<void> _addToCart(MerchandiseItem item, MerchandisePack? pack) async {
+    bool _notEnoughQty = false;
     int idx = _cartItems.indexWhere((e) => e.merchandise_item_ID == item.id && e.merchandise_pack_ID == pack?.id);
+    int reqQty = (idx >= 0) ? (_cartItems[idx].quantity ?? 0) + 1 : 1;
+
+    if (_canSellNonStock == false) {
+      if (pack != null) {
+        if ((pack.availableQuantity ?? 0.0) < reqQty) {
+          _notEnoughQty = true;
+        }
+      } else {
+        if ((item.availableQuantity ?? 0.0) < reqQty) {
+          _notEnoughQty = true;
+        }
+      }
+    }
+
+    if (_notEnoughQty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(isThai ? 'สต็อคไม่เพียงพอ' : 'Not enough stock'), backgroundColor: Colors.red));
+      return;
+    }
+
     if (idx >= 0) {
       setState(() {
         _cartItems[idx].quantity = (_cartItems[idx].quantity ?? 0) + 1;
@@ -283,6 +467,27 @@ class _PPosScreenState extends State<PPosScreen> {
   Future<void> _showPacks(MerchandiseItem item) async {
     final packs = await isar.merchandisePackList.where().filter().merchandise_item_IDEqualTo(item.id).findAll();
     if (packs.isEmpty) return;
+
+    for (var p in packs) {
+      var pStock = await isar.merchandiseStockList
+          .where()
+          .filter()
+          .storeTypeEqualTo('shop_branch')
+          .and()
+          .storeIDEqualTo(int.tryParse(widget.config.shop_branch_ID ?? '0') ?? 0)
+          .and()
+          .stockTypeEqualTo('merchandise_pack')
+          .and()
+          .stockIDEqualTo(p.id)
+          .findFirst();
+
+      double pAvail = pStock?.availableQuantity ?? 0.0;
+      if (pAvail == 0) {
+        double? nextQty = await _checkNextLevelMerchandiseStockList('merchandise_pack', p.id!);
+        pAvail = nextQty ?? 0.0;
+      }
+      p.availableQuantity = pAvail;
+    }
 
     showModalBottomSheet(
       context: context,
@@ -454,73 +659,76 @@ class _PPosScreenState extends State<PPosScreen> {
         bottom: false,
         child: Row(
           children: [
-            if (!_isExpired) ...[
-              if (_canSellMerchandise) ...[
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Text('PPos', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.category, color: Colors.black),
-                  onPressed: () { setState(() { _currentSection = 'Category'; }); },
-                ),
-              ],
-              
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  reverse: true,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (_canSellMerchandise) ...[
-                        IconButton(
-                          icon: const Icon(Icons.qr_code_scanner, color: Colors.black),
-                          onPressed: () => _openScanner(onScan: _handleScanCode),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.search, color: Colors.black),
-                          onPressed: () { setState(() { _currentSection = 'SearchResult'; }); },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.shopping_cart, color: Colors.black),
-                          onPressed: () { setState(() { _currentSection = 'Cart'; }); },
-                        ),
-                      ], // if (_canSellMerchandise)
-
-                      if (_canOrderFood) ...[
-                        IconButton(
-                          icon: const Icon(Icons.restaurant_menu, color: Colors.black),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => FoodMenuScreen(
-                                  config: widget.config,
-                                  shop_open_table_ID: '0',
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                reverse: true,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_canSellMerchandise) ...[
                       IconButton(
-                        icon: const Icon(Icons.list, color: Colors.black),
+                        icon: const Icon(Icons.category, color: Colors.black),
+                        onPressed: () { setState(() { _currentSection = 'Category'; }); },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.qr_code_scanner, color: Colors.black),
+                        onPressed: () => _openScanner(onScan: _handleScanCode),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.search, color: Colors.black),
+                        onPressed: () { setState(() { _currentSection = 'SearchResult'; }); },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.shopping_cart, color: Colors.black),
+                        onPressed: () { setState(() { _currentSection = 'Cart'; }); },
+                      ),
+                    ], // if (_canSellMerchandise)
+
+                    if (_canOrderFood) ...[
+                      IconButton(
+                        icon: const Icon(Icons.restaurant_menu, color: Colors.black),
                         onPressed: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ReceiptScreen(config: widget.config),
+                              builder: (context) => FoodMenuScreen(
+                                config: widget.config,
+                                shop_open_table_ID: '0',
+                              ),
                             ),
                           );
                         },
                       ),
                     ],
-                  ),
+
+                    IconButton(
+                      icon: const Icon(Icons.list, color: Colors.black),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ReceiptScreen(config: widget.config),
+                          ),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.settings, color: Colors.black),
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SettingScreen(config: widget.config),
+                          ),
+                        );
+                        _checkPermissions();
+                      },
+                    ),
+                  ],
                 ),
               ),
-            ], // if (!_isExpired)
+            ),
           ], // children
         ),
       ),
@@ -856,7 +1064,7 @@ class _PPosScreenState extends State<PPosScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isExpired) {
+    if (!_isLifeTime && _isExpired) {
       return Scaffold(
         appBar: AppBar(title: const Text('PPOS')),
         body: Center(

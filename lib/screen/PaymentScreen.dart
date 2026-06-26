@@ -10,6 +10,7 @@ import 'package:meorder_ppos/model/DisplayOrderItem.dart';
 import 'package:meorder_ppos/model/DisplayReceiptItem.dart';
 import 'package:meorder_ppos/services/SyncService.dart';
 import 'package:meorder_ppos/services/RolePermissionServices.dart';
+import 'package:meorder_ppos/services/InventoryServices.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -41,6 +42,7 @@ class PaymentScreen extends StatefulWidget {
 class _PaymentScreenState extends State<PaymentScreen> {
   late Isar isar;
   bool isLoading = true;
+  bool get _isExpired => widget.config.isExpired ?? false;
 
   Map<String, String?>? foDiscountFood;
   Map<String, String?>? foDiscountMerchandise;
@@ -676,7 +678,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     child: _buildMethodButton(
                       'PromptPay',
                       isThai ? 'พร้อมเพย์' : 'PromptPay',
-                      isEnabled: true,
+                      isEnabled: !_isExpired,
                     ),
                   ),
                 ],
@@ -686,7 +688,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     child: _buildMethodButton(
                       'Online',
                       isThai ? 'ออนไลน์' : 'Online',
-                      isEnabled: true,
+                      isEnabled: !_isExpired,
                     ),
                   ),
                 ],
@@ -869,7 +871,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: _processPayment,
+                      onPressed: () => _processPayment('Cash'),
                       child: Text(
                         isThai ? 'เก็บเงิน' : 'Pay',
                         style: const TextStyle(
@@ -1056,7 +1058,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    onPressed: () async {
+                    onPressed: _isExpired ? null : () async {
                       debugPrint('print button pressed, calling syncReceipt');
 
                       bool isSyncSuccess = await SyncService.syncReceipt(widget.config);
@@ -1094,7 +1096,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    onPressed: _processMTPayment,
+                    onPressed: () => _processPayment('MoneyTransfer'),
                     child: Text(isThai ? 'เก็บเงิน' : 'Pay'),
                   ),
                 ),
@@ -1179,13 +1181,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  void _processPayment() async {
+  void _processPayment(String paymentType) async {
     if (isDebug) { setState(() => _debugText = 'processPayment'); debugPrint(_debugText); }
     if (receipt == null) return;
 
     receipt!.paidAmount = (receipt!.totalAmount ?? 0.0) + tipAmount;
     receipt!.status = 'Paid';
-    receipt!.paymentType = 'Cash';
+    receipt!.paymentType = paymentType;
 
     final foodOrders = await isar.foodOrderList
         .where()
@@ -1205,49 +1207,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
       }
     });
 
-    await PrintService.processPrintFlow(
-      context: context,
-      isar: isar,
-      config: widget.config,
-      receipt: receipt,
-      foodOrders: foodOrders,
-      displayItems: displayItems,
-      receiptItems: receiptItems,
-      isThai: isThai,
-      isMT: false,
-      onComplete: () async {
-        if (isDebug) { setState(() => _debugText = 'call syncReceipt'); debugPrint(_debugText); }
-        await SyncService.syncReceipt(widget.config);
-        _navigateBack();
-      },
-    ); 
-  }
+    if (isDebug) { setState(() => _debugText = 'call sellDecreaseStock'); debugPrint(_debugText); }
+    await InventoryServices.sellDecreaseStock(widget.config, widget.config.UserRole ?? '', receiptItems);
 
-  void _processMTPayment() async {
-    if (isDebug) { setState(() => _debugText = 'processMTPayment'); debugPrint(_debugText); }
-    if (receipt == null) return;
-
-    receipt!.paidAmount = (receipt!.totalAmount ?? 0.0) + tipAmount;
-    receipt!.status = 'Paid';
-    receipt!.paymentType = 'MoneyTransfer';
-
-    final foodOrders = await isar.foodOrderList
-        .where()
-        .filter()
-        .parentIDEqualTo(receipt!.id)
-        .and()
-        .parentTypeEqualTo('receipt')
-        .findAll();
-
-    final receiptItems = await isar.receiptItemList.where().filter().receipt_IDEqualTo(receipt!.id!).findAll();
-
-    await isar.writeTxn(() async {
-      await isar.receiptList.put(receipt!);
-      for (var order in foodOrders) {
-        order.status = 'OrderFood';
-        await isar.foodOrderList.put(order);
-      }
-    });
+    if (isDebug) { setState(() => _debugText = 'call syncReceipt'); debugPrint(_debugText); }
+    await SyncService.syncReceipt(widget.config);
 
     await PrintService.processPrintFlow(
       context: context,
@@ -1258,10 +1222,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
       displayItems: displayItems,
       receiptItems: receiptItems,
       isThai: isThai,
-      isMT: true,
+      isMT: paymentType == 'MoneyTransfer',
       onComplete: () async {
-        if (isDebug) { setState(() => _debugText = 'call syncReceipt'); debugPrint(_debugText); }
-        await SyncService.syncReceipt(widget.config);
         _navigateBack();
       },
     ); 
@@ -1334,7 +1296,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          onPressed: _processMTPayment,
+                          onPressed: () => _processPayment('MoneyTransfer'),
                           child: Text(isThai ? 'ตรวจสอบ & ชำระเงิน' : 'Check & Pay'),
                         ),
                       ),

@@ -32,6 +32,12 @@ class SyncService {
     return value.toString();
   }
 
+  static Future<bool> syncMaster(EnvConfig config) async {
+    // Placeholder for syncing master data
+    debugPrint('syncMaster called');
+    return true;
+  }
+
   static Future<bool> syncReceipt(EnvConfig config) async {
     debugPrint('syncReceipt started');
     final isar = Isar.getInstance()!;
@@ -51,6 +57,11 @@ class SyncService {
         .isDirtyEqualTo(true)
         .findAll();
     final foodOrderItems = await isar.foodOrderItemList
+        .where()
+        .filter()
+        .isDirtyEqualTo(true)
+        .findAll();
+    final receiptItems = await isar.receiptItemList
         .where()
         .filter()
         .isDirtyEqualTo(true)
@@ -136,6 +147,20 @@ class SyncService {
         };
         return capitalizeKeys(json);
       }).toList(),
+      'ReceiptItemList': receiptItems.map((e) {
+        final json = {
+          'id': e.id,
+          'receipt_ID': e.receipt_ID,
+          'merchandise_item_ID': e.merchandise_item_ID,
+          'merchandise_pack_ID': e.merchandise_pack_ID,
+          'itemPrice': e.itemPrice,
+          'quantity': e.quantity,
+          'discountPercent': e.discountPercent,
+          'discountAmount': e.discountAmount,
+          'lastUpdated': e.lastUpdated,
+        };
+        return capitalizeKeys(json);
+      }).toList(),
     };
 
     final uri = Uri.parse('${config.apiUrl}api/pos/sync-receipt');
@@ -147,6 +172,7 @@ class SyncService {
     request.fields['pos_ID'] = config.PosID.toString();
     request.fields['LastSync'] = syncTime;
     request.fields['ReceiptList'] = jsonEncode(pushData['ReceiptList']);
+    request.fields['ReceiptItemList'] = jsonEncode(pushData['ReceiptItemList']);
     request.fields['FoodOrderList'] = jsonEncode(pushData['FoodOrderList']);
     request.fields['FoodOrderItemList'] = jsonEncode(pushData['FoodOrderItemList']);
 

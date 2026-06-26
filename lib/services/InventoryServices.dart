@@ -1,0 +1,386 @@
+import 'package:flutter/foundation.dart';
+import 'package:isar/isar.dart';
+import 'package:meorder_ppos/database/IsarModels.dart';
+import 'package:meorder_ppos/lib/EnvConfig.dart';
+import 'package:meorder_ppos/services/RolePermissionServices.dart';
+import 'package:uuid/uuid.dart';
+
+class InventoryServices {
+  static Future<void> sellDecreaseStock(
+    EnvConfig config,
+    String roleID,
+    List<ReceiptItem> receiptItemList,
+  ) async {
+    final isar = Isar.getInstance()!;
+    final foTransferStock = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_TRANSFER_STOCK');
+
+    final bool isDebug = true;
+
+    for (var ri in receiptItemList) {
+      String stockType = (ri.merchandise_pack_ID == null || ri.merchandise_pack_ID!.isEmpty)
+          ? 'merchandise_item'
+          : 'merchandise_pack';
+      String stockID = (ri.merchandise_pack_ID == null || ri.merchandise_pack_ID!.isEmpty)
+          ? ri.merchandise_item_ID!
+          : ri.merchandise_pack_ID!;
+
+      var ms = await isar.merchandiseStockList
+          .where()
+          .filter()
+          .storeTypeEqualTo('shop_branch')
+          .and()
+          .storeIDEqualTo(int.tryParse(config.shop_branch_ID ?? '0') ?? 0)
+          .and()
+          .stockTypeEqualTo(stockType)
+          .and()
+          .stockIDEqualTo(stockID)
+          .findFirst();
+
+      if (isDebug) { 
+        debugPrint('sellDecreaseStock search MerchandiseStock id: ${ms!.id}, storeType: ${ms!.storeType}, storeID: ${ms!.storeID}, stockType: ${ms!.stockType}, stockID: ${ms!.stockID}, current: ${ms!.currentQuantity}, available: ${ms!.availableQuantity}, isDirty: ${ms!.isDirty}'); 
+      }
+
+      if (ms == null) {
+        ms = MerchandiseStock()
+          ..id = const Uuid().v4()
+          ..storeType = 'shop_branch'
+          ..storeID = int.tryParse(config.shop_branch_ID ?? '0') ?? 0
+          ..stockType = stockType
+          ..stockID = stockID
+          ..currentQuantity = 0.0
+          ..availableQuantity = 0.0
+          ..lastUpdated = DateTime.now().toIso8601String()
+          ..isDirty = true;
+
+        await isar.writeTxn(() async {
+          await isar.merchandiseStockList.put(ms!);
+        });
+
+        if (isDebug) { 
+          debugPrint('sellDecreaseStock create MerchandiseStock id: ${ms!.id}, storeType: ${ms!.storeType}, storeID: ${ms!.storeID}, stockType: ${ms!.stockType}, stockID: ${ms!.stockID}, current: ${ms!.currentQuantity}, available: ${ms!.availableQuantity}, isDirty: ${ms!.isDirty}'); 
+        }
+      }
+
+      if ((ms.availableQuantity ?? 0.0) <= 0.0) {
+        if (foTransferStock != null &&
+            (foTransferStock['PermissionLevel'] == 'Full' || foTransferStock['PermissionLevel'] == 'Unpack')) {
+          bool unpacked = await getNextLevelMerchandiseStockList(config, ri.receipt_ID ?? '', stockType, stockID);
+          if (unpacked) {
+            ms = await isar.merchandiseStockList
+                .where()
+                .filter()
+                .storeTypeEqualTo('shop_branch')
+                .and()
+                .storeIDEqualTo(int.tryParse(config.shop_branch_ID ?? '0') ?? 0)
+                .and()
+                .stockTypeEqualTo(stockType)
+                .and()
+                .stockIDEqualTo(stockID)
+                .findFirst();
+
+            if (isDebug) { debugPrint('sellDecreaseStock unpack MerchandiseStock id: ${ms?.id}, current: ${ms?.currentQuantity}, available: ${ms?.availableQuantity}'); }
+          }
+        }
+      }
+
+      if (ms != null) {
+        await isar.writeTxn(() async {
+          ms!.currentQuantity = (ms!.currentQuantity ?? 0.0) - (ri.quantity ?? 0);
+          ms!.availableQuantity = (ms!.availableQuantity ?? 0.0) - (ri.quantity ?? 0);
+          ms!.lastUpdated = DateTime.now().toIso8601String();
+          ms!.isDirty = true;
+          await isar.merchandiseStockList.put(ms!);
+        });
+
+        if (isDebug) { debugPrint('sellDecreaseStock update MerchandiseStock id: ${ms!.id}, current: ${ms!.currentQuantity}, available: ${ms!.availableQuantity}, isDirty: ${ms!.isDirty}'); }
+      }
+    }
+  }
+
+  static Future<bool> getNextLevelMerchandiseStockList(
+    EnvConfig config,
+    String receiptID,
+    String stockType,
+    String stockID,
+  ) async {
+    final isar = Isar.getInstance()!;
+
+    if (stockType == 'merchandise_item') {
+      var packL1List = await isar.merchandisePackList
+          .where()
+          .filter()
+          .merchandise_item_IDEqualTo(stockID)
+          .and()
+          .levelEqualTo(1)
+          .findAll();
+
+      for (var pack in packL1List) {
+        var packStock = await isar.merchandiseStockList
+            .where()
+            .filter()
+            .storeTypeEqualTo('shop_branch')
+            .and()
+            .storeIDEqualTo(int.tryParse(config.shop_branch_ID ?? '0') ?? 0)
+            .and()
+            .stockTypeEqualTo('merchandise_pack')
+            .and()
+            .stockIDEqualTo(pack.id)
+            .findFirst();
+
+        if (packStock != null && (packStock.availableQuantity ?? 0.0) > 0.0) {
+          var itemStock = await isar.merchandiseStockList
+              .where()
+              .filter()
+              .storeTypeEqualTo('shop_branch')
+              .and()
+              .storeIDEqualTo(int.tryParse(config.shop_branch_ID ?? '0') ?? 0)
+              .and()
+              .stockTypeEqualTo('merchandise_item')
+              .and()
+              .stockIDEqualTo(stockID)
+              .findFirst();
+
+          if (itemStock == null) {
+            itemStock = MerchandiseStock()
+              ..id = const Uuid().v4()
+              ..storeType = 'shop_branch'
+              ..storeID = int.tryParse(config.shop_branch_ID ?? '0') ?? 0
+              ..stockType = 'merchandise_item'
+              ..stockID = stockID
+              ..currentQuantity = 0.0
+              ..availableQuantity = 0.0
+              ..lastUpdated = DateTime.now().toIso8601String()
+              ..isDirty = true;
+              
+            await isar.writeTxn(() async {
+              await isar.merchandiseStockList.put(itemStock!);
+            });
+          }
+          await unpackStock(receiptID, packStock.id!, itemStock.id!);
+          return true;
+        } else {
+          bool unpacked = await getNextLevelMerchandiseStockList(config, receiptID, 'merchandise_pack', pack.id!);
+          if (unpacked) {
+            var refreshedPackStock = await isar.merchandiseStockList
+                .where()
+                .filter()
+                .storeTypeEqualTo('shop_branch')
+                .and()
+                .storeIDEqualTo(int.tryParse(config.shop_branch_ID ?? '0') ?? 0)
+                .and()
+                .stockTypeEqualTo('merchandise_pack')
+                .and()
+                .stockIDEqualTo(pack.id)
+                .findFirst();
+
+            var itemStock = await isar.merchandiseStockList
+                .where()
+                .filter()
+                .storeTypeEqualTo('shop_branch')
+                .and()
+                .storeIDEqualTo(int.tryParse(config.shop_branch_ID ?? '0') ?? 0)
+                .and()
+                .stockTypeEqualTo('merchandise_item')
+                .and()
+                .stockIDEqualTo(stockID)
+                .findFirst();
+
+            if (itemStock == null) {
+              itemStock = MerchandiseStock()
+                ..id = const Uuid().v4()
+                ..storeType = 'shop_branch'
+                ..storeID = int.tryParse(config.shop_branch_ID ?? '0') ?? 0
+                ..stockType = 'merchandise_item'
+                ..stockID = stockID
+                ..currentQuantity = 0.0
+                ..availableQuantity = 0.0
+                ..lastUpdated = DateTime.now().toIso8601String()
+                ..isDirty = true;
+
+              await isar.writeTxn(() async {
+                await isar.merchandiseStockList.put(itemStock!);
+              });
+            }
+            if (refreshedPackStock != null) {
+              await unpackStock(receiptID, refreshedPackStock.id!, itemStock.id!);
+            }
+            return true;
+          }
+        }
+      }
+    } else if (stockType == 'merchandise_pack') {
+      var currentPack = await isar.merchandisePackList
+          .where()
+          .filter()
+          .idEqualTo(stockID)
+          .findFirst();
+
+      if (currentPack != null) {
+        int currentLevel = currentPack.level ?? 1;
+        var nextLevelPacks = await isar.merchandisePackList
+            .where()
+            .filter()
+            .merchandise_item_IDEqualTo(currentPack.merchandise_item_ID)
+            .and()
+            .levelEqualTo(currentLevel + 1)
+            .findAll();
+
+        for (var nextPack in nextLevelPacks) {
+          var nextPackStock = await isar.merchandiseStockList
+              .where()
+              .filter()
+              .storeTypeEqualTo('shop_branch')
+              .and()
+              .storeIDEqualTo(int.tryParse(config.shop_branch_ID ?? '0') ?? 0)
+              .and()
+              .stockTypeEqualTo('merchandise_pack')
+              .and()
+              .stockIDEqualTo(nextPack.id)
+              .findFirst();
+
+          if (nextPackStock != null && (nextPackStock.availableQuantity ?? 0.0) > 0.0) {
+            var currentStock = await isar.merchandiseStockList
+                .where()
+                .filter()
+                .storeTypeEqualTo('shop_branch')
+                .and()
+                .storeIDEqualTo(int.tryParse(config.shop_branch_ID ?? '0') ?? 0)
+                .and()
+                .stockTypeEqualTo('merchandise_pack')
+                .and()
+                .stockIDEqualTo(stockID)
+                .findFirst();
+
+            if (currentStock == null) {
+              currentStock = MerchandiseStock()
+                ..id = const Uuid().v4()
+                ..storeType = 'shop_branch'
+                ..storeID = int.tryParse(config.shop_branch_ID ?? '0') ?? 0
+                ..stockType = 'merchandise_pack'
+                ..stockID = stockID
+                ..currentQuantity = 0.0
+                ..availableQuantity = 0.0
+                ..lastUpdated = DateTime.now().toIso8601String()
+                ..isDirty = true;
+                
+              await isar.writeTxn(() async {
+                await isar.merchandiseStockList.put(currentStock!);
+              });
+            }
+            await unpackStock(receiptID, nextPackStock.id!, currentStock.id!);
+            return true;
+          } else {
+            bool unpacked = await getNextLevelMerchandiseStockList(config, receiptID, 'merchandise_pack', nextPack.id!);
+            if (unpacked) {
+              var refreshedNextPackStock = await isar.merchandiseStockList
+                  .where()
+                  .filter()
+                  .storeTypeEqualTo('shop_branch')
+                  .and()
+                  .storeIDEqualTo(int.tryParse(config.shop_branch_ID ?? '0') ?? 0)
+                  .and()
+                  .stockTypeEqualTo('merchandise_pack')
+                  .and()
+                  .stockIDEqualTo(nextPack.id)
+                  .findFirst();
+
+              var currentStock = await isar.merchandiseStockList
+                  .where()
+                  .filter()
+                  .storeTypeEqualTo('shop_branch')
+                  .and()
+                  .storeIDEqualTo(int.tryParse(config.shop_branch_ID ?? '0') ?? 0)
+                  .and()
+                  .stockTypeEqualTo('merchandise_pack')
+                  .and()
+                  .stockIDEqualTo(stockID)
+                  .findFirst();
+
+              if (currentStock == null) {
+                currentStock = MerchandiseStock()
+                  ..id = const Uuid().v4()
+                  ..storeType = 'shop_branch'
+                  ..storeID = int.tryParse(config.shop_branch_ID ?? '0') ?? 0
+                  ..stockType = 'merchandise_pack'
+                  ..stockID = stockID
+                  ..currentQuantity = 0.0
+                  ..availableQuantity = 0.0
+                  ..lastUpdated = DateTime.now().toIso8601String()
+                  ..isDirty = true;
+              }
+              if (currentStock.id == null) {
+                await isar.writeTxn(() async {
+                  await isar.merchandiseStockList.put(currentStock!);
+                });
+              }
+
+              if (refreshedNextPackStock != null) {
+                await unpackStock(receiptID, refreshedNextPackStock.id!, currentStock.id!);
+              }
+              return true;
+            }
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  static Future<void> unpackStock(
+    String receiptID,
+    String from_merchandise_stock_ID,
+    String to_merchandise_stock_ID,
+  ) async {
+    final isar = Isar.getInstance()!;
+
+    var fms = await isar.merchandiseStockList
+        .where()
+        .filter()
+        .idEqualTo(from_merchandise_stock_ID)
+        .findFirst();
+    if (fms == null) return;
+
+    var fmp = await isar.merchandisePackList
+        .where()
+        .filter()
+        .idEqualTo(fms.stockID ?? '')
+        .findFirst();
+    if (fmp == null) return;
+
+    var tms = await isar.merchandiseStockList
+        .where()
+        .filter()
+        .idEqualTo(to_merchandise_stock_ID)
+        .findFirst();
+    if (tms == null) return;
+
+    await isar.writeTxn(() async {
+      var transfer = TransferStock()
+        ..id = const Uuid().v4()
+        ..byType = 'receipt'
+        ..byID = receiptID
+        ..transferType = 'UnPack'
+        ..from_merchandise_stock_ID = from_merchandise_stock_ID
+        ..fromQuantity = 1.0
+        ..to_merchandise_stock_ID = to_merchandise_stock_ID
+        ..toQuantity = (fmp.quantity ?? 1).toDouble()
+        ..lastUpdated = DateTime.now().toIso8601String()
+        ..isDirty = true;
+
+      await isar.transferStockList.put(transfer);
+
+      fms.currentQuantity = (fms.currentQuantity ?? 0.0) - 1.0;
+      fms.availableQuantity = (fms.availableQuantity ?? 0.0) - 1.0;
+      fms.lastUpdated = DateTime.now().toIso8601String();
+      fms.isDirty = true;
+      await isar.merchandiseStockList.put(fms);
+
+      tms.currentQuantity = (tms.currentQuantity ?? 0.0) + (fmp.quantity ?? 1).toDouble();
+      tms.availableQuantity = (tms.availableQuantity ?? 0.0) + (fmp.quantity ?? 1).toDouble();
+      tms.lastUpdated = DateTime.now().toIso8601String();
+      tms.isDirty = true;
+      await isar.merchandiseStockList.put(tms);
+    });
+  }
+}

@@ -7,6 +7,7 @@ import 'package:meorder_ppos/screen/SetPrinterScreen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:isar/isar.dart';
 import 'package:meorder_ppos/database/IsarModels.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class InitScreen extends StatefulWidget {
   final EnvConfig config;
@@ -97,10 +98,10 @@ class _InitScreenState extends State<InitScreen> {
         branchData['ConnectType'] = null;
         branchData['PrinterAddress'] = null;
         branchData['isKitchen'] = true;
+        branchData['LastAccess'] = DateTime.now().toIso8601String();
 
-        final directory = await getApplicationDocumentsDirectory();
-        final filePath = '${directory.path}/branch.json';
-        await File(filePath).writeAsString(jsonEncode(branchData));
+        const storage = FlutterSecureStorage();
+        await storage.write(key: 'branch', value: jsonEncode(branchData));
 
         final updatedConfig = _currentConfig.copyWith(
           shop_ID: branchData['shop_ID']?.toString(),
@@ -108,6 +109,8 @@ class _InitScreenState extends State<InitScreen> {
           TaxID: branchData['TaxID'],
           shop_branch_ID: branchData['shop_branch_ID']?.toString(),
           service_module_ID: branchData['service_module_ID'],
+          shop_branch_service_ID: serviceCode,
+          IntervalType: branchData['IntervalType'],
           BranchName: branchData['BranchName'],
           Address: branchData['Address'],
           Telephone: branchData['Telephone'],
@@ -115,6 +118,7 @@ class _InitScreenState extends State<InitScreen> {
           ExpireDate: branchData['ExpireDate'],
           LastUpdated: branchData['LastUpdated'],
           PosID: branchData['PosID']?.toString(),
+          language: _currentLang,
         );
 
         setState(() { _debug = 'updatedConfig success'; });
@@ -150,6 +154,8 @@ class _InitScreenState extends State<InitScreen> {
           await isar.merchandiseItemList.clear();
           await isar.merchandisePackList.clear();
           await isar.receiptItemList.clear();
+          await isar.merchandiseStockList.clear();
+          await isar.transferStockList.clear();
           await isar.lastSyncList.clear();
 
           // LastSync
@@ -531,6 +537,7 @@ class _InitScreenState extends State<InitScreen> {
           final merchandiseItem = merchandiseItemListRaw.map((e) => MerchandiseItem()
             ..id = e['ID']
             ..barcode = e['Barcode']
+            ..sku = e['SKU']
             ..merchandise_category_ID = e['merchandise_category_ID']
             ..productName = e['ProductName']
             ..price = double.tryParse(e['Price']?.toString() ?? '')
@@ -549,6 +556,7 @@ class _InitScreenState extends State<InitScreen> {
           final merchandisePack = merchandisePackListRaw.map((e) => MerchandisePack()
             ..id = e['ID']
             ..barcode = e['Barcode']
+            ..sku = e['SKU']
             ..merchandise_item_ID = e['merchandise_item_ID']
             ..level = int.tryParse(e['Level']?.toString() ?? '')
             ..quantity = int.tryParse(e['Quantity']?.toString() ?? '')
@@ -559,6 +567,41 @@ class _InitScreenState extends State<InitScreen> {
             ..isDirty = false
           ).toList();
           await isar.merchandisePackList.putAll(merchandisePack);
+
+          setState(() { _debug = 'putAll MerchandisePack success'; });
+
+          // MerchandiseStock
+          final merchandiseStockListRaw = responseData['MerchandiseStockList'] as List<dynamic>? ?? [];
+          final merchandiseStock = merchandiseStockListRaw.map((e) => MerchandiseStock()
+            ..id = e['ID']
+            ..storeType = e['StoreType']
+            ..storeID = int.tryParse(e['StoreID']?.toString() ?? '')
+            ..stockType = e['StockType']
+            ..stockID = e['StockID']
+            ..currentQuantity = double.tryParse(e['CurrentQuantity']?.toString() ?? '')
+            ..availableQuantity = double.tryParse(e['AvailableQuantity']?.toString() ?? '')
+            ..lastUpdated = e['LastUpdated']
+            ..isDirty = false
+          ).toList();
+          await isar.merchandiseStockList.putAll(merchandiseStock);
+
+          setState(() { _debug = 'putAll MerchandiseStock success'; });
+
+          // TransferStock
+          final transferStockListRaw = responseData['TransferStockList'] as List<dynamic>? ?? [];
+          final transferStock = transferStockListRaw.map((e) => TransferStock()
+            ..id = e['ID']
+            ..byType = e['ByType']
+            ..byID = e['ByID']
+            ..transferType = e['TransferType']
+            ..from_merchandise_stock_ID = e['From_merchandise_stock_ID']
+            ..fromQuantity = double.tryParse(e['FromQuantity']?.toString() ?? '')
+            ..to_merchandise_stock_ID = e['To_merchandise_stock_ID']
+            ..toQuantity = double.tryParse(e['ToQuantity']?.toString() ?? '')
+            ..lastUpdated = e['LastUpdated']
+            ..isDirty = false
+          ).toList();
+          await isar.transferStockList.putAll(transferStock);
 
           setState(() { _debug = 'putAll MerchandisePack success'; });
         });

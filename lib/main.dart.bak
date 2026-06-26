@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:meorder_ppos/lib/EnvConfig.dart'; 
 import 'package:meorder_ppos/screen/SignInScreen.dart'; 
 import 'package:meorder_ppos/screen/POCScreen.dart';
@@ -77,74 +76,42 @@ class _MainScreenState extends State<MainScreen> {
           MerchandiseItemSchema,
           MerchandisePackSchema,
           ReceiptItemSchema,
-          MerchandiseStockSchema,
-          TransferStockSchema,
           LastSyncSchema,
         ],
         directory: directory.path,
       );
     }
 
-    const storage = FlutterSecureStorage();
-    String? branchDataString = await storage.read(key: 'branch');
-    bool fileExists = branchDataString != null;
+    final filePath = '${directory.path}/branch.json';
+    final file = File(filePath);
+
+    bool fileExists = await File(filePath).exists();
 
     _config = await EnvConfig.load(fileExists);
 
     if (fileExists) {
       try {
-        final branchData = jsonDecode(branchDataString!);
-
-        if (branchData['LastAccess'] == null) {
-            setState(() {
-              _error = 'ไม่สามารถใช้งานได้เนื่องจากข้อมูลไม่ถูกต้อง \nCannot be used because the data is incorrect.';
-            });
-            return;
-        } else {
-          DateTime lastAccess = DateTime.parse(branchData['LastAccess']);
-          if (lastAccess.isAfter(DateTime.now())) {
-            setState(() {
-              _error = 'เวลาของเครื่อง ถูกตั้งให้ย้อนกลับ The device\'s time is set to go backward';
-            });
-            return;
-          } else {
-            branchData['LastAccess'] = DateTime.now().toIso8601String();
-            await storage.write(key: 'branch', value: jsonEncode(branchData));
-          }
-        }
-
-        bool isExpired = false;
-        if (branchData['ExpireDate'] != null && branchData['ExpireDate'].toString().isNotEmpty) {
-          try {
-            DateTime expireDate = DateTime.parse(branchData['ExpireDate']);
-            if (DateTime.now().isAfter(expireDate)) {
-              isExpired = true;
-            }
-          } catch (e) {
-            print("Error parsing ExpireDate: $e");
-          }
-        }
+        final content = await file.readAsString();
+        final branchData = jsonDecode(content);
 
         final updatedConfig = _config.copyWith(
-          shop_ID:                branchData['shop_ID']?.toString(),
-          ShopName:               branchData['ShopName'],
-          shop_branch_ID:         branchData['shop_branch_ID']?.toString(),
-          service_module_ID:      branchData['service_module_ID'],
-          shop_branch_service_ID: branchData['shop_branch_service_ID'],
-          BranchName:             branchData['BranchName'],
-          Address:                branchData['Address'], 
-          Telephone:              branchData['Telephone'],
-          isActive:               branchData['IsActive'] == 'Y',
-          language:               branchData['language'],
-          ExpireDate:             branchData['ExpireDate'],
-          isExpired:              isExpired,
-          LastUpdated:            branchData['LastUpdated'],
-          UserID:                 branchData['UserID']?.toString(),
-          UserRole:               branchData['UserRole'],
-          PrinterModel:           branchData['PrinterModel'],
-          ConnectType:            branchData['ConnectType'],
-          PrinterAddress:         branchData['PrinterAddress'],
-          isKitchen:              branchData['isKitchen'] == true,
+          shop_ID:            branchData['shop_ID']?.toString(),
+          ShopName:           branchData['ShopName'],
+          shop_branch_ID:     branchData['shop_branch_ID']?.toString(),
+          service_module_ID:  branchData['service_module_ID'],
+          BranchName:         branchData['BranchName'],
+          Address:            branchData['Address'], 
+          Telephone:          branchData['Telephone'],
+          isActive:           branchData['IsActive'] == 'Y',
+          language:           "th",
+          ExpireDate:         branchData['ExpireDate'],
+          LastUpdated:        branchData['LastUpdated'],
+          UserID:             branchData['UserID']?.toString(),
+          UserRole:           branchData['UserRole'],
+          PrinterModel:       branchData['PrinterModel'],
+          ConnectType:        branchData['ConnectType'],
+          PrinterAddress:     branchData['PrinterAddress'],
+          isKitchen:          branchData['isKitchen'] == true,
         );
 
         setState(() { _config = updatedConfig; });

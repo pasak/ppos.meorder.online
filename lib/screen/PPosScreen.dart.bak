@@ -5,6 +5,7 @@ import 'package:meorder_ppos/lib/EnvConfig.dart';
 import 'package:meorder_ppos/screen/FoodMenuScreen.dart';
 import 'package:meorder_ppos/screen/PaymentScreen.dart';
 import 'package:meorder_ppos/screen/ReceiptScreen.dart';
+import 'package:meorder_ppos/screen/SettingScreen.dart';
 import 'package:isar/isar.dart';
 import 'package:meorder_ppos/database/IsarModels.dart';
 import 'package:uuid/uuid.dart';
@@ -13,16 +14,19 @@ import 'package:meorder_ppos/services/RolePermissionServices.dart';
 
 class PPosScreen extends StatefulWidget {
   final EnvConfig config;
-  const PPosScreen({super.key, required this.config});
+  final String? receiptID;
+  const PPosScreen({super.key, required this.config, this.receiptID});
 
   @override
   State<PPosScreen> createState() => _PPosScreenState();
 }
 
 class _PPosScreenState extends State<PPosScreen> {
-  bool _isExpired = false;
+  bool _isLifeTime = false;
+  bool get _isExpired => widget.config.isExpired ?? false;
   bool _canOrderFood = false;
   bool _canSellMerchandise = false;
+  bool _canSellNonStock = false;
   Isar isar = Isar.getInstance()!;
   
   bool get isThai => widget.config.language == 'th';
@@ -40,7 +44,7 @@ class _PPosScreenState extends State<PPosScreen> {
   @override
   void initState() {
     super.initState();
-    _checkExpiration();
+    _checkLifeTime();
     _checkPermissions();
     _loadCategories();
   }
@@ -51,11 +55,13 @@ class _PPosScreenState extends State<PPosScreen> {
     final roleID = widget.config.UserRole!;
     final foOrderFood = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_ORDER_FOOD');
     final foSellMerchandise = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_SELL_MERCHANDISE');
+    final foSellNonStock = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_SELL_NON_STOCK');
 
     if (mounted) {
       setState(() {
         _canOrderFood = foOrderFood?['PermissionLevel'] == 'Full';
         _canSellMerchandise = foSellMerchandise?['PermissionLevel'] == 'Full';
+        _canSellNonStock = foSellNonStock?['PermissionLevel'] == 'Full';
       });
     }
 
@@ -82,17 +88,9 @@ class _PPosScreenState extends State<PPosScreen> {
     }
   }
 
-  void _checkExpiration() {
-    if (widget.config.ExpireDate != null &&
-        widget.config.ExpireDate!.isNotEmpty) {
-      try {
-        DateTime expireDate = DateTime.parse(widget.config.ExpireDate!);
-        if (DateTime.now().isAfter(expireDate)) {
-          _isExpired = true;
-        }
-      } catch (e) {
-        debugPrint("Error parsing ExpireDate: $e");
-      }
+  void _checkLifeTime() {
+    if (widget.config.IntervalType == 'LIFE') {
+      _isLifeTime = true;
     }
   }
 
@@ -150,19 +148,144 @@ class _PPosScreenState extends State<PPosScreen> {
          .productNameContains(term, caseSensitive: false)
          .findAll();
       
+      final stockResults = await _getStock(results);
+      
       setState(() {
-         _searchResult = results;
-         if (results.isNotEmpty) _currentSection = 'SearchResult';
+         _searchResult = stockResults;
+         if (stockResults.isNotEmpty) _currentSection = 'SearchResult';
       });
     }
   }
 
   Future<void> _searchByCategory(String categoryID) async {
     final results = await isar.merchandiseItemList.where().filter().merchandise_category_IDEqualTo(categoryID).findAll();
+    final stockResults = await _getStock(results);
     setState(() {
-      _searchResult = results;
+      _searchResult = stockResults;
       _currentSection = 'SearchResult';
     });
+  }
+
+  Future<double?> _checkNextLevelMerchandiseStockList(String stockType, String stockID) async {
+    if (stockType == 'merchandise_item') {
+      var packL1List = await isar.merchandisePackList
+          .where()
+          .filter()
+          .merchandise_item_IDEqualTo(stockID)
+          .and()
+          .levelEqualTo(1)
+          .findAll();
+
+      for (var pack in packL1List) {
+        var packStock = await isar.merchandiseStockList
+            .where()
+            .filter()
+            .storeTypeEqualTo('shop_branch')
+            .and()
+            .storeIDEqualTo(int.tryParse(widget.config.shop_branch_ID ?? '0') ?? 0)
+            .and()
+            .stockTypeEqualTo('merchandise_pack')
+            .and()
+            .stockIDEqualTo(pack.id)
+            .findFirst();
+
+        if (packStock != null && (packStock.availableQuantity ?? 0.0) > 0.0) {
+          return (pack.quantity ?? 1).toDouble();
+        } else {
+          double? packQty = await _checkNextLevelMerchandiseStockList('merchandise_pack', pack.id!);
+          if (packQty != null && packQty > 0) {
+             return (pack.quantity ?? 1).toDouble();
+          }
+        }
+      }
+    } else if (stockType == 'merchandise_pack') {
+      var currentPack = await isar.merchandisePackList
+          .where()
+          .filter()
+          .idEqualTo(stockID)
+          .findFirst();
+
+      if (currentPack != null) {
+        int currentLevel = currentPack.level ?? 1;
+        var nextLevelPacks = await isar.merchandisePackList
+            .where()
+            .filter()
+            .merchandise_item_IDEqualTo(currentPack.merchandise_item_ID)
+            .and()
+            .levelEqualTo(currentLevel + 1)
+            .findAll();
+
+        for (var nextPack in nextLevelPacks) {
+          var nextPackStock = await isar.merchandiseStockList
+              .where()
+              .filter()
+              .storeTypeEqualTo('shop_branch')
+              .and()
+              .storeIDEqualTo(int.tryParse(widget.config.shop_branch_ID ?? '0') ?? 0)
+              .and()
+              .stockTypeEqualTo('merchandise_pack')
+              .and()
+              .stockIDEqualTo(nextPack.id)
+              .findFirst();
+
+          if (nextPackStock != null && (nextPackStock.availableQuantity ?? 0.0) > 0.0) {
+            return (nextPack.quantity ?? 1).toDouble();
+          } else {
+            double? nextQty = await _checkNextLevelMerchandiseStockList('merchandise_pack', nextPack.id!);
+            if (nextQty != null && nextQty > 0) {
+              return (nextPack.quantity ?? 1).toDouble();
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  Future<List<MerchandiseItem>> _getStock(List<MerchandiseItem> merchandiseItemList) async {
+    List<MerchandiseItem> results = [];
+
+    for (var mi in merchandiseItemList) {
+      var ms = await isar.merchandiseStockList
+          .where()
+          .filter()
+          .storeTypeEqualTo('shop_branch')
+          .and()
+          .storeIDEqualTo(int.tryParse(widget.config.shop_branch_ID ?? '0') ?? 0)
+          .and()
+          .stockTypeEqualTo('merchandise_item')
+          .and()
+          .stockIDEqualTo(mi.id)
+          .findFirst();
+
+      if (ms == null) {
+        ms = MerchandiseStock()
+          ..storeType = 'shop_branch'
+          ..storeID = int.tryParse(widget.config.shop_branch_ID ?? '0') ?? 0
+          ..stockType = 'merchandise_item'
+          ..stockID = mi.id
+          ..currentQuantity = 0.0
+          ..availableQuantity = 0.0;
+        await isar.writeTxn(() async {
+          await isar.merchandiseStockList.put(ms!);
+        });
+      }
+
+      mi.availableQuantity = ms.availableQuantity;
+
+      if (_canSellNonStock || (mi.availableQuantity ?? 0.0) > 0.0) {
+        results.add(mi);
+      } else {
+        double? packQty = await _checkNextLevelMerchandiseStockList('merchandise_item', mi.id!);
+
+        if (packQty != null && packQty > 0) {
+          mi.availableQuantity = packQty;
+          results.add(mi);
+        }
+      }
+    }
+
+    return results;
   }
 
   void _openScanner({required Function(String) onScan}) {
@@ -290,16 +413,28 @@ class _PPosScreenState extends State<PPosScreen> {
           itemCount: packs.length,
           itemBuilder: (ctx, idx) {
             final p = packs[idx];
-            return ListTile(
-              title: Text('${p.packName} (${p.quantity} ${item.unitName})'),
-              subtitle: Text('Price: ${_formatPrice(p.price)}'),
-              trailing: IconButton(
-                icon: const Icon(Icons.add, color: Colors.green),
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  _addToCart(item, p);
-                }
-              )
+            return Card(
+              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: ListTile(
+                title: Text('${p.packName} (${p.quantity} ${item.unitName})'),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _formatPrice(p.price),
+                      style: const TextStyle(fontSize: 30, color: Colors.blue),
+                    ),
+                    const SizedBox(width: 16),
+                    IconButton(
+                      icon: const Icon(Icons.add_shopping_cart, color: Colors.green),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _addToCart(item, p);
+                      }
+                    )
+                  ],
+                ),
+              ),
             );
           }
         );
@@ -310,7 +445,7 @@ class _PPosScreenState extends State<PPosScreen> {
   Future<void> _orderMerchandise() async {
     if (_cartItems.isEmpty) return;
     try {
-      final receiptID = const Uuid().v4();
+      final uuid = const Uuid();
       DateTime now = DateTime.now();
       
       double totalAmount = 0;
@@ -318,25 +453,106 @@ class _PPosScreenState extends State<PPosScreen> {
         totalAmount += ((ci.itemPrice ?? 0) * (ci.quantity ?? 1));
       }
 
-      String code = 'POS-${now.millisecondsSinceEpoch % 100000}';
-
-      final receipt = Receipt()
-        ..id = receiptID
-        ..pos_ID = int.tryParse(widget.config.PosID ?? '0')
-        ..shop_user_ID = int.tryParse(widget.config.UserID ?? '0')
-        ..code = code
-        ..createdAt = now
-        ..sumAmount = totalAmount
-        ..totalAmount = totalAmount
-        ..status = 'Wait4Payment'
-        ..lastUpdated = now.toIso8601String()
-        ..isDirty = true;
+      String? receiptID = widget.receiptID;
 
       await isar.writeTxn(() async {
-        await isar.receiptList.put(receipt);
-        for (var ci in _cartItems) {
-          ci.receipt_ID = receiptID;
-          await isar.receiptItemList.put(ci);
+        Receipt? existingReceipt;
+        if (receiptID != null) {
+          existingReceipt = await isar.receiptList.where().filter().idEqualTo(receiptID).findFirst();
+        }
+
+        if (existingReceipt != null) {
+          existingReceipt.sumAmount = (existingReceipt.sumAmount ?? 0.0) + totalAmount;
+          existingReceipt.totalAmount = (existingReceipt.totalAmount ?? 0.0) + totalAmount;
+          existingReceipt.status = 'Wait4Payment';
+          existingReceipt.lastUpdated = now.toIso8601String();
+          existingReceipt.isDirty = true;
+          await isar.receiptList.put(existingReceipt);
+
+          for (var ci in _cartItems) {
+            ci.receipt_ID = receiptID;
+            await isar.receiptItemList.put(ci);
+          }
+        } else {
+          String code = '';
+          int seqNumber = 0;
+          final docCodeList = await isar.documentCodeList.where().findAll();
+          docCodeList.sort((a, b) => (a.seq ?? 0).compareTo(b.seq ?? 0));
+          var numberCode;
+
+          for (var docCode in docCodeList) {
+            switch (docCode.name) {
+              case 'POSID':
+                code += (widget.config.PosID ?? '') + (docCode.seperator ?? '');
+                break;
+              case 'PREFIX':
+                if (docCode.value != null) {
+                  code += docCode.value! + (docCode.seperator ?? '');
+                }
+                break;
+              case 'YEAR':
+                if (docCode.value != null && docCode.value!.isNotEmpty) {
+                  int y = now.year;
+                  if (docCode.value!.startsWith('BE')) y += 543;
+                  if (docCode.value!.contains('2')) y = y % 100;
+                  code += '$y${docCode.seperator ?? ''}';
+                }
+                break;
+              case 'MONTH':
+                String m = now.month.toString().padLeft(2, '0');
+                code += '$m${docCode.seperator ?? ''}';
+                break;
+              case 'DAY':
+                String d = now.day.toString().padLeft(2, '0');
+                code += '$d${docCode.seperator ?? ''}';
+                break;
+              case 'NUMBER':
+                numberCode = docCode;
+                break;
+            }
+          }
+
+          String codePrefix = code;
+          int digit = 4;
+          if (numberCode != null) {
+            digit = int.tryParse(numberCode.seperator ?? '4') ?? 4;
+            if (numberCode.value == 'SEQUENCE') {
+              final existingCount = await isar.receiptList
+                  .where()
+                  .filter()
+                  .codeStartsWith(codePrefix)
+                  .count();
+              seqNumber = existingCount + 1;
+              code += seqNumber.toString().padLeft(digit, '0');
+            } else {
+              seqNumber = now.millisecondsSinceEpoch % 10000;
+              code += seqNumber.toString().padLeft(digit, '0');
+            }
+          } else {
+            seqNumber = now.millisecondsSinceEpoch % 10000;
+            code += seqNumber.toString().padLeft(digit, '0');
+          }
+
+          receiptID = uuid.v4();
+          final receipt = Receipt()
+            ..id = receiptID
+            ..pos_ID = int.tryParse(widget.config.PosID ?? '0')
+            ..shop_user_ID = int.tryParse(widget.config.UserID ?? '0')
+            ..shop_customer_ID = '0'
+            ..code = code
+            ..createdAt = now
+            ..sumAmount = totalAmount
+            ..totalAmount = totalAmount
+            ..status = 'Wait4Payment'
+            ..lastUpdated = now.toIso8601String()
+            ..isDirty = true;
+
+          await isar.receiptList.put(receipt);
+
+          for (var ci in _cartItems) {
+            ci.receipt_ID = receiptID;
+            await isar.receiptItemList.put(ci);
+          }
         }
       });
 
@@ -344,7 +560,7 @@ class _PPosScreenState extends State<PPosScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => PaymentScreen(config: widget.config, receiptID: receiptID)
+          builder: (context) => PaymentScreen(config: widget.config, receiptID: receiptID!)
         )
       );
     } catch (e) {
@@ -360,73 +576,82 @@ class _PPosScreenState extends State<PPosScreen> {
         bottom: false,
         child: Row(
           children: [
-            if (!_isExpired) ...[
-              if (_canSellMerchandise) ...[
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Text('PPos', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.category, color: Colors.black),
-                  onPressed: () { setState(() { _currentSection = 'Category'; }); },
-                ),
-              ],
-              
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  reverse: true,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (_canSellMerchandise) ...[
-                        IconButton(
-                          icon: const Icon(Icons.qr_code_scanner, color: Colors.black),
-                          onPressed: () => _openScanner(onScan: _handleScanCode),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.search, color: Colors.black),
-                          onPressed: () { setState(() { _currentSection = 'SearchResult'; }); },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.shopping_cart, color: Colors.black),
-                          onPressed: () { setState(() { _currentSection = 'Cart'; }); },
-                        ),
-                      ], // if (_canSellMerchandise)
-
-                      if (_canOrderFood) ...[
-                        IconButton(
-                          icon: const Icon(Icons.add, color: Colors.black),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => FoodMenuScreen(
-                                  config: widget.config,
-                                  shop_open_table_ID: '0',
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-
+            if (_canSellMerchandise) ...[
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                child: Text('PPos', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)),
+              ),
+              IconButton(
+                icon: const Icon(Icons.category, color: Colors.black),
+                onPressed: () { setState(() { _currentSection = 'Category'; }); },
+              ),
+            ],
+            
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                reverse: true,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_canSellMerchandise) ...[
                       IconButton(
-                        icon: const Icon(Icons.list, color: Colors.black),
+                        icon: const Icon(Icons.qr_code_scanner, color: Colors.black),
+                        onPressed: () => _openScanner(onScan: _handleScanCode),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.search, color: Colors.black),
+                        onPressed: () { setState(() { _currentSection = 'SearchResult'; }); },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.shopping_cart, color: Colors.black),
+                        onPressed: () { setState(() { _currentSection = 'Cart'; }); },
+                      ),
+                    ], // if (_canSellMerchandise)
+
+                    if (_canOrderFood) ...[
+                      IconButton(
+                        icon: const Icon(Icons.restaurant_menu, color: Colors.black),
                         onPressed: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ReceiptScreen(config: widget.config),
+                              builder: (context) => FoodMenuScreen(
+                                config: widget.config,
+                                shop_open_table_ID: '0',
+                              ),
                             ),
                           );
                         },
                       ),
                     ],
-                  ),
+
+                    IconButton(
+                      icon: const Icon(Icons.list, color: Colors.black),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ReceiptScreen(config: widget.config),
+                          ),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.settings, color: Colors.black),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SettingScreen(config: widget.config),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
-            ], // if (!_isExpired)
+            ),
           ], // children
         ),
       ),
@@ -762,7 +987,7 @@ class _PPosScreenState extends State<PPosScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isExpired) {
+    if (!_isLifeTime && _isExpired) {
       return Scaffold(
         appBar: AppBar(title: const Text('PPOS')),
         body: Center(

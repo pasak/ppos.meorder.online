@@ -12,6 +12,8 @@ class EnvConfig {
   final String? TaxID;
   final String? shop_branch_ID;
   final String? service_module_ID;
+  final String? shop_branch_service_ID;
+  final String? IntervalType;
   final String? BranchName;
   final String? Address;
   final String? Telephone;
@@ -27,6 +29,7 @@ class EnvConfig {
   final String? ExpireDate;
   final String? LastUpdated;
   final String? PosID;
+  final bool? isExpired;
 
   EnvConfig({
     required this.appTitle,
@@ -39,6 +42,8 @@ class EnvConfig {
     this.TaxID,
     this.shop_branch_ID,
     this.service_module_ID,
+    this.shop_branch_service_ID,
+    this.IntervalType,
     this.BranchName,
     this.Address,
     this.Telephone,
@@ -54,6 +59,7 @@ class EnvConfig {
     this.ExpireDate,
     this.LastUpdated,
     this.PosID,
+    this.isExpired,
   });
 
   // 💡 สร้างเมธอด .copyWith() สำหรับการสร้าง config ตัวใหม่ที่มีการเปลี่ยนแปลงบางส่วน
@@ -63,6 +69,8 @@ class EnvConfig {
     String? TaxID,
     String? shop_branch_ID,
     String? service_module_ID,
+    String? shop_branch_service_ID,
+    String? IntervalType,
     String? BranchName,
     String? Address,
     String? Telephone,
@@ -78,6 +86,7 @@ class EnvConfig {
     String? ExpireDate,
     String? LastUpdated,
     String? PosID,
+    bool? isExpired,
   }) {
     return EnvConfig(
       appTitle: appTitle,
@@ -90,6 +99,8 @@ class EnvConfig {
       TaxID: TaxID ?? this.TaxID,
       shop_branch_ID: shop_branch_ID ?? this.shop_branch_ID,
       service_module_ID: service_module_ID ?? this.service_module_ID,
+      shop_branch_service_ID: shop_branch_service_ID ?? this.shop_branch_service_ID,
+      IntervalType: IntervalType ?? this.IntervalType,
       BranchName: BranchName ?? this.BranchName,
       Address: Address ?? this.Address,
       Telephone: Telephone ?? this.Telephone,
@@ -105,6 +116,7 @@ class EnvConfig {
       ExpireDate: ExpireDate ?? this.ExpireDate,
       LastUpdated: LastUpdated ?? this.LastUpdated,
       PosID: PosID ?? this.PosID,
+      isExpired: isExpired ?? this.isExpired,
     );
   }
 

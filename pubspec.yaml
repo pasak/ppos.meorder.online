@@ -50,6 +50,7 @@ dependencies:
   isar_flutter_libs: 3.1.0+1
   bcrypt: ^1.2.0
   uuid: ^4.5.3
+  flutter_secure_storage: ^10.3.1
   
 dev_dependencies:
   flutter_test:

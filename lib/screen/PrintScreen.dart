@@ -139,7 +139,7 @@ class _PrintScreenState extends State<PrintScreen> {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${_config.apiToken}',
     };
-    final body = jsonEncode({'shop_ID': _config.id});
+    final body = jsonEncode({'shop_ID': _config.shop_ID});
 
     try {
       final response = await http.post(uri, headers: headers, body: body);
