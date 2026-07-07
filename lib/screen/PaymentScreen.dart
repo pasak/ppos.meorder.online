@@ -9,7 +9,7 @@ import 'package:meorder_ppos/services/PrintService.dart';
 import 'package:meorder_ppos/model/DisplayOrderItem.dart';
 import 'package:meorder_ppos/model/DisplayReceiptItem.dart';
 import 'package:meorder_ppos/services/SyncService.dart';
-import 'package:meorder_ppos/services/RolePermissionServices.dart';
+import 'package:meorder_ppos/services/GeneralServices.dart';
 import 'package:meorder_ppos/services/InventoryServices.dart';
 import 'dart:io';
 import 'dart:convert';
@@ -104,11 +104,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
     try {
       final roleID = widget.config.UserRole;
       if (roleID != null) {
-        foDiscountFood = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_DISCOUNT_FOOD');
-        foDiscountMerchandise = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_DISCOUNT_MERCHANDISE');
-        foDiscountReceipt = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_DISCOUNT_RECEIPT');
-        foReceiveCash = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_RECEIVE_CASH');
-        foCancelFoodOrder = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_CANCEL_FOOD_ORDER');
+        foDiscountFood = await GeneralServices.getRoleTransactionPermissionList(roleID, 'FO_DISCOUNT_FOOD');
+        foDiscountMerchandise = await GeneralServices.getRoleTransactionPermissionList(roleID, 'FO_DISCOUNT_MERCHANDISE');
+        foDiscountReceipt = await GeneralServices.getRoleTransactionPermissionList(roleID, 'FO_DISCOUNT_RECEIPT');
+        foReceiveCash = await GeneralServices.getRoleTransactionPermissionList(roleID, 'FO_RECEIVE_CASH');
+        foCancelFoodOrder = await GeneralServices.getRoleTransactionPermissionList(roleID, 'FO_CANCEL_FOOD_ORDER');
       }
 
       receipt = await isar.receiptList

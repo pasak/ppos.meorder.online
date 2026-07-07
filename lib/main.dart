@@ -80,6 +80,11 @@ class _MainScreenState extends State<MainScreen> {
           MerchandiseStockSchema,
           TransferStockSchema,
           LastSyncSchema,
+          PurchaseOrderSchema,
+          PurchaseOrderLogSchema,
+          PurchaseOrderItemSchema,
+          ReceiptItemStockSchema,
+          SupplierSchema,
         ],
         directory: directory.path,
       );

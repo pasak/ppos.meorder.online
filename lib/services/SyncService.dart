@@ -531,6 +531,33 @@ class SyncService {
             }
           }
 
+          // Supplier
+          if (responseData['SupplierList'] is List) {
+            for (var e in responseData['SupplierList']) {
+              final id = _parseString(e['ID']);
+              if (id != null) {
+                var item = await isar.supplierList.where().filter().idEqualTo(id).findFirst() ?? Supplier();
+                item.id = id;
+                item.shop_ID = e['shop_ID'];
+                item.thaiName = e['ThaiName'];
+                item.englishName = e['EnglishName'];
+                item.thaiAddress = e['ThaiAddress'];
+                item.englishAddress = e['EnglishAddress'];
+                item.sub_district_ID = e['sub_district_ID'];
+                item.contactInformation = e['ContactInformation'];
+                item.pictureFileName = e['PictureFileName'];
+                item.telephone = e['Telephone'];
+                item.email = e['Email'];
+                item.taxID = e['TaxID'];
+                item.language = e['Language'];
+                item.isActive = e['IsActive'];
+                item.lastUpdated = e['LastUpdated'];
+                item.isDirty = false;
+                await isar.supplierList.put(item);
+              }
+            }
+          }
+
           lastSyncData.master = newSyncTime;
           await isar.lastSyncList.put(lastSyncData);
         });
@@ -588,6 +615,11 @@ class SyncService {
         .isDirtyEqualTo(true)
         .findAll();
     final transferStocks = await isar.transferStockList
+        .where()
+        .filter()
+        .isDirtyEqualTo(true)
+        .findAll();
+    final receiptItemStocks = await isar.receiptItemStockList
         .where()
         .filter()
         .isDirtyEqualTo(true)
@@ -680,6 +712,7 @@ class SyncService {
           'merchandise_item_ID': e.merchandise_item_ID,
           'merchandise_pack_ID': e.merchandise_pack_ID,
           'itemPrice': e.itemPrice,
+          'unitCost': e.unitCost,
           'quantity': e.quantity,
           'discountPercent': e.discountPercent,
           'discountAmount': e.discountAmount,
@@ -696,6 +729,7 @@ class SyncService {
           'stockID': e.stockID,
           'currentQuantity': e.currentQuantity,
           'availableQuantity': e.availableQuantity,
+          'unitCost': e.unitCost,
           'lastUpdated': e.lastUpdated,
         };
         return capitalizeKeys(json);
@@ -711,6 +745,15 @@ class SyncService {
           'to_merchandise_stock_ID': e.to_merchandise_stock_ID,
           'toQuantity': e.toQuantity,
           'lastUpdated': e.lastUpdated,
+        };
+        return capitalizeKeys(json);
+      }).toList(),
+      'ReceiptItemStockList': receiptItemStocks.map((e) {
+        final json = {
+          'id': e.id,
+          'receipt_item_ID': e.receipt_item_ID,
+          'merchandise_stock_ID': e.merchandise_stock_ID,
+          'quantity': e.quantity,
         };
         return capitalizeKeys(json);
       }).toList(),
@@ -730,6 +773,7 @@ class SyncService {
     request.fields['FoodOrderItemList'] = jsonEncode(pushData['FoodOrderItemList']);
     request.fields['MerchandiseStockList'] = jsonEncode(pushData['MerchandiseStockList']);
     request.fields['TransferStockList'] = jsonEncode(pushData['TransferStockList']);
+    request.fields['ReceiptItemStockList'] = jsonEncode(pushData['ReceiptItemStockList']);
 
     final docDir = await getApplicationDocumentsDirectory();
     for (var r in receipts) {
@@ -783,6 +827,10 @@ class SyncService {
           for (var ts in transferStocks) {
             ts.isDirty = false;
             await isar.transferStockList.put(ts);
+          }
+          for (var ris in receiptItemStocks) {
+            ris.isDirty = false;
+            await isar.receiptItemStockList.put(ris);
           }
           
           lastSync.receipt = newSyncTime;
@@ -928,6 +976,23 @@ class SyncService {
               }
             }
           }
+          
+          // 6. Process ReceiptItemStockList
+          if (responseData['ReceiptItemStockList'] is List) {
+            for (var item in responseData['ReceiptItemStockList']) {
+              final String? id = _parseString(item['ID'] ?? item['id']);
+              if (id != null) {
+                var stock = await isar.receiptItemStockList.where().filter().idEqualTo(id).findFirst() ?? ReceiptItemStock();
+                stock.id = id;
+                stock.receipt_item_ID = _parseString(item['Receipt_item_ID'] ?? item['receipt_item_ID']);
+                stock.merchandise_stock_ID = _parseString(item['Merchandise_stock_ID'] ?? item['merchandise_stock_ID']);
+                stock.quantity = _parseDouble(item['Quantity'] ?? item['quantity']);
+                stock.isDirty = false;
+
+                await isar.receiptItemStockList.put(stock);
+              }
+            }
+          }
           }
         });
         return true;
@@ -940,4 +1005,421 @@ class SyncService {
       return false;
     }
   }
+  
+  static Future<bool> syncPurchaseOrder(EnvConfig config) async {
+    debugPrint('syncPurchaseOrder started');
+    bool _isExpired = config.isExpired ?? false;
+
+    if (_isExpired) {
+      debugPrint('Sync error: Expired');
+      return false;
+    }
+
+    final isar = Isar.getInstance()!;
+    final lastSync = await isar.lastSyncList.where().findFirst();
+    if (lastSync == null) return false;
+    
+    final syncTime = lastSync.purchaseOrder ?? lastSync.master ?? '2000-01-01T00:00:00Z';
+
+    final receiptItemStocks = await isar.receiptItemStockList
+        .where()
+        .filter()
+        .isDirtyEqualTo(true)
+        .findAll();
+    final merchandiseStocks = await isar.merchandiseStockList
+        .where()
+        .filter()
+        .isDirtyEqualTo(true)
+        .findAll();
+    final transferStocks = await isar.transferStockList
+        .where()
+        .filter()
+        .isDirtyEqualTo(true)
+        .findAll();
+    final purchaseOrders = await isar.purchaseOrderList
+        .where()
+        .filter()
+        .isDirtyEqualTo(true)
+        .findAll();
+    final purchaseOrderLogs = await isar.purchaseOrderLogList
+        .where()
+        .filter()
+        .isDirtyEqualTo(true)
+        .findAll();
+    final purchaseOrderItems = await isar.purchaseOrderItemList
+        .where()
+        .filter()
+        .isDirtyEqualTo(true)
+        .findAll();
+    final suppliers = await isar.supplierList
+        .where()
+        .filter()
+        .isDirtyEqualTo(true)
+        .findAll();
+
+  
+    Map<String, dynamic> capitalizeKeys(Map<String, dynamic> json) {
+      final Map<String, dynamic> result = {};
+      json.forEach((key, value) {
+        if (key == 'isarId' || key == 'isDirty') return;
+
+        String newKey = key;
+        if (!key.endsWith('_ID')) {
+          if (key.isNotEmpty) {
+            newKey = key[0].toUpperCase() + key.substring(1);
+          }
+        }
+
+        if (key == 'id') newKey = 'ID';
+
+        result[newKey] = value;
+      });
+      return result;
+    }
+
+    Map<String, dynamic> pushData = {
+      'ReceiptItemStockList': receiptItemStocks.map((e) {
+        final json = {
+          'id': e.id,
+          'receipt_item_ID': e.receipt_item_ID,
+          'merchandise_stock_ID': e.merchandise_stock_ID,
+          'quantity': e.quantity,
+          'lastUpdated': e.lastUpdated,
+        };
+        return capitalizeKeys(json);
+      }).toList(),
+      'MerchandiseStockList': merchandiseStocks.map((e) {
+        final json = {
+          'id': e.id,
+          'storeType': e.storeType,
+          'storeID': e.storeID,
+          'stockType': e.stockType,
+          'stockID': e.stockID,
+          'currentQuantity': e.currentQuantity,
+          'availableQuantity': e.availableQuantity,
+          'unitCost': e.unitCost,
+          'createdAt': e.createdAt,
+          'lastUpdated': e.lastUpdated,
+        };
+        return capitalizeKeys(json);
+      }).toList(),
+      'TransferStockList': transferStocks.map((e) {
+        final json = {
+          'id': e.id,
+          'byType': e.byType,
+          'byID': e.byID,
+          'transferType': e.transferType,
+          'from_merchandise_stock_ID': e.from_merchandise_stock_ID,
+          'fromQuantity': e.fromQuantity,
+          'to_merchandise_stock_ID': e.to_merchandise_stock_ID,
+          'toQuantity': e.toQuantity,
+          'lastUpdated': e.lastUpdated,
+        };
+        return capitalizeKeys(json);
+      }).toList(),
+      'PurchaseOrderList': purchaseOrders.map((e) {
+        final json = {
+          'id': e.id,
+          'code': e.code,
+          'storeType': e.storeType,
+          'storeID': e.storeID,
+          'supplier_ID': e.supplier_ID,
+          'supplierDocumentNumber': e.supplierDocumentNumber,
+          'vatType': e.vatType,
+          'sumAmount': e.sumAmount,
+          'vatAmount': e.vatAmount,
+          'totalAmount': e.totalAmount,
+          'paidAmount': e.paidAmount,
+          'status': e.status,
+          'paymentType': e.paymentType,
+          'lastUpdated': e.lastUpdated,
+        };
+        return capitalizeKeys(json);
+      }).toList(),
+      'PurchaseOrderLogList': purchaseOrderLogs.map((e) {
+        final json = {
+          'id': e.id,
+          'purchase_order_ID': e.purchase_order_ID,
+          'status': e.status,
+          'remark': e.remark,
+          'shop_user_ID': e.shop_user_ID,
+          'lastUpdated': e.lastUpdated,
+        };
+        return capitalizeKeys(json);
+      }).toList(),
+      'PurchaseOrderItemList': purchaseOrderItems.map((e) {
+        final json = {
+          'id': e.id,
+          'purchase_order_ID': e.purchase_order_ID,
+          'seq': e.seq,
+          'stockType': e.stockType,
+          'stockID': e.stockID,
+          'orderQuantity': e.orderQuantity,
+          'unitPrice': e.unitPrice,
+          'itemAmount': e.itemAmount,
+          'receivedQuantity': e.receivedQuantity,
+          'unitCost': e.unitCost,
+          'status': e.status,
+          'lastUpdated': e.lastUpdated,
+        };
+        return capitalizeKeys(json);
+      }).toList(),
+      'SupplierList': suppliers.map((e) {
+        final json = {
+          'id': e.id,
+          'shop_ID': e.shop_ID,
+          'thaiName': e.thaiName,
+          'englishName': e.englishName,
+          'thaiAddress': e.thaiAddress,
+          'englishAddress': e.englishAddress,
+          'sub_district_ID': e.sub_district_ID,
+          'contactInformation': e.contactInformation,
+          'pictureFileName': e.pictureFileName,
+          'telephone': e.telephone,
+          'email': e.email,
+          'taxID': e.taxID,
+          'language': e.language,
+          'isActive': e.isActive,
+          'lastUpdated': e.lastUpdated,
+        };
+        return capitalizeKeys(json);
+      }).toList(),
+    };
+
+    final uri = Uri.parse('${config.apiUrl}api/pos/sync-purchase-order');
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ${config.apiToken}',
+    };
+
+    pushData['shop_branch_ID'] = config.shop_branch_ID;
+    pushData['LastSync'] = syncTime;
+    
+    final body = jsonEncode(pushData);
+
+    debugPrint('syncPurchaseOrder Sync pushData.shop_branch_ID: ${pushData['shop_branch_ID']} LastSync: ${pushData['LastSync']}');
+    debugPrint('syncPurchaseOrder Sync pushData.ReceiptItemStockList: ${pushData['ReceiptItemStockList']}');
+    debugPrint('syncPurchaseOrder Sync pushData.MerchandiseStockList: ${pushData['MerchandiseStockList']}');
+    debugPrint('syncPurchaseOrder Sync pushData.TransferStockList: ${pushData['TransferStockList']}');
+    debugPrint('syncPurchaseOrder Sync pushData.PurchaseOrderList: ${pushData['PurchaseOrderList']}');
+    debugPrint('syncPurchaseOrder Sync pushData.PurchaseOrderLogList: ${pushData['PurchaseOrderLogList']}');
+    debugPrint('syncPurchaseOrder Sync pushData.PurchaseOrderItemList: ${pushData['PurchaseOrderItemList']}');
+    debugPrint('syncPurchaseOrder Sync pushData.SupplierList: ${pushData['SupplierList']}');
+
+    try {
+      final response = await http.post(uri, headers: headers, body: body);
+
+      debugPrint('syncPurchaseOrder Sync response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final newSyncTime = DateTime.now().toIso8601String();
+        
+        Map<String, dynamic>? responseData;
+        try {
+          responseData = jsonDecode(response.body);
+        } catch (e) {
+          debugPrint('Error decoding JSON: $e');
+        }
+
+        await isar.writeTxn(() async {
+          // Clear dirty flags
+          for (var ris in receiptItemStocks) {
+            ris.isDirty = false;
+            await isar.receiptItemStockList.put(ris);
+          }
+          for (var ms in merchandiseStocks) {
+            ms.isDirty = false;
+            await isar.merchandiseStockList.put(ms);
+          }
+          for (var ts in transferStocks) {
+            ts.isDirty = false;
+            await isar.transferStockList.put(ts);
+          }
+          for (var po in purchaseOrders) {
+            po.isDirty = false;
+            await isar.purchaseOrderList.put(po);
+          }
+          for (var pol in purchaseOrderLogs) {
+            pol.isDirty = false;
+            await isar.purchaseOrderLogList.put(pol);
+          }
+          for (var poi in purchaseOrderItems) {
+            poi.isDirty = false;
+            await isar.purchaseOrderItemList.put(poi);
+          }
+          for (var s in suppliers) {
+            s.isDirty = false;
+            await isar.supplierList.put(s);
+          }
+          
+          lastSync.purchaseOrder = newSyncTime;
+          await isar.lastSyncList.put(lastSync);
+
+          if (responseData != null) {
+            // ReceiptItemStockList
+            if (responseData['ReceiptItemStockList'] is List) {
+              for (var item in responseData['ReceiptItemStockList']) {
+                final String? id = _parseString(item['ID'] ?? item['id']);
+                if (id != null) {
+                  var stock = await isar.receiptItemStockList.where().filter().idEqualTo(id).findFirst() ?? ReceiptItemStock();
+                  stock.id = id;
+                  stock.receipt_item_ID = _parseString(item['Receipt_item_ID'] ?? item['receipt_item_ID']);
+                  stock.merchandise_stock_ID = _parseString(item['Merchandise_stock_ID'] ?? item['merchandise_stock_ID']);
+                  stock.quantity = _parseDouble(item['Quantity'] ?? item['quantity']);
+                  stock.lastUpdated = _parseString(item['LastUpdated'] ?? item['lastUpdated']);
+                  stock.isDirty = false;
+                  await isar.receiptItemStockList.put(stock);
+                }
+              }
+            }
+
+            // MerchandiseStockList
+            if (responseData['MerchandiseStockList'] is List) {
+              for (var item in responseData['MerchandiseStockList']) {
+                final String? id = _parseString(item['ID'] ?? item['id']);
+                if (id != null) {
+                  var stock = await isar.merchandiseStockList.where().filter().idEqualTo(id).findFirst() ?? MerchandiseStock();
+                  stock.id = id;
+                  stock.storeType = _parseString(item['StoreType'] ?? item['storeType']);
+                  stock.storeID = _parseInt(item['StoreID'] ?? item['storeID']);
+                  stock.stockType = _parseString(item['StockType'] ?? item['stockType']);
+                  stock.stockID = _parseString(item['StockID'] ?? item['stockID']);
+                  stock.currentQuantity = _parseDouble(item['CurrentQuantity'] ?? item['currentQuantity']);
+                  stock.availableQuantity = _parseDouble(item['AvailableQuantity'] ?? item['availableQuantity']);
+                  stock.unitCost = _parseDouble(item['UnitCost'] ?? item['unitCost']);
+                  stock.createdAt = _parseString(item['CreatedAt'] ?? item['createdAt']);
+                  stock.lastUpdated = _parseString(item['LastUpdated'] ?? item['lastUpdated']);
+                  stock.isDirty = false;
+                  await isar.merchandiseStockList.put(stock);
+                }
+              }
+            }
+
+            // TransferStockList
+            if (responseData['TransferStockList'] is List) {
+              for (var item in responseData['TransferStockList']) {
+                final String? id = _parseString(item['ID'] ?? item['id']);
+                if (id != null) {
+                  var transfer = await isar.transferStockList.where().filter().idEqualTo(id).findFirst() ?? TransferStock();
+                  transfer.id = id;
+                  transfer.byType = _parseString(item['ByType'] ?? item['byType']);
+                  transfer.byID = _parseString(item['ByID'] ?? item['byID']);
+                  transfer.transferType = _parseString(item['TransferType'] ?? item['transferType']);
+                  transfer.from_merchandise_stock_ID = _parseString(item['From_merchandise_stock_ID'] ?? item['from_merchandise_stock_ID']);
+                  transfer.fromQuantity = _parseDouble(item['FromQuantity'] ?? item['fromQuantity']);
+                  transfer.to_merchandise_stock_ID = _parseString(item['To_merchandise_stock_ID'] ?? item['to_merchandise_stock_ID']);
+                  transfer.toQuantity = _parseDouble(item['ToQuantity'] ?? item['toQuantity']);
+                  transfer.lastUpdated = _parseString(item['LastUpdated'] ?? item['lastUpdated']);
+                  transfer.isDirty = false;
+                  await isar.transferStockList.put(transfer);
+                }
+              }
+            }
+
+            // PurchaseOrderList
+            if (responseData['PurchaseOrderList'] is List) {
+              for (var item in responseData['PurchaseOrderList']) {
+                final String? id = _parseString(item['ID'] ?? item['id']);
+                if (id != null) {
+                  var po = await isar.purchaseOrderList.where().filter().idEqualTo(id).findFirst() ?? PurchaseOrder();
+                  po.id = id;
+                  po.code = _parseString(item['Code'] ?? item['code']);
+                  po.storeType = _parseString(item['StoreType'] ?? item['storeType']);
+                  po.storeID = _parseString(item['StoreID'] ?? item['storeID']);
+                  po.supplier_ID = _parseString(item['Supplier_ID'] ?? item['supplier_ID']);
+                  po.supplierDocumentNumber = _parseString(item['SupplierDocumentNumber'] ?? item['supplierDocumentNumber']);
+                  po.vatType = _parseString(item['VatType'] ?? item['vatType']);
+                  po.sumAmount = _parseDouble(item['SumAmount'] ?? item['sumAmount']);
+                  po.vatAmount = _parseDouble(item['VatAmount'] ?? item['vatAmount']);
+                  po.totalAmount = _parseDouble(item['TotalAmount'] ?? item['totalAmount']);
+                  po.paidAmount = _parseDouble(item['PaidAmount'] ?? item['paidAmount']);
+                  po.status = _parseString(item['Status'] ?? item['status']);
+                  po.paymentType = _parseString(item['PaymentType'] ?? item['paymentType']);
+                  po.lastUpdated = _parseString(item['LastUpdated'] ?? item['lastUpdated']);
+                  po.isDirty = false;
+                  await isar.purchaseOrderList.put(po);
+                }
+              }
+            }
+
+            // PurchaseOrderLogList
+            if (responseData['PurchaseOrderLogList'] is List) {
+              for (var item in responseData['PurchaseOrderLogList']) {
+                final String? id = _parseString(item['ID'] ?? item['id']);
+                if (id != null) {
+                  var pol = await isar.purchaseOrderLogList.where().filter().idEqualTo(id).findFirst() ?? PurchaseOrderLog();
+                  pol.id = id;
+                  pol.purchase_order_ID = _parseString(item['Purchase_order_ID'] ?? item['purchase_order_ID']);
+                  pol.status = _parseString(item['Status'] ?? item['status']);
+                  pol.remark = _parseString(item['Remark'] ?? item['remark']);
+                  pol.shop_user_ID = _parseInt(item['Shop_user_ID'] ?? item['shop_user_ID']);
+                  pol.lastUpdated = _parseString(item['LastUpdated'] ?? item['lastUpdated']);
+                  pol.isDirty = false;
+                  await isar.purchaseOrderLogList.put(pol);
+                }
+              }
+            }
+
+            // PurchaseOrderItemList
+            if (responseData['PurchaseOrderItemList'] is List) {
+              for (var item in responseData['PurchaseOrderItemList']) {
+                final String? id = _parseString(item['ID'] ?? item['id']);
+                if (id != null) {
+                  var poi = await isar.purchaseOrderItemList.where().filter().idEqualTo(id).findFirst() ?? PurchaseOrderItem();
+                  poi.id = id;
+                  poi.purchase_order_ID = _parseString(item['Purchase_order_ID'] ?? item['purchase_order_ID']);
+                  poi.seq = _parseInt(item['Seq'] ?? item['seq']);
+                  poi.stockType = _parseString(item['StockType'] ?? item['stockType']);
+                  poi.stockID = _parseString(item['StockID'] ?? item['stockID']);
+                  poi.orderQuantity = _parseDouble(item['OrderQuantity'] ?? item['orderQuantity']);
+                  poi.unitPrice = _parseDouble(item['UnitPrice'] ?? item['unitPrice']);
+                  poi.itemAmount = _parseDouble(item['ItemAmount'] ?? item['itemAmount']);
+                  poi.receivedQuantity = _parseDouble(item['ReceivedQuantity'] ?? item['receivedQuantity']);
+                  poi.unitCost = _parseDouble(item['UnitCost'] ?? item['unitCost']);
+                  poi.status = _parseString(item['Status'] ?? item['status']);
+                  poi.lastUpdated = _parseString(item['LastUpdated'] ?? item['lastUpdated']);
+                  poi.isDirty = false;
+                  await isar.purchaseOrderItemList.put(poi);
+                }
+              }
+            }
+
+            // SupplierList
+            if (responseData['SupplierList'] is List) {
+              for (var item in responseData['SupplierList']) {
+                final String? id = _parseString(item['ID'] ?? item['id']);
+                if (id != null) {
+                  var supplier = await isar.supplierList.where().filter().idEqualTo(id).findFirst() ?? Supplier();
+                  supplier.id = id;
+                  supplier.shop_ID = _parseString(item['Shop_ID'] ?? item['shop_ID']);
+                  supplier.thaiName = _parseString(item['ThaiName'] ?? item['thaiName']);
+                  supplier.englishName = _parseString(item['EnglishName'] ?? item['englishName']);
+                  supplier.thaiAddress = _parseString(item['ThaiAddress'] ?? item['thaiAddress']);
+                  supplier.englishAddress = _parseString(item['EnglishAddress'] ?? item['englishAddress']);
+                  supplier.sub_district_ID = _parseString(item['Sub_district_ID'] ?? item['sub_district_ID']);
+                  supplier.contactInformation = _parseString(item['ContactInformation'] ?? item['contactInformation']);
+                  supplier.pictureFileName = _parseString(item['PictureFileName'] ?? item['pictureFileName']);
+                  supplier.telephone = _parseString(item['Telephone'] ?? item['telephone']);
+                  supplier.email = _parseString(item['Email'] ?? item['email']);
+                  supplier.taxID = _parseString(item['TaxID'] ?? item['taxID']);
+                  supplier.language = _parseString(item['Language'] ?? item['language']);
+                  supplier.isActive = _parseString(item['IsActive'] ?? item['isActive']);
+                  supplier.lastUpdated = _parseString(item['LastUpdated'] ?? item['lastUpdated']);
+                  supplier.isDirty = false;
+                  await isar.supplierList.put(supplier);
+                }
+              }
+            }
+          }
+        });
+        return true;
+      } else {
+        debugPrint('Sync failed: ${response.statusCode} ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Sync error: $e');
+      return false;
+    }
+  } // syncPurchaseOrder
 }

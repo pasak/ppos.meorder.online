@@ -5,16 +5,18 @@ import 'package:meorder_ppos/services/SyncService.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
+import 'package:meorder_ppos/services/GeneralServices.dart';
+import 'package:meorder_ppos/screen/PurchaseScreen.dart';
 
-class SettingScreen extends StatefulWidget {
+class AdminScreen extends StatefulWidget {
   final EnvConfig config;
-  const SettingScreen({super.key, required this.config});
+  const AdminScreen({super.key, required this.config});
 
   @override
-  State<SettingScreen> createState() => _SettingScreenState();
+  State<AdminScreen> createState() => _AdminScreenState();
 }
 
-class _SettingScreenState extends State<SettingScreen> {
+class _AdminScreenState extends State<AdminScreen> {
   late EnvConfig _config;
   String _activeSection = 'User'; // 'User' or 'Branch'
   bool _isKitchen = false;
@@ -26,6 +28,21 @@ class _SettingScreenState extends State<SettingScreen> {
     super.initState();
     _config = widget.config;
     _isKitchen = _config.isKitchen ?? false;
+    _loadPermissions();
+  }
+
+  Map<String, String?>? foPurchaseOrder;
+
+  Future<void> _loadPermissions() async {
+    final roleID = _config.UserRole;
+    if (roleID != null) {
+      final perm = await GeneralServices.getRoleTransactionPermissionList(roleID, 'FO_PURCHASE_ORDER');
+      if (mounted) {
+        setState(() {
+          foPurchaseOrder = perm;
+        });
+      }
+    }
   }
 
   Future<void> _updateConfig(EnvConfig newConfig) async {
@@ -89,7 +106,7 @@ class _SettingScreenState extends State<SettingScreen> {
             ),
             Expanded(
               child: Text(
-                isThai ? 'ตั้งค่า' : 'Settings',
+                isThai ? 'แอดมิน' : 'Admin',
                 style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
@@ -101,6 +118,18 @@ class _SettingScreenState extends State<SettingScreen> {
               icon: Icon(Icons.info, color: _activeSection == 'Branch' ? Colors.blue : Colors.black),
               onPressed: () { setState(() { _activeSection = 'Branch'; }); },
             ),
+            if (foPurchaseOrder != null && foPurchaseOrder!['PermissionLevel'] != 'No')
+              IconButton(
+                icon: const Icon(Icons.shopping_cart, color: Colors.black),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PurchaseScreen(config: _config),
+                    ),
+                  );
+                },
+              ),
             IconButton(
               icon: const Icon(Icons.refresh, color: Colors.black),
               onPressed: () async {

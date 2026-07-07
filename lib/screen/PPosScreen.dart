@@ -5,12 +5,12 @@ import 'package:meorder_ppos/lib/EnvConfig.dart';
 import 'package:meorder_ppos/screen/FoodMenuScreen.dart';
 import 'package:meorder_ppos/screen/PaymentScreen.dart';
 import 'package:meorder_ppos/screen/ReceiptScreen.dart';
-import 'package:meorder_ppos/screen/SettingScreen.dart';
+import 'package:meorder_ppos/screen/AdminScreen.dart';
 import 'package:isar/isar.dart';
 import 'package:meorder_ppos/database/IsarModels.dart';
 import 'package:uuid/uuid.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:meorder_ppos/services/RolePermissionServices.dart';
+import 'package:meorder_ppos/services/GeneralServices.dart';
 
 class PPosScreen extends StatefulWidget {
   final EnvConfig config;
@@ -53,9 +53,9 @@ class _PPosScreenState extends State<PPosScreen> {
     if (widget.config.UserRole == null) return;
     
     final roleID = widget.config.UserRole!;
-    final foOrderFood = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_ORDER_FOOD');
-    final foSellMerchandise = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_SELL_MERCHANDISE');
-    final foSellNonStock = await RolePermissionServices.getRoleTransactionPermissionList(roleID, 'FO_SELL_NON_STOCK');
+    final foOrderFood = await GeneralServices.getRoleTransactionPermissionList(roleID, 'FO_ORDER_FOOD');
+    final foSellMerchandise = await GeneralServices.getRoleTransactionPermissionList(roleID, 'FO_SELL_MERCHANDISE');
+    final foSellNonStock = await GeneralServices.getRoleTransactionPermissionList(roleID, 'FO_SELL_NON_STOCK');
 
     if (mounted) {
       setState(() {
@@ -268,6 +268,9 @@ class _PPosScreenState extends State<PPosScreen> {
           .findFirst();
 
       if (ms == null) {
+        mi.availableQuantity =  0.0;
+
+        /* ไม่จำเป็นต้องสร้างสต๊อคไว้ก่อน
         ms = MerchandiseStock()
           ..id = const Uuid().v4()
           ..storeType = 'shop_branch'
@@ -276,6 +279,7 @@ class _PPosScreenState extends State<PPosScreen> {
           ..stockID = mi.id
           ..currentQuantity = 0.0
           ..availableQuantity = 0.0 
+          ..unitCost = 0.0
           ..lastUpdated = DateTime.now().toIso8601String()
           ..isDirty = true;
           
@@ -286,9 +290,10 @@ class _PPosScreenState extends State<PPosScreen> {
         if (isDebug) { 
           debugPrint('_getStock create MerchandiseStock id: ${ms!.id}, storeType: ${ms!.storeType}, storeID: ${ms!.storeID}, stockType: ${ms!.stockType}, stockID: ${ms!.stockID}, current: ${ms!.currentQuantity}, available: ${ms!.availableQuantity}, isDirty: ${ms!.isDirty}'); 
         }
+        */
+      } else {
+        mi.availableQuantity = ms.availableQuantity;
       }
-
-      mi.availableQuantity = ms.availableQuantity;
 
       if (_canSellNonStock || (mi.availableQuantity ?? 0.0) > 0.0) {
         results.add(mi);
@@ -425,6 +430,7 @@ class _PPosScreenState extends State<PPosScreen> {
         ..merchandise_item_ID = item.id
         ..merchandise_pack_ID = pack?.id
         ..itemPrice = pack != null ? pack.price : item.price
+        ..unitCost = 0.0
         ..quantity = 1
         ..discountPercent = 0
         ..discountAmount = 0
@@ -557,64 +563,7 @@ class _PPosScreenState extends State<PPosScreen> {
             await isar.receiptItemList.put(ci);
           }
         } else {
-          String code = '';
-          int seqNumber = 0;
-          final docCodeList = await isar.documentCodeList.where().findAll();
-          docCodeList.sort((a, b) => (a.seq ?? 0).compareTo(b.seq ?? 0));
-          var numberCode;
-
-          for (var docCode in docCodeList) {
-            switch (docCode.name) {
-              case 'POSID':
-                code += (widget.config.PosID ?? '') + (docCode.seperator ?? '');
-                break;
-              case 'PREFIX':
-                if (docCode.value != null) {
-                  code += docCode.value! + (docCode.seperator ?? '');
-                }
-                break;
-              case 'YEAR':
-                if (docCode.value != null && docCode.value!.isNotEmpty) {
-                  int y = now.year;
-                  if (docCode.value!.startsWith('BE')) y += 543;
-                  if (docCode.value!.contains('2')) y = y % 100;
-                  code += '$y${docCode.seperator ?? ''}';
-                }
-                break;
-              case 'MONTH':
-                String m = now.month.toString().padLeft(2, '0');
-                code += '$m${docCode.seperator ?? ''}';
-                break;
-              case 'DAY':
-                String d = now.day.toString().padLeft(2, '0');
-                code += '$d${docCode.seperator ?? ''}';
-                break;
-              case 'NUMBER':
-                numberCode = docCode;
-                break;
-            }
-          }
-
-          String codePrefix = code;
-          int digit = 4;
-          if (numberCode != null) {
-            digit = int.tryParse(numberCode.seperator ?? '4') ?? 4;
-            if (numberCode.value == 'SEQUENCE') {
-              final existingCount = await isar.receiptList
-                  .where()
-                  .filter()
-                  .codeStartsWith(codePrefix)
-                  .count();
-              seqNumber = existingCount + 1;
-              code += seqNumber.toString().padLeft(digit, '0');
-            } else {
-              seqNumber = now.millisecondsSinceEpoch % 10000;
-              code += seqNumber.toString().padLeft(digit, '0');
-            }
-          } else {
-            seqNumber = now.millisecondsSinceEpoch % 10000;
-            code += seqNumber.toString().padLeft(digit, '0');
-          }
+          String code = await GeneralServices.getDocumentCode('FO_RECEIPT', posID: widget.config.PosID);
 
           receiptID = uuid.v4();
           final receipt = Receipt()
@@ -719,7 +668,7 @@ class _PPosScreenState extends State<PPosScreen> {
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => SettingScreen(config: widget.config),
+                            builder: (context) => AdminScreen(config: widget.config),
                           ),
                         );
                         _checkPermissions();

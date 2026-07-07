@@ -156,6 +156,7 @@ class _InitScreenState extends State<InitScreen> {
           await isar.receiptItemList.clear();
           await isar.merchandiseStockList.clear();
           await isar.transferStockList.clear();
+          await isar.supplierList.clear();
           await isar.lastSyncList.clear();
 
           // LastSync
@@ -603,7 +604,31 @@ class _InitScreenState extends State<InitScreen> {
           ).toList();
           await isar.transferStockList.putAll(transferStock);
 
-          setState(() { _debug = 'putAll MerchandisePack success'; });
+          setState(() { _debug = 'putAll TransferStock success'; });
+
+          // Supplier
+          final supplierListRaw = responseData['SupplierList'] as List<dynamic>? ?? [];
+          final supplierList = supplierListRaw.map((e) => Supplier()
+            ..id = e['ID']
+            ..shop_ID = e['shop_ID']
+            ..thaiName = e['ThaiName']
+            ..englishName = e['EnglishName']
+            ..thaiAddress = e['ThaiAddress']
+            ..englishAddress = e['EnglishAddress']
+            ..sub_district_ID = e['sub_district_ID']
+            ..contactInformation = e['ContactInformation']
+            ..pictureFileName = e['PictureFileName']
+            ..telephone = e['Telephone']
+            ..email = e['Email']
+            ..taxID = e['TaxID']
+            ..language = e['Language']
+            ..isActive = e['IsActive']
+            ..lastUpdated = e['LastUpdated']
+            ..isDirty = false
+          ).toList();
+          await isar.supplierList.putAll(supplierList);
+
+          setState(() { _debug = 'putAll Supplier success'; });
         });
 
         setState(() { _isLoading = false; });
