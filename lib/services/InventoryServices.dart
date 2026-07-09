@@ -338,6 +338,7 @@ class InventoryServices {
                 ..stockID = stockID
                 ..currentQuantity = 0.0
                 ..availableQuantity = 0.0
+                ..unitCost = 0.0
                 ..createdAt = DateTime.now().toIso8601String()
                 ..lastUpdated = DateTime.now().toIso8601String()
                 ..isDirty = true;
@@ -384,6 +385,7 @@ class InventoryServices {
                   ..stockID = stockID
                   ..currentQuantity = 0.0
                   ..availableQuantity = 0.0
+                  ..unitCost = 0.0
                   ..createdAt = DateTime.now().toIso8601String()
                   ..lastUpdated = DateTime.now().toIso8601String()
                   ..isDirty = true;

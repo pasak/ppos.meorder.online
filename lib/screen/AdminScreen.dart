@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:meorder_ppos/services/GeneralServices.dart';
 import 'package:meorder_ppos/screen/PurchaseScreen.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AdminScreen extends StatefulWidget {
   final EnvConfig config;
@@ -51,19 +52,16 @@ class _AdminScreenState extends State<AdminScreen> {
     });
 
     try {
-      final directory = await getApplicationDocumentsDirectory();
-      final filePath = '${directory.path}/branch.json';
-      final file = File(filePath);
-
-      if (await file.exists()) {
-        final content = await file.readAsString();
-        final branchData = jsonDecode(content);
+      const storage = FlutterSecureStorage();
+      final branchStr = await storage.read(key: 'branch');
+      if (branchStr != null) {
+        final branchData = jsonDecode(branchStr);
         
         branchData['UserID'] = newConfig.UserID;
         branchData['UserRole'] = newConfig.UserRole;
         branchData['isKitchen'] = newConfig.isKitchen;
         
-        await file.writeAsString(jsonEncode(branchData));
+        await storage.write(key: 'branch', value: jsonEncode(branchData));
       }
     } catch (e) {
       debugPrint("Error updating config: $e");

@@ -12,6 +12,7 @@ import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SetPrinterScreen extends StatefulWidget {
   final EnvConfig config;
@@ -233,17 +234,14 @@ class _SetPrinterScreenState extends State<SetPrinterScreen> {
       PrinterAddress: printerAddress,
     );
 
-    final directory = await getApplicationDocumentsDirectory();
-    final filePath = '${directory.path}/branch.json';
-    final file = File(filePath);
-
-    if (await file.exists()) {
-      final content = await file.readAsString();
-      final branchData = jsonDecode(content);
+    const storage = FlutterSecureStorage();
+    final branchStr = await storage.read(key: 'branch');
+    if (branchStr != null) {
+      final branchData = jsonDecode(branchStr);
       branchData['PrinterModel'] = printerModel;
       branchData['ConnectType'] = connectType;
       branchData['PrinterAddress'] = printerAddress;
-      await file.writeAsString(jsonEncode(branchData));
+      await storage.write(key: 'branch', value: jsonEncode(branchData));
     }
 
     if (mounted) {

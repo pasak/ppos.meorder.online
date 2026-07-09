@@ -1,5 +1,6 @@
 import 'package:isar/isar.dart';
 import 'package:meorder_ppos/database/IsarModels.dart';
+import 'package:flutter/foundation.dart';
 
 class GeneralServices {
   static Future<Map<String, String?>?> getRoleTransactionPermissionList(
@@ -24,6 +25,8 @@ class GeneralServices {
   }
 
   static Future<String> getDocumentCode(String documentType, {String? posID}) async {
+    final isDebug = true;
+
     final isar = Isar.getInstance()!;
     String code = '';
     int seqNumber = 0;
@@ -62,8 +65,10 @@ class GeneralServices {
           numberCode = docCode;
           break;
       }
-    }
 
+      if (isDebug) { debugPrint('getDocumentCode docCode.name: ${docCode.name}, docCode.seperator: ${docCode.seperator}, docCode.value: ${docCode.value} code: ${code}'); }
+    } // end for
+      
     String codePrefix = code;
     int digit = 4;
     if (numberCode != null) {
@@ -84,6 +89,8 @@ class GeneralServices {
       seqNumber = now.millisecondsSinceEpoch % 10000;
       code += seqNumber.toString().padLeft(digit, '0');
     }
+
+    if (isDebug) { debugPrint('getDocumentCode numberCode: ${numberCode}, code: ${code}'); }
     
     return code;
   }

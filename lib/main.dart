@@ -150,6 +150,8 @@ class _MainScreenState extends State<MainScreen> {
           ConnectType:            branchData['ConnectType'],
           PrinterAddress:         branchData['PrinterAddress'],
           isKitchen:              branchData['isKitchen'] == true,
+          PosID:                  branchData['PosID']?.toString(),
+          TaxID:                  branchData['TaxID'],
         );
 
         setState(() { _config = updatedConfig; });

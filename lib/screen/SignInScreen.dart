@@ -7,6 +7,7 @@ import 'package:isar/isar.dart';
 import 'package:meorder_ppos/database/IsarModels.dart';
 import 'package:meorder_ppos/screen/PPosScreen.dart';
 import 'package:bcrypt/bcrypt.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SignInScreen extends StatefulWidget {
   final EnvConfig config; 
@@ -74,25 +75,43 @@ class _SignInScreenState extends State<SignInScreen> {
       if (user != null) {
          final isMatch = BCrypt.checkpw(password, user.passwordHash ?? '');
          if (isMatch) {
-            final updatedConfig = _currentConfig.copyWith(
-              UserID: user.id.toString(),
-              UserRole: user.role_ID,
-              language: user.language,
-            );
-
-            final directory = await getApplicationDocumentsDirectory();
-            final filePath = '${directory.path}/branch.json';
-            final file = File(filePath);
-
-            if (await file.exists()) {
-              final content = await file.readAsString();
-              final branchData = jsonDecode(content);
+            const storage = FlutterSecureStorage();
+            final branchStr = await storage.read(key: 'branch');
+            Map<String, dynamic> branchData = {};
+            if (branchStr != null) {
+              branchData = jsonDecode(branchStr);
               branchData['UserID'] = user.id.toString();
               branchData['UserRole'] = user.role_ID;
               branchData['language'] = user.language;
               
-              await file.writeAsString(jsonEncode(branchData));
+              await storage.write(key: 'branch', value: jsonEncode(branchData));
             }
+
+            final updatedConfig = _currentConfig.copyWith(
+              shop_ID: branchData['shop_ID']?.toString(),
+              ShopName: branchData['ShopName'],
+              TaxID: branchData['TaxID'],
+              shop_branch_ID: branchData['shop_branch_ID']?.toString(),
+              service_module_ID: branchData['service_module_ID'],
+              shop_branch_service_ID: branchData['shop_branch_service_ID'],
+              IntervalType: branchData['IntervalType'],
+              BranchName: branchData['BranchName'],
+              Address: branchData['Address'],
+              Telephone: branchData['Telephone'],
+              isActive: (branchData['IsActive'] == 'Y' || branchData['isActive'] == true) ? true : false,
+              language: user.language,
+              printerMacAddress: branchData['printerMacAddress'],
+              isKitchen: branchData['isKitchen'],
+              PrinterModel: branchData['PrinterModel'],
+              ConnectType: branchData['ConnectType'],
+              PrinterAddress: branchData['PrinterAddress'],
+              ExpireDate: branchData['ExpireDate'],
+              LastUpdated: branchData['LastUpdated'],
+              PosID: branchData['PosID']?.toString(),
+              isExpired: branchData['isExpired'],
+              UserID: user.id.toString(),
+              UserRole: user.role_ID,
+            );
 
             if (mounted) {
               Navigator.of(context).pushReplacement(

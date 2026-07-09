@@ -270,6 +270,7 @@ class _InitScreenState extends State<InitScreen> {
           final documentCodeListRaw = responseData['DocumentCodeList'] as List<dynamic>? ?? [];
           final documentCode = documentCodeListRaw.map((e) => DocumentCode()
             ..id = e['ID']
+            ..documentType = e['DocumentType']
             ..seq = e['Seq']
             ..name = e['Name']
             ..value = e['Value']
@@ -631,8 +632,175 @@ class _InitScreenState extends State<InitScreen> {
           setState(() { _debug = 'putAll Supplier success'; });
         });
 
+        // 3. Process Transaction Data
+        final uriTx = Uri.parse('${widget.config.apiUrl}api/pos/pull-transaction');
+        setState(() { _debug = 'Pulling transaction...'; });
+        final responseTx = await http.post(uriTx, headers: headers, body: body);
+
+        if (responseTx.statusCode == 200) {
+          final responseTxData = jsonDecode(responseTx.body);
+          
+          await isar.writeTxn(() async {
+            // Process pullData if available
+            if (responseTxData != null) {
+              // 1. Process ReceiptList
+              if (responseTxData['ReceiptList'] is List) {
+                for (var item in responseTxData['ReceiptList']) {
+                  final String? id = _parseString(item['ID'] ?? item['id']);
+                  if (id != null) {
+                    var receipt = await isar.receiptList.where().filter().idEqualTo(id).findFirst() ?? Receipt();
+                    receipt.id = id;
+                    receipt.pos_ID = _parseInt(item['Pos_ID'] ?? item['pos_ID']);
+                    receipt.shop_user_ID = _parseInt(item['Shop_user_ID'] ?? item['shop_user_ID']);
+                    receipt.shop_customer_ID = _parseString(item['Shop_customer_ID'] ?? item['shop_customer_ID']);
+                    receipt.code = _parseString(item['Code'] ?? item['code']);
+                    receipt.createdAt = _parseDateTime(item['CreatedAt'] ?? item['createdAt']);
+                    receipt.sumAmount = _parseDouble(item['SumAmount'] ?? item['sumAmount']);
+                    receipt.serviceChargeAmount = _parseDouble(item['ServiceChargeAmount'] ?? item['serviceChargeAmount']);
+                    receipt.discountAmount = _parseDouble(item['DiscountAmount'] ?? item['discountAmount']);
+                    receipt.vatAmount = _parseDouble(item['VatAmount'] ?? item['vatAmount']);
+                    receipt.totalAmount = _parseDouble(item['TotalAmount'] ?? item['totalAmount']);
+                    receipt.paidAmount = _parseDouble(item['PaidAmount'] ?? item['paidAmount']);
+                    receipt.status = _parseString(item['Status'] ?? item['status']);
+                    receipt.paymentType = _parseString(item['PaymentType'] ?? item['paymentType']);
+                    receipt.slipFileName = _parseString(item['SlipFileName'] ?? item['slipFileName']);
+                    receipt.lastUpdated = _parseString(item['LastUpdated'] ?? item['lastUpdated']);
+                    receipt.isDirty = false;
+                    
+                    await isar.receiptList.put(receipt);
+                  }
+                }
+              }
+
+              if (responseTxData['PaymentTransactionList'] is List) {
+                for (var item in responseTxData['PaymentTransactionList']) {
+                  final int? id = _parseInt(item['ID'] ?? item['id']);
+                  if (id != null) {
+                    var pt = await isar.paymentTransactionList.where().filter().idEqualTo(id).findFirst() ?? PaymentTransaction();
+                    pt.id = id;
+                    pt.receipt_ID = _parseString(item['Receipt_ID'] ?? item['receipt_ID']);
+                    pt.reponseCode = _parseString(item['ReponseCode'] ?? item['reponseCode']);
+                    pt.slipFileName = _parseString(item['SlipFileName'] ?? item['slipFileName']);
+                    pt.verifyReason = _parseString(item['VerifyReason'] ?? item['verifyReason']);
+                    pt.lastUpdated = _parseString(item['LastUpdated'] ?? item['lastUpdated']);
+                    pt.isDirty = false;
+                    
+                    await isar.paymentTransactionList.put(pt);
+                  }
+                }
+              }
+
+              // 2. Process FoodOrderList
+              if (responseTxData['FoodOrderList'] is List) {
+                for (var item in responseTxData['FoodOrderList']) {
+                  final String? id = _parseString(item['ID'] ?? item['id']);
+                  if (id != null) {
+                    var order = await isar.foodOrderList.where().filter().idEqualTo(id).findFirst() ?? FoodOrder();
+                    order.id = id;
+                    order.parentType = _parseString(item['ParentType'] ?? item['parentType']);
+                    order.parentID = _parseString(item['ParentID'] ?? item['parentID']);
+                    order.number = _parseInt(item['Number'] ?? item['number']);
+                    order.kitchen_ID = _parseInt(item['Kitchen_ID'] ?? item['kitchen_ID']);
+                    order.createdAt = _parseString(item['CreatedAt'] ?? item['createdAt']);
+                    order.serveType = _parseString(item['ServeType'] ?? item['serveType']);
+                    order.orderAmount = _parseDouble(item['OrderAmount'] ?? item['orderAmount']);
+                    order.status = _parseString(item['Status'] ?? item['status']);
+                    order.lastUpdated = _parseString(item['LastUpdated'] ?? item['lastUpdated']);
+                    order.isDirty = false;
+
+                    await isar.foodOrderList.put(order);
+                  }
+                }
+              }
+
+              // 3. Process FoodOrderItemList
+              if (responseTxData['FoodOrderItemList'] is List) {
+                for (var item in responseTxData['FoodOrderItemList']) {
+                  final String? id = _parseString(item['ID'] ?? item['id']);
+                  if (id != null) {
+                    var orderItem = await isar.foodOrderItemList.where().filter().idEqualTo(id).findFirst() ?? FoodOrderItem();
+                    orderItem.id = id;
+                    orderItem.food_order_ID = _parseString(item['Food_order_ID'] ?? item['food_order_ID']);
+                    orderItem.food_item_ID = _parseString(item['Food_item_ID'] ?? item['food_item_ID']);
+                    orderItem.food_size_ID = _parseString(item['Food_size_ID'] ?? item['food_size_ID']);
+                    orderItem.itemPrice = _parseDouble(item['ItemPrice'] ?? item['itemPrice']);
+                    orderItem.quantity = _parseInt(item['Quantity'] ?? item['quantity']);
+                    orderItem.choiceIDList = _parseString(item['ChoiceIDList'] ?? item['choiceIDList']);
+                    orderItem.description = _parseString(item['Description'] ?? item['description']);
+                    orderItem.lastUpdated = _parseString(item['LastUpdated'] ?? item['lastUpdated']);
+                    orderItem.isDirty = false;
+
+                    await isar.foodOrderItemList.put(orderItem);
+                  }
+                }
+              }
+
+              // 4. Process MerchandiseStockList
+              if (responseTxData['MerchandiseStockList'] is List) {
+                for (var item in responseTxData['MerchandiseStockList']) {
+                  final String? id = _parseString(item['ID'] ?? item['id']);
+                  if (id != null) {
+                    var stock = await isar.merchandiseStockList.where().filter().idEqualTo(id).findFirst() ?? MerchandiseStock();
+                    stock.id = id;
+                    stock.storeType = _parseString(item['StoreType'] ?? item['storeType']);
+                    stock.storeID = _parseInt(item['StoreID'] ?? item['storeID']);
+                    stock.stockType = _parseString(item['StockType'] ?? item['stockType']);
+                    stock.stockID = _parseString(item['StockID'] ?? item['stockID']);
+                    stock.currentQuantity = _parseDouble(item['CurrentQuantity'] ?? item['currentQuantity']);
+                    stock.availableQuantity = _parseDouble(item['AvailableQuantity'] ?? item['availableQuantity']);
+                    stock.lastUpdated = _parseString(item['LastUpdated'] ?? item['lastUpdated']);
+                    stock.isDirty = false;
+
+                    await isar.merchandiseStockList.put(stock);
+                  }
+                }
+              }
+
+              // 5. Process TransferStockList
+              if (responseTxData['TransferStockList'] is List) {
+                for (var item in responseTxData['TransferStockList']) {
+                  final String? id = _parseString(item['ID'] ?? item['id']);
+                  if (id != null) {
+                    var transfer = await isar.transferStockList.where().filter().idEqualTo(id).findFirst() ?? TransferStock();
+                    transfer.id = id;
+                    transfer.byType = _parseString(item['ByType'] ?? item['byType']);
+                    transfer.byID = _parseString(item['ByID'] ?? item['byID']);
+                    transfer.transferType = _parseString(item['TransferType'] ?? item['transferType']);
+                    transfer.from_merchandise_stock_ID = _parseString(item['From_merchandise_stock_ID'] ?? item['from_merchandise_stock_ID']);
+                    transfer.fromQuantity = _parseDouble(item['FromQuantity'] ?? item['fromQuantity']);
+                    transfer.to_merchandise_stock_ID = _parseString(item['To_merchandise_stock_ID'] ?? item['to_merchandise_stock_ID']);
+                    transfer.toQuantity = _parseDouble(item['ToQuantity'] ?? item['toQuantity']);
+                    transfer.lastUpdated = _parseString(item['LastUpdated'] ?? item['lastUpdated']);
+                    transfer.isDirty = false;
+
+                    await isar.transferStockList.put(transfer);
+                  }
+                }
+              }
+              
+              // 6. Process ReceiptItemStockList
+              if (responseTxData['ReceiptItemStockList'] is List) {
+                for (var item in responseTxData['ReceiptItemStockList']) {
+                  final String? id = _parseString(item['ID'] ?? item['id']);
+                  if (id != null) {
+                    var stock = await isar.receiptItemStockList.where().filter().idEqualTo(id).findFirst() ?? ReceiptItemStock();
+                    stock.id = id;
+                    stock.receipt_item_ID = _parseString(item['Receipt_item_ID'] ?? item['receipt_item_ID']);
+                    stock.merchandise_stock_ID = _parseString(item['Merchandise_stock_ID'] ?? item['merchandise_stock_ID']);
+                    stock.quantity = _parseDouble(item['Quantity'] ?? item['quantity']);
+                    stock.isDirty = false;
+
+                    await isar.receiptItemStockList.put(stock);
+                  }
+                }
+              }
+            }
+          });
+        }
+
         setState(() { _isLoading = false; });
 
+        if (!mounted) return;
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => SetPrinterScreen(config: updatedConfig),
@@ -709,6 +877,30 @@ class _InitScreenState extends State<InitScreen> {
         ),
       ),
     );
+  }
+
+  int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    return int.tryParse(value.toString());
+  }
+
+  double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    return double.tryParse(value.toString());
+  }
+
+  DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is String) return DateTime.tryParse(value);
+    return null;
+  }
+
+  String? _parseString(dynamic value) {
+    if (value == null) return null;
+    return value.toString();
   }
 }
 
