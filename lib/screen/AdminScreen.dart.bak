@@ -8,9 +8,11 @@ import 'package:path_provider/path_provider.dart';
 import 'package:meorder_ppos/services/GeneralServices.dart';
 import 'package:meorder_ppos/screen/PurchaseScreen.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:meorder_ppos/screen/MerchandiseCategoryScreen.dart';
+import 'package:meorder_ppos/screen/MerchandiseStockScreen.dart';
 import 'package:meorder_ppos/screen/SupplierScreen.dart';
-import 'package:meorder_ppos/database/IsarModels.dart';
-
+import 'package:meorder_ppos/screen/SettingValueScreen.dart';
+import 'package:meorder_ppos/screen/DocumentTypeScreen.dart';
 class AdminScreen extends StatefulWidget {
   final EnvConfig config;
   const AdminScreen({super.key, required this.config});
@@ -35,21 +37,14 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   Map<String, String?>? foPurchaseOrder;
-  List<RoleMasterPermission> _adminMenuList = [];
 
   Future<void> _loadPermissions() async {
     final roleID = _config.UserRole;
     if (roleID != null) {
       final perm = await GeneralServices.getRoleTransactionPermissionList(roleID, 'FO_PURCHASE_ORDER');
-      final menu = await GeneralServices.getAdminMenuList(roleID, _config);
-
-      // debugPrint('AdminScreen.perm: $perm');
-      // debugPrint('AdminScreen.menu: $menu');
-
       if (mounted) {
         setState(() {
           foPurchaseOrder = perm;
-          _adminMenuList = menu;
         });
       }
     }
@@ -111,25 +106,42 @@ class _AdminScreenState extends State<AdminScreen> {
               icon: const Icon(Icons.arrow_back, color: Colors.black),
               onPressed: () => Navigator.pop(context),
             ),
-            /*
             Expanded(
               child: Text(
                 isThai ? 'แอดมิน' : 'Admin',
                 style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
-            */
-            GeneralServices.getAdminPopupMenuButton(context, _config, _adminMenuList, isThai),
-            
             IconButton(
               icon: Icon(Icons.person, color: _activeSection == 'User' ? Colors.blue : Colors.black),
               onPressed: () { setState(() { _activeSection = 'User'; }); },
             ),
-            IconButton(
-              icon: Icon(Icons.info, color: _activeSection == 'Branch' ? Colors.blue : Colors.black),
-              onPressed: () { setState(() { _activeSection = 'Branch'; }); },
+            PopupMenuButton<int>(
+              icon: const Icon(Icons.menu, color: Colors.black),
+              onSelected: (value) {
+                if (value == 1) {
+                  setState(() { _activeSection = 'Branch'; });
+                } else if (value == 2) {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => MerchandiseCategoryScreen(config: _config)));
+                } else if (value == 3) {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => MerchandiseStockScreen(config: _config)));
+                } else if (value == 4) {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => SupplierScreen(config: _config)));
+                } else if (value == 5) {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => SettingValueScreen(config: _config)));
+                } else if (value == 6) {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => DocumentTypeScreen(config: _config)));
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(value: 1, child: Text(isThai ? 'ข้อมูลสาขา' : 'Branch Info')),
+                PopupMenuItem(value: 2, child: Text(isThai ? 'สินค้า' : 'Merchandise')),
+                PopupMenuItem(value: 3, child: Text(isThai ? 'สต็อก' : 'Stock')),
+                PopupMenuItem(value: 4, child: Text(isThai ? 'ผู้จำหน่าย' : 'Supplier')),
+                PopupMenuItem(value: 5, child: Text(isThai ? 'ตั้งค่า' : 'Setting')),
+                PopupMenuItem(value: 6, child: Text(isThai ? 'เอกสาร' : 'Document')),
+              ],
             ),
-
             if (foPurchaseOrder != null && foPurchaseOrder!['PermissionLevel'] != 'No')
               IconButton(
                 icon: const Icon(Icons.shopping_cart, color: Colors.black),

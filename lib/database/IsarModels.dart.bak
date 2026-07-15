@@ -355,6 +355,7 @@ class LastSync {
   int? id;
   String? master;
   String? receipt;
+  String? purchaseOrder;
 }
 
 @Collection(accessor: 'paymentTransactionList')
@@ -448,6 +449,7 @@ class ReceiptItemStock {
   String? receipt_item_ID;
   String? merchandise_stock_ID;
   double? quantity;
+  String? lastUpdated;
   bool isDirty = false;
 }
 

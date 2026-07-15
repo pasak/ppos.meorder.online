@@ -99,6 +99,7 @@ class _InitScreenState extends State<InitScreen> {
         branchData['PrinterAddress'] = null;
         branchData['isKitchen'] = true;
         branchData['LastAccess'] = DateTime.now().toIso8601String();
+        branchData['shop_branch_service_ID'] = serviceCode;
 
         const storage = FlutterSecureStorage();
         await storage.write(key: 'branch', value: jsonEncode(branchData));
@@ -109,7 +110,7 @@ class _InitScreenState extends State<InitScreen> {
           TaxID: branchData['TaxID'],
           shop_branch_ID: branchData['shop_branch_ID']?.toString(),
           service_module_ID: branchData['service_module_ID'],
-          shop_branch_service_ID: serviceCode,
+          shop_branch_service_ID: branchData['shop_branch_service_ID'],
           IntervalType: branchData['IntervalType'],
           BranchName: branchData['BranchName'],
           Address: branchData['Address'],
@@ -131,6 +132,7 @@ class _InitScreenState extends State<InitScreen> {
           await isar.userList.clear();
           await isar.roleList.clear();
           await isar.roleTransactionPermissionList.clear();
+          await isar.roleMasterPermissionList.clear();
           await isar.shopCustomerList.clear();
           await isar.shopTableList.clear();
           await isar.settingValueList.clear();
@@ -213,6 +215,25 @@ class _InitScreenState extends State<InitScreen> {
           await isar.roleTransactionPermissionList.putAll(roleTransactionPermissions);
 
           setState(() { _debug = 'putAll RoleTransactionPermission success'; });
+
+          // RoleMasterPermission
+          final roleMasterPermissionListRaw = responseData['RoleMasterPermissionList'] as List<dynamic>? ?? [];
+          final roleMasterPermissions = roleMasterPermissionListRaw.map((e) => RoleMasterPermission()
+            ..id = e['ID']
+            ..role_ID = e['role_ID']
+            ..master_permission_ID = e['master_permission_ID']
+            ..thaiName = e['ThaiName'] 
+            ..englishName = e['EnglishName']
+            ..canCreate = e['CanCreate']
+            ..canRead = e['CanRead']
+            ..canUpdate = e['CanUpdate']
+            ..canDelete = e['CanDelete']
+            ..lastUpdated = e['LastUpdated']
+            ..isDirty = false
+          ).toList();
+          await isar.roleMasterPermissionList.putAll(roleMasterPermissions);
+
+          setState(() { _debug = 'putAll RoleMasterPermission success'; });
 
           // ShopCustomer
           final shopCustomerListRaw = responseData['ShopCustomerList'] as List<dynamic>? ?? [];

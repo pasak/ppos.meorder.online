@@ -5339,6 +5339,2591 @@ extension RoleTransactionPermissionQueryProperty on QueryBuilder<
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
+extension GetRoleMasterPermissionCollection on Isar {
+  IsarCollection<RoleMasterPermission> get roleMasterPermissionList =>
+      this.collection();
+}
+
+const RoleMasterPermissionSchema = CollectionSchema(
+  name: r'RoleMasterPermission',
+  id: 591462355194832732,
+  properties: {
+    r'canCreate': PropertySchema(
+      id: 0,
+      name: r'canCreate',
+      type: IsarType.string,
+    ),
+    r'canDelete': PropertySchema(
+      id: 1,
+      name: r'canDelete',
+      type: IsarType.string,
+    ),
+    r'canRead': PropertySchema(
+      id: 2,
+      name: r'canRead',
+      type: IsarType.string,
+    ),
+    r'canUpdate': PropertySchema(
+      id: 3,
+      name: r'canUpdate',
+      type: IsarType.string,
+    ),
+    r'englishName': PropertySchema(
+      id: 4,
+      name: r'englishName',
+      type: IsarType.string,
+    ),
+    r'id': PropertySchema(
+      id: 5,
+      name: r'id',
+      type: IsarType.string,
+    ),
+    r'isDirty': PropertySchema(
+      id: 6,
+      name: r'isDirty',
+      type: IsarType.bool,
+    ),
+    r'lastUpdated': PropertySchema(
+      id: 7,
+      name: r'lastUpdated',
+      type: IsarType.string,
+    ),
+    r'master_permission_ID': PropertySchema(
+      id: 8,
+      name: r'master_permission_ID',
+      type: IsarType.string,
+    ),
+    r'role_ID': PropertySchema(
+      id: 9,
+      name: r'role_ID',
+      type: IsarType.string,
+    ),
+    r'thaiName': PropertySchema(
+      id: 10,
+      name: r'thaiName',
+      type: IsarType.string,
+    )
+  },
+  estimateSize: _roleMasterPermissionEstimateSize,
+  serialize: _roleMasterPermissionSerialize,
+  deserialize: _roleMasterPermissionDeserialize,
+  deserializeProp: _roleMasterPermissionDeserializeProp,
+  idName: r'isarId',
+  indexes: {
+    r'id': IndexSchema(
+      id: -3268401673993471357,
+      name: r'id',
+      unique: true,
+      replace: true,
+      properties: [
+        IndexPropertySchema(
+          name: r'id',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    )
+  },
+  links: {},
+  embeddedSchemas: {},
+  getId: _roleMasterPermissionGetId,
+  getLinks: _roleMasterPermissionGetLinks,
+  attach: _roleMasterPermissionAttach,
+  version: '3.1.0+1',
+);
+
+int _roleMasterPermissionEstimateSize(
+  RoleMasterPermission object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  {
+    final value = object.canCreate;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.canDelete;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.canRead;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.canUpdate;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.englishName;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.id;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.lastUpdated;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.master_permission_ID;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.role_ID;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.thaiName;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  return bytesCount;
+}
+
+void _roleMasterPermissionSerialize(
+  RoleMasterPermission object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeString(offsets[0], object.canCreate);
+  writer.writeString(offsets[1], object.canDelete);
+  writer.writeString(offsets[2], object.canRead);
+  writer.writeString(offsets[3], object.canUpdate);
+  writer.writeString(offsets[4], object.englishName);
+  writer.writeString(offsets[5], object.id);
+  writer.writeBool(offsets[6], object.isDirty);
+  writer.writeString(offsets[7], object.lastUpdated);
+  writer.writeString(offsets[8], object.master_permission_ID);
+  writer.writeString(offsets[9], object.role_ID);
+  writer.writeString(offsets[10], object.thaiName);
+}
+
+RoleMasterPermission _roleMasterPermissionDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = RoleMasterPermission();
+  object.canCreate = reader.readStringOrNull(offsets[0]);
+  object.canDelete = reader.readStringOrNull(offsets[1]);
+  object.canRead = reader.readStringOrNull(offsets[2]);
+  object.canUpdate = reader.readStringOrNull(offsets[3]);
+  object.englishName = reader.readStringOrNull(offsets[4]);
+  object.id = reader.readStringOrNull(offsets[5]);
+  object.isDirty = reader.readBool(offsets[6]);
+  object.isarId = id;
+  object.lastUpdated = reader.readStringOrNull(offsets[7]);
+  object.master_permission_ID = reader.readStringOrNull(offsets[8]);
+  object.role_ID = reader.readStringOrNull(offsets[9]);
+  object.thaiName = reader.readStringOrNull(offsets[10]);
+  return object;
+}
+
+P _roleMasterPermissionDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readStringOrNull(offset)) as P;
+    case 1:
+      return (reader.readStringOrNull(offset)) as P;
+    case 2:
+      return (reader.readStringOrNull(offset)) as P;
+    case 3:
+      return (reader.readStringOrNull(offset)) as P;
+    case 4:
+      return (reader.readStringOrNull(offset)) as P;
+    case 5:
+      return (reader.readStringOrNull(offset)) as P;
+    case 6:
+      return (reader.readBool(offset)) as P;
+    case 7:
+      return (reader.readStringOrNull(offset)) as P;
+    case 8:
+      return (reader.readStringOrNull(offset)) as P;
+    case 9:
+      return (reader.readStringOrNull(offset)) as P;
+    case 10:
+      return (reader.readStringOrNull(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+Id _roleMasterPermissionGetId(RoleMasterPermission object) {
+  return object.isarId;
+}
+
+List<IsarLinkBase<dynamic>> _roleMasterPermissionGetLinks(
+    RoleMasterPermission object) {
+  return [];
+}
+
+void _roleMasterPermissionAttach(
+    IsarCollection<dynamic> col, Id id, RoleMasterPermission object) {
+  object.isarId = id;
+}
+
+extension RoleMasterPermissionByIndex on IsarCollection<RoleMasterPermission> {
+  Future<RoleMasterPermission?> getById(String? id) {
+    return getByIndex(r'id', [id]);
+  }
+
+  RoleMasterPermission? getByIdSync(String? id) {
+    return getByIndexSync(r'id', [id]);
+  }
+
+  Future<bool> deleteById(String? id) {
+    return deleteByIndex(r'id', [id]);
+  }
+
+  bool deleteByIdSync(String? id) {
+    return deleteByIndexSync(r'id', [id]);
+  }
+
+  Future<List<RoleMasterPermission?>> getAllById(List<String?> idValues) {
+    final values = idValues.map((e) => [e]).toList();
+    return getAllByIndex(r'id', values);
+  }
+
+  List<RoleMasterPermission?> getAllByIdSync(List<String?> idValues) {
+    final values = idValues.map((e) => [e]).toList();
+    return getAllByIndexSync(r'id', values);
+  }
+
+  Future<int> deleteAllById(List<String?> idValues) {
+    final values = idValues.map((e) => [e]).toList();
+    return deleteAllByIndex(r'id', values);
+  }
+
+  int deleteAllByIdSync(List<String?> idValues) {
+    final values = idValues.map((e) => [e]).toList();
+    return deleteAllByIndexSync(r'id', values);
+  }
+
+  Future<Id> putById(RoleMasterPermission object) {
+    return putByIndex(r'id', object);
+  }
+
+  Id putByIdSync(RoleMasterPermission object, {bool saveLinks = true}) {
+    return putByIndexSync(r'id', object, saveLinks: saveLinks);
+  }
+
+  Future<List<Id>> putAllById(List<RoleMasterPermission> objects) {
+    return putAllByIndex(r'id', objects);
+  }
+
+  List<Id> putAllByIdSync(List<RoleMasterPermission> objects,
+      {bool saveLinks = true}) {
+    return putAllByIndexSync(r'id', objects, saveLinks: saveLinks);
+  }
+}
+
+extension RoleMasterPermissionQueryWhereSort
+    on QueryBuilder<RoleMasterPermission, RoleMasterPermission, QWhere> {
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterWhere>
+      anyIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+}
+
+extension RoleMasterPermissionQueryWhere
+    on QueryBuilder<RoleMasterPermission, RoleMasterPermission, QWhereClause> {
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterWhereClause>
+      isarIdEqualTo(Id isarId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: isarId,
+        upper: isarId,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterWhereClause>
+      isarIdNotEqualTo(Id isarId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: isarId, includeUpper: false),
+            )
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: isarId, includeLower: false),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: isarId, includeLower: false),
+            )
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: isarId, includeUpper: false),
+            );
+      }
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterWhereClause>
+      isarIdGreaterThan(Id isarId, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.greaterThan(lower: isarId, includeLower: include),
+      );
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterWhereClause>
+      isarIdLessThan(Id isarId, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.lessThan(upper: isarId, includeUpper: include),
+      );
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterWhereClause>
+      isarIdBetween(
+    Id lowerIsarId,
+    Id upperIsarId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerIsarId,
+        includeLower: includeLower,
+        upper: upperIsarId,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterWhereClause>
+      idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'id',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterWhereClause>
+      idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'id',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterWhereClause>
+      idEqualTo(String? id) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'id',
+        value: [id],
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterWhereClause>
+      idNotEqualTo(String? id) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'id',
+              lower: [],
+              upper: [id],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'id',
+              lower: [id],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'id',
+              lower: [id],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'id',
+              lower: [],
+              upper: [id],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+}
+
+extension RoleMasterPermissionQueryFilter on QueryBuilder<RoleMasterPermission,
+    RoleMasterPermission, QFilterCondition> {
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canCreateIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'canCreate',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canCreateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'canCreate',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canCreateEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'canCreate',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canCreateGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'canCreate',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canCreateLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'canCreate',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canCreateBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'canCreate',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canCreateStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'canCreate',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canCreateEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'canCreate',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+          QAfterFilterCondition>
+      canCreateContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'canCreate',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+          QAfterFilterCondition>
+      canCreateMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'canCreate',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canCreateIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'canCreate',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canCreateIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'canCreate',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canDeleteIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'canDelete',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canDeleteIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'canDelete',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canDeleteEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'canDelete',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canDeleteGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'canDelete',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canDeleteLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'canDelete',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canDeleteBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'canDelete',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canDeleteStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'canDelete',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canDeleteEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'canDelete',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+          QAfterFilterCondition>
+      canDeleteContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'canDelete',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+          QAfterFilterCondition>
+      canDeleteMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'canDelete',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canDeleteIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'canDelete',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canDeleteIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'canDelete',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canReadIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'canRead',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canReadIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'canRead',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canReadEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'canRead',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canReadGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'canRead',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canReadLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'canRead',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canReadBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'canRead',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canReadStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'canRead',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canReadEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'canRead',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+          QAfterFilterCondition>
+      canReadContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'canRead',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+          QAfterFilterCondition>
+      canReadMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'canRead',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canReadIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'canRead',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canReadIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'canRead',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canUpdateIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'canUpdate',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canUpdateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'canUpdate',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canUpdateEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'canUpdate',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canUpdateGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'canUpdate',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canUpdateLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'canUpdate',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canUpdateBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'canUpdate',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canUpdateStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'canUpdate',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canUpdateEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'canUpdate',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+          QAfterFilterCondition>
+      canUpdateContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'canUpdate',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+          QAfterFilterCondition>
+      canUpdateMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'canUpdate',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canUpdateIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'canUpdate',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> canUpdateIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'canUpdate',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> englishNameIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'englishName',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> englishNameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'englishName',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> englishNameEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'englishName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> englishNameGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'englishName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> englishNameLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'englishName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> englishNameBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'englishName',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> englishNameStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'englishName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> englishNameEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'englishName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+          QAfterFilterCondition>
+      englishNameContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'englishName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+          QAfterFilterCondition>
+      englishNameMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'englishName',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> englishNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'englishName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> englishNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'englishName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> idEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> idGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> idLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> idBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> idStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'id',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> idEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'id',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+          QAfterFilterCondition>
+      idContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'id',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+          QAfterFilterCondition>
+      idMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'id',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> idIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> idIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'id',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> isDirtyEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isDirty',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> isarIdEqualTo(Id value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> isarIdGreaterThan(
+    Id value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'isarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> isarIdLessThan(
+    Id value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'isarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> isarIdBetween(
+    Id lower,
+    Id upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'isarId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> lastUpdatedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastUpdated',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> lastUpdatedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastUpdated',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> lastUpdatedEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastUpdated',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> lastUpdatedGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastUpdated',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> lastUpdatedLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastUpdated',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> lastUpdatedBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastUpdated',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> lastUpdatedStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'lastUpdated',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> lastUpdatedEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'lastUpdated',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+          QAfterFilterCondition>
+      lastUpdatedContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'lastUpdated',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+          QAfterFilterCondition>
+      lastUpdatedMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'lastUpdated',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> lastUpdatedIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastUpdated',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> lastUpdatedIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'lastUpdated',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> master_permission_IDIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'master_permission_ID',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> master_permission_IDIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'master_permission_ID',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> master_permission_IDEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'master_permission_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> master_permission_IDGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'master_permission_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> master_permission_IDLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'master_permission_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> master_permission_IDBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'master_permission_ID',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> master_permission_IDStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'master_permission_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> master_permission_IDEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'master_permission_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+          QAfterFilterCondition>
+      master_permission_IDContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'master_permission_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+          QAfterFilterCondition>
+      master_permission_IDMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'master_permission_ID',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> master_permission_IDIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'master_permission_ID',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> master_permission_IDIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'master_permission_ID',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> role_IDIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'role_ID',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> role_IDIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'role_ID',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> role_IDEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'role_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> role_IDGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'role_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> role_IDLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'role_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> role_IDBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'role_ID',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> role_IDStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'role_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> role_IDEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'role_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+          QAfterFilterCondition>
+      role_IDContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'role_ID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+          QAfterFilterCondition>
+      role_IDMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'role_ID',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> role_IDIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'role_ID',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> role_IDIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'role_ID',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> thaiNameIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'thaiName',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> thaiNameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'thaiName',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> thaiNameEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'thaiName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> thaiNameGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'thaiName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> thaiNameLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'thaiName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> thaiNameBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'thaiName',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> thaiNameStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'thaiName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> thaiNameEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'thaiName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+          QAfterFilterCondition>
+      thaiNameContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'thaiName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+          QAfterFilterCondition>
+      thaiNameMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'thaiName',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> thaiNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'thaiName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission,
+      QAfterFilterCondition> thaiNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'thaiName',
+        value: '',
+      ));
+    });
+  }
+}
+
+extension RoleMasterPermissionQueryObject on QueryBuilder<RoleMasterPermission,
+    RoleMasterPermission, QFilterCondition> {}
+
+extension RoleMasterPermissionQueryLinks on QueryBuilder<RoleMasterPermission,
+    RoleMasterPermission, QFilterCondition> {}
+
+extension RoleMasterPermissionQuerySortBy
+    on QueryBuilder<RoleMasterPermission, RoleMasterPermission, QSortBy> {
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByCanCreate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'canCreate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByCanCreateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'canCreate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByCanDelete() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'canDelete', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByCanDeleteDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'canDelete', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByCanRead() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'canRead', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByCanReadDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'canRead', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByCanUpdate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'canUpdate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByCanUpdateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'canUpdate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByEnglishName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'englishName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByEnglishNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'englishName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByIsDirty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDirty', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByIsDirtyDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDirty', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByLastUpdated() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByLastUpdatedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByMaster_permission_ID() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'master_permission_ID', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByMaster_permission_IDDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'master_permission_ID', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByRole_ID() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'role_ID', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByRole_IDDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'role_ID', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByThaiName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'thaiName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      sortByThaiNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'thaiName', Sort.desc);
+    });
+  }
+}
+
+extension RoleMasterPermissionQuerySortThenBy
+    on QueryBuilder<RoleMasterPermission, RoleMasterPermission, QSortThenBy> {
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByCanCreate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'canCreate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByCanCreateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'canCreate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByCanDelete() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'canDelete', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByCanDeleteDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'canDelete', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByCanRead() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'canRead', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByCanReadDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'canRead', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByCanUpdate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'canUpdate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByCanUpdateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'canUpdate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByEnglishName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'englishName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByEnglishNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'englishName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByIsDirty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDirty', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByIsDirtyDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDirty', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isarId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByIsarIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isarId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByLastUpdated() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByLastUpdatedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastUpdated', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByMaster_permission_ID() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'master_permission_ID', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByMaster_permission_IDDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'master_permission_ID', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByRole_ID() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'role_ID', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByRole_IDDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'role_ID', Sort.desc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByThaiName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'thaiName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QAfterSortBy>
+      thenByThaiNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'thaiName', Sort.desc);
+    });
+  }
+}
+
+extension RoleMasterPermissionQueryWhereDistinct
+    on QueryBuilder<RoleMasterPermission, RoleMasterPermission, QDistinct> {
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QDistinct>
+      distinctByCanCreate({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'canCreate', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QDistinct>
+      distinctByCanDelete({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'canDelete', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QDistinct>
+      distinctByCanRead({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'canRead', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QDistinct>
+      distinctByCanUpdate({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'canUpdate', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QDistinct>
+      distinctByEnglishName({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'englishName', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QDistinct>
+      distinctById({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'id', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QDistinct>
+      distinctByIsDirty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isDirty');
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QDistinct>
+      distinctByLastUpdated({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastUpdated', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QDistinct>
+      distinctByMaster_permission_ID({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'master_permission_ID',
+          caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QDistinct>
+      distinctByRole_ID({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'role_ID', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, RoleMasterPermission, QDistinct>
+      distinctByThaiName({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'thaiName', caseSensitive: caseSensitive);
+    });
+  }
+}
+
+extension RoleMasterPermissionQueryProperty on QueryBuilder<
+    RoleMasterPermission, RoleMasterPermission, QQueryProperty> {
+  QueryBuilder<RoleMasterPermission, int, QQueryOperations> isarIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isarId');
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, String?, QQueryOperations>
+      canCreateProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'canCreate');
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, String?, QQueryOperations>
+      canDeleteProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'canDelete');
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, String?, QQueryOperations>
+      canReadProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'canRead');
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, String?, QQueryOperations>
+      canUpdateProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'canUpdate');
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, String?, QQueryOperations>
+      englishNameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'englishName');
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, String?, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, bool, QQueryOperations> isDirtyProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isDirty');
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, String?, QQueryOperations>
+      lastUpdatedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastUpdated');
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, String?, QQueryOperations>
+      master_permission_IDProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'master_permission_ID');
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, String?, QQueryOperations>
+      role_IDProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'role_ID');
+    });
+  }
+
+  QueryBuilder<RoleMasterPermission, String?, QQueryOperations>
+      thaiNameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'thaiName');
+    });
+  }
+}
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
 extension GetShopCustomerCollection on Isar {
   IsarCollection<ShopCustomer> get shopCustomerList => this.collection();
 }

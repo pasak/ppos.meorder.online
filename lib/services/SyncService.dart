@@ -53,11 +53,86 @@ class SyncService {
       'Authorization': 'Bearer ${config.apiToken}',
     };
 
-    final body = jsonEncode({
+    final merchandiseCategories = await isar.merchandiseCategoryList.where().filter().isDirtyEqualTo(true).findAll();
+    final suppliers = await isar.supplierList.where().filter().isDirtyEqualTo(true).findAll();
+    final settingValues = await isar.settingValueList.where().filter().isDirtyEqualTo(true).findAll();
+    final documentTypes = await isar.documentTypeList.where().filter().isDirtyEqualTo(true).findAll();
+
+    Map<String, dynamic> capitalizeKeys(Map<String, dynamic> json) {
+      final Map<String, dynamic> result = {};
+      json.forEach((key, value) {
+        if (key == 'isarId' || key == 'isDirty') return;
+        String newKey = key;
+        if (!key.endsWith('_ID')) {
+          if (key.isNotEmpty) {
+            newKey = key[0].toUpperCase() + key.substring(1);
+          }
+        }
+        if (key == 'id') newKey = 'ID';
+        result[newKey] = value;
+      });
+      return result;
+    }
+
+    final pushData = {
+      'MerchandiseCategoryList': merchandiseCategories.map((e) {
+        return capitalizeKeys({
+          'id': e.id,
+          'parentType': e.parentType,
+          'parentID': e.parentID,
+          'categoryName': e.categoryName,
+          'isActive': e.isActive,
+          'lastUpdated': e.lastUpdated,
+        });
+      }).toList(),
+      'SupplierList': suppliers.map((e) {
+        return capitalizeKeys({
+          'id': e.id,
+          'shop_ID': e.shop_ID,
+          'thaiName': e.thaiName,
+          'englishName': e.englishName,
+          'thaiAddress': e.thaiAddress,
+          'englishAddress': e.englishAddress,
+          'sub_district_ID': e.sub_district_ID,
+          'contactInformation': e.contactInformation,
+          'pictureFileName': e.pictureFileName,
+          'telephone': e.telephone,
+          'email': e.email,
+          'taxID': e.taxID,
+          'language': e.language,
+          'isActive': e.isActive,
+          'lastUpdated': e.lastUpdated,
+        });
+      }).toList(),
+      'SettingValueList': settingValues.map((e) {
+        return capitalizeKeys({
+          'id': e.id,
+          'setting_ID': e.setting_ID,
+          'name': e.name,
+          'value': e.value,
+          'type': e.type,
+          'list': e.list,
+          'lastUpdated': e.lastUpdated,
+        });
+      }).toList(),
+      'DocumentTypeList': documentTypes.map((e) {
+        return capitalizeKeys({
+          'id': e.id,
+          'printerModel': e.printerModel,
+          'lastUpdated': e.lastUpdated,
+        });
+      }).toList(),
+    };
+
+    final Map<String, dynamic> requestBody = {
       'shop_branch_service_ID': config.shop_branch_service_ID,
       'Language': config.language ?? 'th',
-      'LastSync': syncTime
-    });
+      'LastSync': syncTime,
+    };
+    
+    requestBody.addAll(pushData);
+
+    final body = jsonEncode(requestBody);
 
     // debugPrint('syncMaster body: ' + body);
 
@@ -71,6 +146,24 @@ class SyncService {
         final appDocDir = await getApplicationDocumentsDirectory();
 
         await isar.writeTxn(() async {
+          // Clear dirty flags for pushed items
+          for (var mc in merchandiseCategories) {
+            mc.isDirty = false;
+            await isar.merchandiseCategoryList.put(mc);
+          }
+          for (var s in suppliers) {
+            s.isDirty = false;
+            await isar.supplierList.put(s);
+          }
+          for (var sv in settingValues) {
+            sv.isDirty = false;
+            await isar.settingValueList.put(sv);
+          }
+          for (var dt in documentTypes) {
+            dt.isDirty = false;
+            await isar.documentTypeList.put(dt);
+          }
+
           // User
           if (responseData['UserList'] is List) {
             for (var e in responseData['UserList']) {
@@ -104,6 +197,31 @@ class SyncService {
                 item.lastUpdated = e['LastUpdated'];
                 item.isDirty = false;
                 await isar.roleList.put(item);
+              }
+            }
+          }
+
+          // RoleMasterPermission
+          if (responseData['RoleMasterPermissionList'] is List) {
+            for (var e in responseData['RoleMasterPermissionList']) {
+              final id = _parseString(e['ID']);
+              if (id != null) {
+                var item = await isar.roleMasterPermissionList.where().filter().idEqualTo(id).findFirst() ?? RoleMasterPermission();
+
+                if (item != null) { debugPrint('update ' + e['master_permission_ID'] + ' = ' + e['PermissionLevel']);}
+
+                item.id = id;
+                item.role_ID = e['role_ID'];
+                item.master_permission_ID = e['master_permission_ID'];
+                item.thaiName = e['ThaiName'];
+                item.englishName = e['EnglishName'];
+                item.canCreate = e['CanCreate'];
+                item.canRead = e['CanRead'];
+                item.canUpdate = e['CanUpdate'];
+                item.canDelete = e['CanDelete'];
+                item.lastUpdated = e['LastUpdated'];
+                item.isDirty = false;
+                await isar.roleMasterPermissionList.put(item);
               }
             }
           }

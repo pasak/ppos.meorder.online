@@ -12,6 +12,7 @@ import 'package:meorder_ppos/screen/InitScreen.dart';
 import 'package:isar/isar.dart';
 import 'package:meorder_ppos/database/IsarModels.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter/foundation.dart';
 
 void main() async {
   await Hive.initFlutter(); // มาจาก hive_flutter
@@ -52,6 +53,7 @@ class _MainScreenState extends State<MainScreen> {
         [
           UserSchema,
           RoleSchema,
+          RoleMasterPermissionSchema,
           RoleTransactionPermissionSchema,
           ShopCustomerSchema,
           ShopTableSchema,
@@ -153,6 +155,8 @@ class _MainScreenState extends State<MainScreen> {
           PosID:                  branchData['PosID']?.toString(),
           TaxID:                  branchData['TaxID'],
         );
+
+        // debugPrint('main.dart updatedConfig.shop_branch_service_ID: ${updatedConfig.shop_branch_service_ID}');
 
         setState(() { _config = updatedConfig; });
 

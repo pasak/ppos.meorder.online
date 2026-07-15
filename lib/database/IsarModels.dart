@@ -43,6 +43,23 @@ class RoleTransactionPermission {
   bool isDirty = false;
 }
 
+@Collection(accessor: 'roleMasterPermissionList')
+class RoleMasterPermission {
+  Id isarId = Isar.autoIncrement;
+  @Index(unique: true, replace: true)
+  String? id;
+  String? role_ID;
+  String? master_permission_ID;
+  String? thaiName;
+  String? englishName;
+  String? canCreate;
+  String? canRead;
+  String? canUpdate;
+  String? canDelete;
+  String? lastUpdated;
+  bool isDirty = false;
+}
+
 @Collection(accessor: 'shopCustomerList')
 class ShopCustomer {
   Id isarId = Isar.autoIncrement;
