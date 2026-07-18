@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:meorder_ppos/lib/EnvConfig.dart';
 import 'package:meorder_ppos/screen/PPosScreen.dart';
 import 'package:meorder_ppos/services/GeneralServices.dart';
+import 'package:meorder_ppos/services/SyncService.dart';
 import 'package:meorder_ppos/database/IsarModels.dart';
 import 'package:isar/isar.dart';
 import 'package:uuid/uuid.dart';
+import 'package:meorder_ppos/screen/MerchandiseItemScreen.dart';
 
 class MerchandiseCategoryScreen extends StatefulWidget {
   final EnvConfig config;
@@ -54,12 +56,14 @@ class _MerchandiseCategoryScreenState extends State<MerchandiseCategoryScreen> {
       // Build tree
       final Map<String, Map<String, dynamic>> catMap = {};
       for (var c in rawCategories) {
+        final hasItem = await isar.merchandiseItemList.filter().merchandise_category_IDEqualTo(c.id).isActiveEqualTo('Y').count() > 0;
         catMap[c.id!] = {
           'ID': c.id,
           'ParentType': c.parentType,
           'ParentID': c.parentID,
           'CategoryName': c.categoryName,
-          'Sub': <Map<String, dynamic>>[]
+          'Sub': <Map<String, dynamic>>[],
+          'hasItem': hasItem
         };
       }
 
@@ -116,6 +120,9 @@ class _MerchandiseCategoryScreenState extends State<MerchandiseCategoryScreen> {
         
         await isar.merchandiseCategoryList.put(category);
       });
+
+      await SyncService.syncMaster(widget.config);
+
       await _fetchMerchandiseCategories();
     } catch (e) {
       setState(() { _error = 'Error saving data: $e'; });
@@ -141,6 +148,9 @@ class _MerchandiseCategoryScreenState extends State<MerchandiseCategoryScreen> {
           await isar.merchandiseCategoryList.put(category);
         }
       });
+
+      await SyncService.syncMaster(widget.config);
+
       await _fetchMerchandiseCategories();
     } catch (e) {
       setState(() { _error = 'Error deleting data: $e'; });
@@ -293,12 +303,16 @@ class _MerchandiseCategoryScreenState extends State<MerchandiseCategoryScreen> {
   }
 
   void _navigateToProducts(Map<String, dynamic> category) {
-    // Navigate to MerchandiseItemScreen to manage actual products
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => MerchandiseItemScreen(config: widget.config, category: category)),
+    );
   }
 
   Widget _buildCategoryNode(Map<String, dynamic> category, int level) {
     final subCategories = List<Map<String, dynamic>>.from(category['Sub'] ?? []);
     final hasSub = subCategories.isNotEmpty;
+    final hasItem = category['hasItem'] == true;
     final paddingLeft = 16.0 + (level * 16.0);
 
     return Column(
@@ -325,8 +339,8 @@ class _MerchandiseCategoryScreenState extends State<MerchandiseCategoryScreen> {
                   tooltip: isThai ? 'แก้ไข' : 'Edit',
                 ),
                 IconButton(
-                  icon: Icon(Icons.delete, color: hasSub ? Colors.grey : Colors.red, size: 20),
-                  onPressed: hasSub ? null : () => _confirmDelete(category),
+                  icon: Icon(Icons.delete, color: (hasSub || hasItem) ? Colors.grey : Colors.red, size: 20),
+                  onPressed: (hasSub || hasItem) ? null : () => _confirmDelete(category),
                   tooltip: isThai ? 'ลบ' : 'Delete',
                 ),
                 IconButton(

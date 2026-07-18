@@ -52998,33 +52998,43 @@ const MerchandiseItemSchema = CollectionSchema(
       name: r'lastUpdated',
       type: IsarType.string,
     ),
-    r'merchandise_category_ID': PropertySchema(
+    r'localPicture': PropertySchema(
       id: 5,
+      name: r'localPicture',
+      type: IsarType.string,
+    ),
+    r'merchandise_category_ID': PropertySchema(
+      id: 6,
       name: r'merchandise_category_ID',
       type: IsarType.string,
     ),
+    r'picture': PropertySchema(
+      id: 7,
+      name: r'picture',
+      type: IsarType.string,
+    ),
     r'price': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'price',
       type: IsarType.double,
     ),
     r'productName': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'productName',
       type: IsarType.string,
     ),
     r'sku': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'sku',
       type: IsarType.string,
     ),
     r'tax': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'tax',
       type: IsarType.string,
     ),
     r'unitName': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'unitName',
       type: IsarType.string,
     )
@@ -53088,7 +53098,19 @@ int _merchandiseItemEstimateSize(
     }
   }
   {
+    final value = object.localPicture;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.merchandise_category_ID;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.picture;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
@@ -53131,12 +53153,14 @@ void _merchandiseItemSerialize(
   writer.writeString(offsets[2], object.isActive);
   writer.writeBool(offsets[3], object.isDirty);
   writer.writeString(offsets[4], object.lastUpdated);
-  writer.writeString(offsets[5], object.merchandise_category_ID);
-  writer.writeDouble(offsets[6], object.price);
-  writer.writeString(offsets[7], object.productName);
-  writer.writeString(offsets[8], object.sku);
-  writer.writeString(offsets[9], object.tax);
-  writer.writeString(offsets[10], object.unitName);
+  writer.writeString(offsets[5], object.localPicture);
+  writer.writeString(offsets[6], object.merchandise_category_ID);
+  writer.writeString(offsets[7], object.picture);
+  writer.writeDouble(offsets[8], object.price);
+  writer.writeString(offsets[9], object.productName);
+  writer.writeString(offsets[10], object.sku);
+  writer.writeString(offsets[11], object.tax);
+  writer.writeString(offsets[12], object.unitName);
 }
 
 MerchandiseItem _merchandiseItemDeserialize(
@@ -53152,12 +53176,14 @@ MerchandiseItem _merchandiseItemDeserialize(
   object.isDirty = reader.readBool(offsets[3]);
   object.isarId = id;
   object.lastUpdated = reader.readStringOrNull(offsets[4]);
-  object.merchandise_category_ID = reader.readStringOrNull(offsets[5]);
-  object.price = reader.readDoubleOrNull(offsets[6]);
-  object.productName = reader.readStringOrNull(offsets[7]);
-  object.sku = reader.readStringOrNull(offsets[8]);
-  object.tax = reader.readStringOrNull(offsets[9]);
-  object.unitName = reader.readStringOrNull(offsets[10]);
+  object.localPicture = reader.readStringOrNull(offsets[5]);
+  object.merchandise_category_ID = reader.readStringOrNull(offsets[6]);
+  object.picture = reader.readStringOrNull(offsets[7]);
+  object.price = reader.readDoubleOrNull(offsets[8]);
+  object.productName = reader.readStringOrNull(offsets[9]);
+  object.sku = reader.readStringOrNull(offsets[10]);
+  object.tax = reader.readStringOrNull(offsets[11]);
+  object.unitName = reader.readStringOrNull(offsets[12]);
   return object;
 }
 
@@ -53181,14 +53207,18 @@ P _merchandiseItemDeserializeProp<P>(
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     case 6:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 7:
       return (reader.readStringOrNull(offset)) as P;
     case 8:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 9:
       return (reader.readStringOrNull(offset)) as P;
     case 10:
+      return (reader.readStringOrNull(offset)) as P;
+    case 11:
+      return (reader.readStringOrNull(offset)) as P;
+    case 12:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -54094,6 +54124,160 @@ extension MerchandiseItemQueryFilter
   }
 
   QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      localPictureIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'localPicture',
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      localPictureIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'localPicture',
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      localPictureEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localPicture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      localPictureGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'localPicture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      localPictureLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'localPicture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      localPictureBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'localPicture',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      localPictureStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'localPicture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      localPictureEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'localPicture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      localPictureContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'localPicture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      localPictureMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'localPicture',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      localPictureIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localPicture',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      localPictureIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'localPicture',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
       merchandise_category_IDIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -54244,6 +54428,160 @@ extension MerchandiseItemQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'merchandise_category_ID',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      pictureIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'picture',
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      pictureIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'picture',
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      pictureEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'picture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      pictureGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'picture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      pictureLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'picture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      pictureBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'picture',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      pictureStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'picture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      pictureEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'picture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      pictureContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'picture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      pictureMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'picture',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      pictureIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'picture',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterFilterCondition>
+      pictureIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'picture',
         value: '',
       ));
     });
@@ -55025,6 +55363,20 @@ extension MerchandiseItemQuerySortBy
   }
 
   QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterSortBy>
+      sortByLocalPicture() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localPicture', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterSortBy>
+      sortByLocalPictureDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localPicture', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterSortBy>
       sortByMerchandise_category_ID() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'merchandise_category_ID', Sort.asc);
@@ -55035,6 +55387,19 @@ extension MerchandiseItemQuerySortBy
       sortByMerchandise_category_IDDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'merchandise_category_ID', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterSortBy> sortByPicture() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'picture', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterSortBy>
+      sortByPictureDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'picture', Sort.desc);
     });
   }
 
@@ -55186,6 +55551,20 @@ extension MerchandiseItemQuerySortThenBy
   }
 
   QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterSortBy>
+      thenByLocalPicture() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localPicture', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterSortBy>
+      thenByLocalPictureDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localPicture', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterSortBy>
       thenByMerchandise_category_ID() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'merchandise_category_ID', Sort.asc);
@@ -55196,6 +55575,19 @@ extension MerchandiseItemQuerySortThenBy
       thenByMerchandise_category_IDDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'merchandise_category_ID', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterSortBy> thenByPicture() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'picture', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QAfterSortBy>
+      thenByPictureDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'picture', Sort.desc);
     });
   }
 
@@ -55303,10 +55695,24 @@ extension MerchandiseItemQueryWhereDistinct
   }
 
   QueryBuilder<MerchandiseItem, MerchandiseItem, QDistinct>
+      distinctByLocalPicture({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'localPicture', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QDistinct>
       distinctByMerchandise_category_ID({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'merchandise_category_ID',
           caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, MerchandiseItem, QDistinct> distinctByPicture(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'picture', caseSensitive: caseSensitive);
     });
   }
 
@@ -55385,9 +55791,22 @@ extension MerchandiseItemQueryProperty
   }
 
   QueryBuilder<MerchandiseItem, String?, QQueryOperations>
+      localPictureProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'localPicture');
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, String?, QQueryOperations>
       merchandise_category_IDProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'merchandise_category_ID');
+    });
+  }
+
+  QueryBuilder<MerchandiseItem, String?, QQueryOperations> pictureProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'picture');
     });
   }
 
@@ -55464,28 +55883,38 @@ const MerchandisePackSchema = CollectionSchema(
       name: r'level',
       type: IsarType.long,
     ),
-    r'merchandise_item_ID': PropertySchema(
+    r'localPicture': PropertySchema(
       id: 6,
+      name: r'localPicture',
+      type: IsarType.string,
+    ),
+    r'merchandise_item_ID': PropertySchema(
+      id: 7,
       name: r'merchandise_item_ID',
       type: IsarType.string,
     ),
     r'packName': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'packName',
       type: IsarType.string,
     ),
+    r'picture': PropertySchema(
+      id: 9,
+      name: r'picture',
+      type: IsarType.string,
+    ),
     r'price': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'price',
       type: IsarType.double,
     ),
     r'quantity': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'quantity',
       type: IsarType.long,
     ),
     r'sku': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'sku',
       type: IsarType.string,
     )
@@ -55549,6 +55978,12 @@ int _merchandisePackEstimateSize(
     }
   }
   {
+    final value = object.localPicture;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.merchandise_item_ID;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -55556,6 +55991,12 @@ int _merchandisePackEstimateSize(
   }
   {
     final value = object.packName;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.picture;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
@@ -55581,11 +56022,13 @@ void _merchandisePackSerialize(
   writer.writeBool(offsets[3], object.isDirty);
   writer.writeString(offsets[4], object.lastUpdated);
   writer.writeLong(offsets[5], object.level);
-  writer.writeString(offsets[6], object.merchandise_item_ID);
-  writer.writeString(offsets[7], object.packName);
-  writer.writeDouble(offsets[8], object.price);
-  writer.writeLong(offsets[9], object.quantity);
-  writer.writeString(offsets[10], object.sku);
+  writer.writeString(offsets[6], object.localPicture);
+  writer.writeString(offsets[7], object.merchandise_item_ID);
+  writer.writeString(offsets[8], object.packName);
+  writer.writeString(offsets[9], object.picture);
+  writer.writeDouble(offsets[10], object.price);
+  writer.writeLong(offsets[11], object.quantity);
+  writer.writeString(offsets[12], object.sku);
 }
 
 MerchandisePack _merchandisePackDeserialize(
@@ -55602,11 +56045,13 @@ MerchandisePack _merchandisePackDeserialize(
   object.isarId = id;
   object.lastUpdated = reader.readStringOrNull(offsets[4]);
   object.level = reader.readLongOrNull(offsets[5]);
-  object.merchandise_item_ID = reader.readStringOrNull(offsets[6]);
-  object.packName = reader.readStringOrNull(offsets[7]);
-  object.price = reader.readDoubleOrNull(offsets[8]);
-  object.quantity = reader.readLongOrNull(offsets[9]);
-  object.sku = reader.readStringOrNull(offsets[10]);
+  object.localPicture = reader.readStringOrNull(offsets[6]);
+  object.merchandise_item_ID = reader.readStringOrNull(offsets[7]);
+  object.packName = reader.readStringOrNull(offsets[8]);
+  object.picture = reader.readStringOrNull(offsets[9]);
+  object.price = reader.readDoubleOrNull(offsets[10]);
+  object.quantity = reader.readLongOrNull(offsets[11]);
+  object.sku = reader.readStringOrNull(offsets[12]);
   return object;
 }
 
@@ -55634,10 +56079,14 @@ P _merchandisePackDeserializeProp<P>(
     case 7:
       return (reader.readStringOrNull(offset)) as P;
     case 8:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 9:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 10:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 11:
+      return (reader.readLongOrNull(offset)) as P;
+    case 12:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -56617,6 +57066,160 @@ extension MerchandisePackQueryFilter
   }
 
   QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      localPictureIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'localPicture',
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      localPictureIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'localPicture',
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      localPictureEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localPicture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      localPictureGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'localPicture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      localPictureLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'localPicture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      localPictureBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'localPicture',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      localPictureStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'localPicture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      localPictureEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'localPicture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      localPictureContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'localPicture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      localPictureMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'localPicture',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      localPictureIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localPicture',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      localPictureIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'localPicture',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
       merchandise_item_IDIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -56919,6 +57522,160 @@ extension MerchandisePackQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'packName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      pictureIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'picture',
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      pictureIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'picture',
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      pictureEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'picture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      pictureGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'picture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      pictureLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'picture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      pictureBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'picture',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      pictureStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'picture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      pictureEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'picture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      pictureContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'picture',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      pictureMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'picture',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      pictureIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'picture',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterFilterCondition>
+      pictureIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'picture',
         value: '',
       ));
     });
@@ -57325,6 +58082,20 @@ extension MerchandisePackQuerySortBy
   }
 
   QueryBuilder<MerchandisePack, MerchandisePack, QAfterSortBy>
+      sortByLocalPicture() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localPicture', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterSortBy>
+      sortByLocalPictureDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localPicture', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterSortBy>
       sortByMerchandise_item_ID() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'merchandise_item_ID', Sort.asc);
@@ -57349,6 +58120,19 @@ extension MerchandisePackQuerySortBy
       sortByPackNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'packName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterSortBy> sortByPicture() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'picture', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterSortBy>
+      sortByPictureDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'picture', Sort.desc);
     });
   }
 
@@ -57487,6 +58271,20 @@ extension MerchandisePackQuerySortThenBy
   }
 
   QueryBuilder<MerchandisePack, MerchandisePack, QAfterSortBy>
+      thenByLocalPicture() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localPicture', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterSortBy>
+      thenByLocalPictureDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localPicture', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterSortBy>
       thenByMerchandise_item_ID() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'merchandise_item_ID', Sort.asc);
@@ -57511,6 +58309,19 @@ extension MerchandisePackQuerySortThenBy
       thenByPackNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'packName', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterSortBy> thenByPicture() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'picture', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QAfterSortBy>
+      thenByPictureDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'picture', Sort.desc);
     });
   }
 
@@ -57598,6 +58409,13 @@ extension MerchandisePackQueryWhereDistinct
   }
 
   QueryBuilder<MerchandisePack, MerchandisePack, QDistinct>
+      distinctByLocalPicture({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'localPicture', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QDistinct>
       distinctByMerchandise_item_ID({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'merchandise_item_ID',
@@ -57609,6 +58427,13 @@ extension MerchandisePackQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'packName', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<MerchandisePack, MerchandisePack, QDistinct> distinctByPicture(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'picture', caseSensitive: caseSensitive);
     });
   }
 
@@ -57679,6 +58504,13 @@ extension MerchandisePackQueryProperty
   }
 
   QueryBuilder<MerchandisePack, String?, QQueryOperations>
+      localPictureProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'localPicture');
+    });
+  }
+
+  QueryBuilder<MerchandisePack, String?, QQueryOperations>
       merchandise_item_IDProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'merchandise_item_ID');
@@ -57688,6 +58520,12 @@ extension MerchandisePackQueryProperty
   QueryBuilder<MerchandisePack, String?, QQueryOperations> packNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'packName');
+    });
+  }
+
+  QueryBuilder<MerchandisePack, String?, QQueryOperations> pictureProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'picture');
     });
   }
 

@@ -88,6 +88,7 @@ class _MainScreenState extends State<MainScreen> {
           ReceiptItemStockSchema,
           SupplierSchema,
         ],
+        maxSizeMiB: 256,
         directory: directory.path,
       );
     }

@@ -188,14 +188,21 @@ class _SetPrinterScreenState extends State<SetPrinterScreen> {
 
     bytes += generator.reset();
 
+    debugPrint('_generateReceiptBytes start');
+
     final isar = Isar.getInstance()!;
+
+    debugPrint('_generateReceiptBytes isar = $isar');
 
     final documentTypes = await isar.documentTypeList
         .where()
         .filter()
         .printerModelEqualTo(_selectedModel)
         .findAll();
+
     final documentType = documentTypes.isNotEmpty ? documentTypes.first : null;
+
+    debugPrint('_generateReceiptBytes documentType.id = ${documentType?.id}');
 
     if (documentType == null) return bytes;
 
@@ -207,6 +214,8 @@ class _SetPrinterScreenState extends State<SetPrinterScreen> {
         .isActiveEqualTo('Y')
         .sortBySeq()
         .findAll();
+
+    debugPrint('_generateReceiptBytes templates.length = ${templates.length}');
 
     for (var dt in templates) {
       if (dt.alignment == 'Full') continue;
@@ -348,6 +357,8 @@ class _SetPrinterScreenState extends State<SetPrinterScreen> {
   }
 
   void _printReceiptLAN() async {
+    debugPrint('_printReceiptLAN start');
+
     if (_ipController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter Printer IP Address')),
@@ -358,6 +369,8 @@ class _SetPrinterScreenState extends State<SetPrinterScreen> {
     setState(() { _isPrinting = true; });
 
     try {
+      debugPrint('_printReceiptLAN _generateReceiptBytes');
+
       List<int> bytes = await _generateReceiptBytes();
       
       Socket socket = await Socket.connect(_ipController.text, 9100, timeout: const Duration(seconds: 5));

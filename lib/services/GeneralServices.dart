@@ -45,7 +45,7 @@ class GeneralServices {
       String roleID, EnvConfig config) async {
     List<RoleMasterPermission> adminMenuList = [];
 
-    List<String> masterPermissionIDList = []
+    List<String> masterPermissionIDList = [];
 
     if (config.service_module_ID == 'FOA' || config.service_module_ID == 'FOB') {
       masterPermissionIDList = [

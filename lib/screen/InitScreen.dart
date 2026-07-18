@@ -87,7 +87,8 @@ class _InitScreenState extends State<InitScreen> {
       
       if (response.statusCode == 200) {
         setState(() { _debug = 'Processing data...'; });
-        
+        debugPrint(_debug);
+
         final responseData = jsonDecode(response.body);
         
         // 1. Process Branch Data
@@ -123,9 +124,80 @@ class _InitScreenState extends State<InitScreen> {
         );
 
         setState(() { _debug = 'updatedConfig success'; });
+        debugPrint(_debug);
 
         // 2. Process Isar Data
         final isar = Isar.getInstance()!;
+        final appDocDir = await getApplicationDocumentsDirectory();
+
+        // --- PRE-DOWNLOAD IMAGES ---
+        debugPrint('_submitCode PRE-DOWNLOAD IMAGES');
+
+        final foodItemListRaw = responseData['FoodItemList'] as List<dynamic>? ?? [];
+        for (var e in foodItemListRaw) {
+          final String? pic = e['Picture'];
+          if (pic != null && pic.isNotEmpty) {
+            final url = widget.config.apiUrl + pic;
+            try {
+              final filename = pic.split('/').last;
+              final localFile = File('${appDocDir.path}/$filename');
+              if (!await localFile.exists()) {
+                final picResponse = await http.get(Uri.parse(url));
+                if (picResponse.statusCode == 200) {
+                  await localFile.writeAsBytes(picResponse.bodyBytes);
+                }
+              }
+            } catch (err) {
+              debugPrint("Error pre-downloading food item picture: $err");
+            }
+          }
+        }
+
+        final paymentValueListRaw = responseData['PaymentValueList'] as List<dynamic>? ?? [];
+        for (var e in paymentValueListRaw) {
+          if (e['Type'] == 'P' && e['Value'] != null && e['Value'].toString().isNotEmpty) {
+            final String pic = e['Value'].toString();
+            final url = widget.config.apiUrl + pic;
+            try {
+              final filename = pic.split('/').last;
+              final localFile = File('${appDocDir.path}/$filename');
+              if (await localFile.exists()) {
+                await localFile.delete();
+              }
+              final picResponse = await http.get(Uri.parse(url));
+              if (picResponse.statusCode == 200) {
+                await localFile.writeAsBytes(picResponse.bodyBytes);
+              } else {
+                debugPrint('Failed to download payment image (Status: ${picResponse.statusCode})');
+              }
+            } catch (err) {
+              debugPrint("Error pre-downloading payment image: $err");
+            }
+          }
+        }
+
+        final merchandiseItemListRaw = responseData['MerchandiseItemList'] as List<dynamic>? ?? [];
+        for (var e in merchandiseItemListRaw) {
+          final String? pic = e['Picture'];
+          if (pic != null && pic.isNotEmpty) {
+            final url = widget.config.apiUrl + pic;
+            try {
+              final filename = pic.split('/').last;
+              final localFile = File('${appDocDir.path}/$filename');
+              if (!await localFile.exists()) {
+                final picResponse = await http.get(Uri.parse(url));
+                if (picResponse.statusCode == 200) {
+                  await localFile.writeAsBytes(picResponse.bodyBytes);
+                }
+              }
+            } catch (err) {
+              debugPrint("Error pre-downloading merchandise image: $err");
+            }
+          }
+        }
+
+        debugPrint('_submitCode END PRE-DOWNLOAD');
+        // --- END PRE-DOWNLOAD ---
 
         await isar.writeTxn(() async {
           // Clear existing data
@@ -370,7 +442,6 @@ class _InitScreenState extends State<InitScreen> {
 
           // FoodItem
           final foodItemListRaw = responseData['FoodItemList'] as List<dynamic>? ?? [];
-          final appDocDir = await getApplicationDocumentsDirectory();
           
           List<FoodItem> foodItem = [];
           for (var e in foodItemListRaw) {
@@ -393,18 +464,9 @@ class _InitScreenState extends State<InitScreen> {
                ..isDirty = false;
                
              if (item.picture != null && item.picture!.isNotEmpty) {
-                 final url = widget.config.apiUrl + item.picture!;
-                 try {
-                     final picResponse = await http.get(Uri.parse(url));
-                     if (picResponse.statusCode == 200) {
-                         final filename = item.picture!.split('/').last;
-                         final localFile = File('${appDocDir.path}/$filename');
-                         await localFile.writeAsBytes(picResponse.bodyBytes);
-                         item.localPicture = localFile.path;
-                     }
-                 } catch (err) {
-                     debugPrint("Error downloading picture for food item ${item.id}: $err");
-                 }
+                 final filename = item.picture!.split('/').last;
+                 final localFile = File('${appDocDir.path}/$filename');
+                 item.localPicture = localFile.path;
              }
              foodItem.add(item);
           }
@@ -514,25 +576,9 @@ class _InitScreenState extends State<InitScreen> {
                ..isDirty = false;
                
              if (item.type == 'P' && item.value != null && item.value!.isNotEmpty) {
-                 final url = widget.config.apiUrl + item.value!;
-                 try {
-                     final filename = item.value!.split('/').last;
-                     final localFile = File('${appDocDir.path}/$filename');
-                     
-                     if (await localFile.exists()) {
-                         await localFile.delete();
-                     }
-
-                     final picResponse = await http.get(Uri.parse(url));
-                     if (picResponse.statusCode == 200) {
-                         await localFile.writeAsBytes(picResponse.bodyBytes);
-                         item.localPicture = localFile.path;
-                     } else {
-                         throw Exception('Failed to download payment image (Status: ${picResponse.statusCode})');
-                     }
-                 } catch (err) {
-                     throw Exception('Error downloading payment image: $err');
-                 }
+                 final filename = item.value!.split('/').last;
+                 final localFile = File('${appDocDir.path}/$filename');
+                 item.localPicture = localFile.path;
              }
              paymentValue.add(item);
           }
@@ -557,38 +603,68 @@ class _InitScreenState extends State<InitScreen> {
 
           // MerchandiseItem
           final merchandiseItemListRaw = responseData['MerchandiseItemList'] as List<dynamic>? ?? [];
-          final merchandiseItem = merchandiseItemListRaw.map((e) => MerchandiseItem()
-            ..id = e['ID']
-            ..barcode = e['Barcode']
-            ..sku = e['SKU']
-            ..merchandise_category_ID = e['merchandise_category_ID']
-            ..productName = e['ProductName']
-            ..price = double.tryParse(e['Price']?.toString() ?? '')
-            ..unitName = e['UnitName']
-            ..tax = e['Tax']
-            ..isActive = e['IsActive']
-            ..lastUpdated = e['LastUpdated']
-            ..isDirty = false
-          ).toList();
+          
+          List<MerchandiseItem> merchandiseItem = [];
+          for (var e in merchandiseItemListRaw) {
+            final item = MerchandiseItem()
+              ..id = e['ID']
+              ..barcode = e['Barcode']
+              ..sku = e['SKU']
+              ..merchandise_category_ID = e['merchandise_category_ID']
+              ..productName = e['ProductName']
+              ..price = double.tryParse(e['Price']?.toString() ?? '')
+              ..unitName = e['UnitName']
+              ..picture = e['Picture']
+              ..tax = e['Tax']
+              ..isActive = e['IsActive']
+              ..lastUpdated = e['LastUpdated']
+              ..isDirty = false;
+              
+            if (item.picture != null && item.picture!.isNotEmpty) {
+                final filename = item.picture!.split('/').last;
+                item.localPicture = filename;
+            }
+            merchandiseItem.add(item);
+          }
           await isar.merchandiseItemList.putAll(merchandiseItem);
 
           setState(() { _debug = 'putAll MerchandiseItem success'; });
 
           // MerchandisePack
           final merchandisePackListRaw = responseData['MerchandisePackList'] as List<dynamic>? ?? [];
-          final merchandisePack = merchandisePackListRaw.map((e) => MerchandisePack()
-            ..id = e['ID']
-            ..barcode = e['Barcode']
-            ..sku = e['SKU']
-            ..merchandise_item_ID = e['merchandise_item_ID']
-            ..level = int.tryParse(e['Level']?.toString() ?? '')
-            ..quantity = int.tryParse(e['Quantity']?.toString() ?? '')
-            ..packName = e['PackName']
-            ..price = double.tryParse(e['Price']?.toString() ?? '')
-            ..isActive = e['IsActive']
-            ..lastUpdated = e['LastUpdated']
-            ..isDirty = false
-          ).toList();
+          
+          List<MerchandisePack> merchandisePack = [];
+          for (var e in merchandisePackListRaw) {
+            final item = MerchandisePack()
+              ..id = e['ID']
+              ..barcode = e['Barcode']
+              ..sku = e['SKU']
+              ..merchandise_item_ID = e['merchandise_item_ID']
+              ..level = int.tryParse(e['Level']?.toString() ?? '')
+              ..quantity = int.tryParse(e['Quantity']?.toString() ?? '')
+              ..packName = e['PackName']
+              ..price = double.tryParse(e['Price']?.toString() ?? '')
+              ..picture = e['Picture']
+              ..isActive = e['IsActive']
+              ..lastUpdated = e['LastUpdated']
+              ..isDirty = false;
+              
+            if (item.picture != null && item.picture!.isNotEmpty) {
+                final url = widget.config.apiUrl + item.picture!;
+                try {
+                    final picResponse = await http.get(Uri.parse(url));
+                    if (picResponse.statusCode == 200) {
+                        final filename = item.picture!.split('/').last;
+                        final localFile = File('${appDocDir.path}/$filename');
+                        await localFile.writeAsBytes(picResponse.bodyBytes);
+                        item.localPicture = localFile.path;
+                    }
+                } catch (err) {
+                    debugPrint("Error downloading picture for merchandise pack ${item.id}: $err");
+                }
+            }
+            merchandisePack.add(item);
+          }
           await isar.merchandisePackList.putAll(merchandisePack);
 
           setState(() { _debug = 'putAll MerchandisePack success'; });
@@ -655,7 +731,10 @@ class _InitScreenState extends State<InitScreen> {
 
         // 3. Process Transaction Data
         final uriTx = Uri.parse('${widget.config.apiUrl}api/pos/pull-transaction');
+
         setState(() { _debug = 'Pulling transaction...'; });
+        debugPrint(_debug);
+
         final responseTx = await http.post(uriTx, headers: headers, body: body);
 
         if (responseTx.statusCode == 200) {
@@ -822,6 +901,9 @@ class _InitScreenState extends State<InitScreen> {
         setState(() { _isLoading = false; });
 
         if (!mounted) return;
+
+        debugPrint('End Pulling transaction will go to SetPrinterScreen');
+
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => SetPrinterScreen(config: updatedConfig),

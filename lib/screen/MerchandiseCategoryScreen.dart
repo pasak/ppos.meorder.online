@@ -6,6 +6,7 @@ import 'package:meorder_ppos/services/SyncService.dart';
 import 'package:meorder_ppos/database/IsarModels.dart';
 import 'package:isar/isar.dart';
 import 'package:uuid/uuid.dart';
+import 'package:meorder_ppos/screen/MerchandiseItemScreen.dart';
 
 class MerchandiseCategoryScreen extends StatefulWidget {
   final EnvConfig config;
@@ -22,6 +23,11 @@ class _MerchandiseCategoryScreenState extends State<MerchandiseCategoryScreen> {
   List<Map<String, dynamic>> _merchandiseCategories = [];
   String _error = '';
 
+  bool canCreate = false;
+  bool canUpdate = false;
+  bool canDelete = false;
+  bool canReadItem = false;
+
   @override
   void initState() {
     super.initState();
@@ -33,9 +39,16 @@ class _MerchandiseCategoryScreenState extends State<MerchandiseCategoryScreen> {
     final roleID = widget.config.UserRole;
     if (roleID != null) {
       final menu = await GeneralServices.getAdminMenuList(roleID, widget.config);
+      final mp = await GeneralServices.getRoleMasterPermission(roleID, 'FO_MERCHANDISE_CATEGORY');
+      final mpItem = await GeneralServices.getRoleMasterPermission(roleID, 'FO_MERCHANDISE_ITEM');
+      
       if (mounted) {
         setState(() {
           _adminMenuList = menu;
+          canCreate = (mp?.canCreate ?? 'N') == 'Y';
+          canUpdate = (mp?.canUpdate ?? 'N') == 'Y';
+          canDelete = (mp?.canDelete ?? 'N') == 'Y';
+          canReadItem = (mpItem?.canRead ?? 'N') == 'Y';
         });
       }
     }
@@ -302,7 +315,10 @@ class _MerchandiseCategoryScreenState extends State<MerchandiseCategoryScreen> {
   }
 
   void _navigateToProducts(Map<String, dynamic> category) {
-    // Navigate to MerchandiseItemScreen to manage actual products
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => MerchandiseItemScreen(config: widget.config, category: category)),
+    );
   }
 
   Widget _buildCategoryNode(Map<String, dynamic> category, int level) {
@@ -330,29 +346,29 @@ class _MerchandiseCategoryScreenState extends State<MerchandiseCategoryScreen> {
                 ),
                 // Actions
                 IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.blue, size: 20),
-                  onPressed: () => _showEditDialog(category: category),
+                  icon: Icon(Icons.edit, color: canUpdate ? Colors.blue : Colors.grey, size: 20),
+                  onPressed: (canUpdate) ? () => _showEditDialog(category: category) : null,
                   tooltip: isThai ? 'แก้ไข' : 'Edit',
                 ),
                 IconButton(
-                  icon: Icon(Icons.delete, color: (hasSub || hasItem) ? Colors.grey : Colors.red, size: 20),
-                  onPressed: (hasSub || hasItem) ? null : () => _confirmDelete(category),
+                  icon: Icon(Icons.delete, color: (hasSub || hasItem || !canDelete) ? Colors.grey : Colors.red, size: 20),
+                  onPressed: (hasSub || hasItem || !canDelete) ? null : () => _confirmDelete(category),
                   tooltip: isThai ? 'ลบ' : 'Delete',
                 ),
                 IconButton(
-                  icon: const Icon(Icons.add_circle_outline, color: Colors.green, size: 20),
-                  onPressed: () => _showEditDialog(parentType: 'merchandise_category', parentId: category['ID']),
+                  icon: Icon(Icons.add_circle_outline, color: canCreate ? Colors.green : Colors.grey, size: 20),
+                  onPressed: (canCreate) ? () => _showEditDialog(parentType: 'merchandise_category', parentId: category['ID']) : null,
                   tooltip: isThai ? 'เพิ่มหมวดหมู่ย่อย' : 'Add Sub-category',
                 ),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.local_offer, size: 16),
-                  label: Text(isThai ? 'สินค้า' : 'Items'),
-                  onPressed: () => _navigateToProducts(category),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    minimumSize: const Size(0, 30),
+                  ElevatedButton.icon(
+                    icon: Icon(Icons.local_offer, color: canReadItem ? Colors.black : Colors.grey, size: 16),
+                    label: Text(isThai ? 'สินค้า' : 'Items'),
+                    onPressed: (canReadItem) ? () => _navigateToProducts(category) : null,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      minimumSize: const Size(0, 30),
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -371,12 +387,6 @@ class _MerchandiseCategoryScreenState extends State<MerchandiseCategoryScreen> {
         bottom: false,
         child: Row(
           children: [
-            /*
-            IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black),
-              onPressed: () => Navigator.pop(context),
-            ),
-            */
             Expanded(
               child: Text(
                 isThai ? 'หมวดหมู่สินค้า' : 'Merchandise Categories',
@@ -394,11 +404,12 @@ class _MerchandiseCategoryScreenState extends State<MerchandiseCategoryScreen> {
               },
             ),
             GeneralServices.getAdminPopupMenuButton(context, widget.config, _adminMenuList, isThai),
-            IconButton(
-              icon: const Icon(Icons.add, color: Colors.black),
-              onPressed: () => _showEditDialog(parentType: 'shop', parentId: widget.config.shop_ID),
-              tooltip: isThai ? 'เพิ่มหมวดหมู่หลัก' : 'Add Main Category',
-            ),
+            if (canCreate)
+              IconButton(
+                icon: Icon(Icons.add, color: canCreate ? Colors.black : Colors.grey),
+                onPressed: (canCreate) ? () => _showEditDialog(parentType: 'shop', parentId: widget.config.shop_ID) : null,
+                tooltip: isThai ? 'เพิ่มหมวดหมู่หลัก' : 'Add Main Category',
+              ),
             IconButton(
               icon: const Icon(Icons.refresh, color: Colors.black),
               onPressed: _fetchMerchandiseCategories,

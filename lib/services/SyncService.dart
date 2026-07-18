@@ -54,6 +54,7 @@ class SyncService {
     };
 
     final merchandiseCategories = await isar.merchandiseCategoryList.where().filter().isDirtyEqualTo(true).findAll();
+    final merchandiseItems = await isar.merchandiseItemList.where().filter().isDirtyEqualTo(true).findAll();
     final suppliers = await isar.supplierList.where().filter().isDirtyEqualTo(true).findAll();
     final settingValues = await isar.settingValueList.where().filter().isDirtyEqualTo(true).findAll();
     final documentTypes = await isar.documentTypeList.where().filter().isDirtyEqualTo(true).findAll();
@@ -85,6 +86,24 @@ class SyncService {
           'lastUpdated': e.lastUpdated,
         });
       }).toList(),
+      
+      'MerchandiseItemList': merchandiseItems.map((e) {
+        debugPrint('syncMaster e.price = ${e.price}, e.localPicture = ${e.localPicture}');
+
+        return capitalizeKeys({
+          'id': e.id,
+          'barcode': e.barcode,
+          'merchandise_category_ID': e.merchandise_category_ID,
+          'productName': e.productName,
+          'price': e.price,
+          'unitName': e.unitName,
+          'picture': e.localPicture,
+          'tax': e.tax,
+          'isActive': e.isActive,
+          'lastUpdated': e.lastUpdated,
+        });
+      }).toList(),
+
       'SupplierList': suppliers.map((e) {
         return capitalizeKeys({
           'id': e.id,
@@ -124,20 +143,34 @@ class SyncService {
       }).toList(),
     };
 
-    final Map<String, dynamic> requestBody = {
-      'shop_branch_service_ID': config.shop_branch_service_ID,
-      'Language': config.language ?? 'th',
-      'LastSync': syncTime,
-    };
-    
-    requestBody.addAll(pushData);
+    var request = http.MultipartRequest('POST', uri);
+    request.headers.addAll({
+      'Authorization': 'Bearer ${config.apiToken}',
+    });
 
-    final body = jsonEncode(requestBody);
+    request.fields['shop_branch_service_ID'] = config.shop_branch_service_ID.toString();
+    request.fields['Language'] = config.language ?? 'th';
+    request.fields['LastSync'] = syncTime;
 
-    // debugPrint('syncMaster body: ' + body);
+    pushData.forEach((key, value) {
+      request.fields[key] = jsonEncode(value);
+    });
+
+    final docDir = await getApplicationDocumentsDirectory();
+    for (var item in merchandiseItems) {
+      if (item.localPicture != null && item.localPicture!.isNotEmpty) {
+        final filePath = '${docDir.path}/${item.localPicture}';
+        if (await File(filePath).exists()) {
+          request.files.add(
+            await http.MultipartFile.fromPath('Picture[]', filePath),
+          );
+        }
+      }
+    }
 
     try {
-      final response = await http.post(uri, headers: headers, body: body);
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
       
       if (response.statusCode == 200) {
         final newSyncTime = DateTime.now().toIso8601String();
@@ -145,11 +178,79 @@ class SyncService {
 
         final appDocDir = await getApplicationDocumentsDirectory();
 
+        // Download images OUTSIDE the Isar transaction to avoid MdbxError (11) lock timeouts
+        if (responseData['FoodItemList'] is List) {
+          for (var e in responseData['FoodItemList']) {
+            final String? pic = e['Picture'];
+            if (pic != null && pic.isNotEmpty) {
+              final url = config.apiUrl + pic;
+              try {
+                final filename = pic.split('/').last;
+                final localFile = File('${appDocDir.path}/$filename');
+                if (!await localFile.exists()) {
+                  final picResponse = await http.get(Uri.parse(url));
+                  if (picResponse.statusCode == 200) {
+                    await localFile.writeAsBytes(picResponse.bodyBytes);
+                  }
+                }
+              } catch (err) {
+                debugPrint("Error pre-downloading picture for food item: $err");
+              }
+            }
+          }
+        }
+
+        if (responseData['PaymentValueList'] is List) {
+          for (var e in responseData['PaymentValueList']) {
+            if (e['Type'] == 'P' && e['Value'] != null && e['Value'].toString().isNotEmpty) {
+              final String pic = e['Value'].toString();
+              final url = config.apiUrl + pic;
+              try {
+                final filename = pic.split('/').last;
+                final localFile = File('${appDocDir.path}/$filename');
+                if (!await localFile.exists()) {
+                  final picResponse = await http.get(Uri.parse(url));
+                  if (picResponse.statusCode == 200) {
+                    await localFile.writeAsBytes(picResponse.bodyBytes);
+                  }
+                }
+              } catch (err) {
+                debugPrint("Error pre-downloading payment image: $err");
+              }
+            }
+          }
+        }
+
+        if (responseData['MerchandiseItemList'] is List) {
+          for (var e in responseData['MerchandiseItemList']) {
+            final String? pic = e['Picture'];
+            if (pic != null && pic.isNotEmpty) {
+              final url = config.apiUrl + pic;
+              try {
+                final filename = pic.split('/').last;
+                final localFile = File('${appDocDir.path}/$filename');
+                if (!await localFile.exists()) {
+                  final picResponse = await http.get(Uri.parse(url));
+                  if (picResponse.statusCode == 200) {
+                    await localFile.writeAsBytes(picResponse.bodyBytes);
+                  }
+                }
+              } catch (err) {
+                debugPrint("Error pre-downloading picture for merchandise item: $err");
+              }
+            }
+          }
+        }
+
         await isar.writeTxn(() async {
           // Clear dirty flags for pushed items
           for (var mc in merchandiseCategories) {
             mc.isDirty = false;
             await isar.merchandiseCategoryList.put(mc);
+          }
+          for (var mi in merchandiseItems) {
+            mi.isDirty = false;
+            await isar.merchandiseItemList.put(mi);
           }
           for (var s in suppliers) {
             s.isDirty = false;
@@ -428,20 +529,9 @@ class SyncService {
                 item.isDirty = false;
 
                 if (item.picture != null && item.picture!.isNotEmpty) {
-                  final url = config.apiUrl + item.picture!;
-                  try {
-                    final filename = item.picture!.split('/').last;
-                    final localFile = File('${appDocDir.path}/$filename');
-                    if (!await localFile.exists()) {
-                      final picResponse = await http.get(Uri.parse(url));
-                      if (picResponse.statusCode == 200) {
-                        await localFile.writeAsBytes(picResponse.bodyBytes);
-                        item.localPicture = localFile.path;
-                      }
-                    }
-                  } catch (err) {
-                    debugPrint("Error downloading picture for food item ${item.id}: $err");
-                  }
+                  final filename = item.picture!.split('/').last;
+                  final localFile = File('${appDocDir.path}/$filename');
+                  item.localPicture = localFile.path;
                 }
                 
                 await isar.foodItemList.put(item);
@@ -566,20 +656,9 @@ class SyncService {
                 item.isDirty = false;
 
                 if (item.type == 'P' && item.value != null && item.value!.isNotEmpty) {
-                  final url = config.apiUrl + item.value!;
-                  try {
-                    final filename = item.value!.split('/').last;
-                    final localFile = File('${appDocDir.path}/$filename');
-                    if (!await localFile.exists()) {
-                      final picResponse = await http.get(Uri.parse(url));
-                      if (picResponse.statusCode == 200) {
-                        await localFile.writeAsBytes(picResponse.bodyBytes);
-                        item.localPicture = localFile.path;
-                      }
-                    }
-                  } catch (err) {
-                    debugPrint("Error downloading payment image: $err");
-                  }
+                  final filename = item.value!.split('/').last;
+                  final localFile = File('${appDocDir.path}/$filename');
+                  item.localPicture = localFile.path;
                 }
                 
                 await isar.paymentValueList.put(item);
@@ -612,16 +691,25 @@ class SyncService {
               if (id != null) {
                 var item = await isar.merchandiseItemList.where().filter().idEqualTo(id).findFirst() ?? MerchandiseItem();
                 item.id = id;
-                item.barcode = e['Barcode'];
-                item.sku = e['SKU'];
+                item.barcode = e['Barcode'] ?? e['barcode'];
+                item.sku = e['SKU'] ?? e['sku'];
                 item.merchandise_category_ID = e['merchandise_category_ID'];
-                item.productName = e['ProductName'];
-                item.price = _parseDouble(e['Price']);
-                item.unitName = e['UnitName'];
-                item.tax = e['Tax'];
+                item.productName = e['ProductName'] ?? e['productName'];
+                item.price = _parseDouble(e['Price'] ?? e['price']);
+                item.unitName = e['UnitName'] ?? e['unitName'];
+                item.picture = e['Picture'] ?? e['picture'];
+                item.tax = e['Tax'] ?? e['tax'];
                 item.isActive = e['IsActive'];
                 item.lastUpdated = e['LastUpdated'];
                 item.isDirty = false;
+
+                if (item.picture != null && item.picture!.isNotEmpty) {
+                  final filename = item.picture!.split('/').last;
+                  if (filename != item.localPicture) {
+                    item.localPicture = filename;
+                  }
+                }
+
                 await isar.merchandiseItemList.put(item);
               }
             }

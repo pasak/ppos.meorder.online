@@ -412,6 +412,8 @@ class MerchandiseItem {
   String? productName;
   double? price;
   String? unitName;
+  String? picture;
+  String? localPicture;
   String? tax;
   String? isActive;
   String? lastUpdated;
@@ -433,6 +435,8 @@ class MerchandisePack {
   int? quantity;
   String? packName;
   double? price;
+  String? picture;
+  String? localPicture;
   String? isActive;
   String? lastUpdated;
   bool isDirty = false;
